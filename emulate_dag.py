@@ -334,6 +334,25 @@ def client_profile(integration_id):
         raise e
     finally:
         pass
+    
+    
+def creteinfra2(integration_id):    
+    
+    api_conection_info = get_api_conection_info(integration_id)
+    data_conection_info = get_data_conection_info(integration_id)
+    coorp_conection_info = get_coorp_conection_info(integration_id)
+
+    from vtex.modules import client_profile
+    try:
+        
+        client_profile.set_globals(api_conection_info, data_conection_info, coorp_conection_info)
+        
+        return True
+    except Exception as e:
+        logging.exception(f"An unexpected error occurred during DAG - {e}")
+        raise e
+    finally:
+        pass
 
 if __name__ == "__main__":
     
@@ -343,4 +362,5 @@ if __name__ == "__main__":
     # orders_items(integration_id)
     # orders_totals(integration_id)
     # orders_shipping(integration_id)
-    client_profile(integration_id)
+    # client_profile(integration_id)
+    brands(integration_id)
