@@ -70,7 +70,7 @@ def get_import_last_rum_date(connection_info, integration_id):
 
 
 
-def get_coorp_conection_info(integration_id):
+def get_coorp_conection_info(schema='public'):
     
     coorp_conection_info = {
         'host': os.environ.get("COORP_PGHOST"),
@@ -78,13 +78,13 @@ def get_coorp_conection_info(integration_id):
         'port': 5432,
         'database': os.environ.get("COORP_PGDATABASE"),
         'password': os.environ.get("COORP_PGPASSWORD"),
-        'schema': 'public'
+        'schema': schema
     }
     
     return coorp_conection_info
 
 
-def get_data_conection_info(integration_id):
+def get_data_conection_info(schema):
     
     data_conection_info = {
         'host': os.environ.get("DATA_PGHOST"),
@@ -92,7 +92,7 @@ def get_data_conection_info(integration_id):
         'port': 5432,
         'database': os.environ.get("DATA_PGDATABASE"),
         'password': os.environ.get("DATA_PGPASSWORD"),
-        'schema': integration_id
+        'schema': schema
     }
 
     return data_conection_info
