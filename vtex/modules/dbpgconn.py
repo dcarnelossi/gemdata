@@ -209,7 +209,7 @@ class WriteJsonToPostgres():
     def insert_data(self):
         try:
             cursor = self.connection.connect().cursor()
-
+            
             # Extraia colunas e valores
             columns = self.data.keys()
             # values = [self.data[column] for column in columns]
@@ -234,6 +234,7 @@ class WriteJsonToPostgres():
 
             # Prepare a instrução SQL com placeholders para os valores
             table_name = self.tablename  # Assume tablename é uma string
+           
             sql_insert = "INSERT INTO {} ({}) VALUES ({})".format(
                 table_name,
                 ', '.join(columns),  # Certifique-se de que os nomes das colunas estão corretos
@@ -260,10 +261,11 @@ class WriteJsonToPostgres():
             # Caso o cursor já tenha sido criado, feche-o
             if 'cursor' in locals():
                 cursor.close()
-
+           
+      
             # Registro o erro para depuração
             logging.error(f"Erro ao inserir os dados: {e}")
-
+          
             return False  # Retorno em caso de falha
 
         finally:
@@ -369,6 +371,45 @@ class WriteJsonToPostgres():
             # Garanta que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
+
+
+
+
+# aqui é para executar qualquer update, create e etc .. 
+    def execute_data_query(self):
+        try:
+            cursor = self.connection.connect().cursor()
+            #print(query)
+            # Executa a consulta
+            query = self.data
+            
+            cursor.execute(query)
+          
+            self.connection.commit()
+            cursor.close()
+
+            return True
+
+        except Exception as e:
+            # Em caso de falha, faça o rollback da transação e feche a conexão
+            self.connection.rollback()
+
+            # Caso o cursor já tenha sido criado, feche-o
+            if 'cursor' in locals():
+                cursor.close()
+
+            # Registre o erro para depuração
+            print(f"Erro ao executar query: {e}")
+
+            return False
+
+        finally:
+        # Garanta que a conexão seja fechada mesmo se uma exceção ocorrer
+            if self.connection:
+                self.connection.close()
+
+
+
 
 
 # if __name__ == "__main__":

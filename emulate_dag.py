@@ -17,6 +17,8 @@ def integrationInfo(connection_info, integration_id):
     try:
         
         print("integrationInfo")
+       # print(connection_info)
+       # print(integration_id)
 
         start_time = time.time()
 
@@ -106,7 +108,7 @@ def get_api_conection_info(integration_id):
         print(integration_id)
         
         data = integrationInfo(get_coorp_conection_info(integration_id), integration_id)
-        
+        #print(data)
         api_conection_info = data[0][1][0]
         VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
@@ -336,17 +338,19 @@ def client_profile(integration_id):
         pass
     
     
-def creteinfra2(integration_id):    
+def createinfra2(integration_id):    
     
     api_conection_info = get_api_conection_info(integration_id)
     data_conection_info = get_data_conection_info(integration_id)
-    coorp_conection_info = get_coorp_conection_info(integration_id)
+    coorp_conection_info = get_coorp_conection_info()
 
-    from vtex.modules import client_profile
+    from vtex.modules import create_structure_client
     try:
-        
-        client_profile.set_globals(api_conection_info, data_conection_info, coorp_conection_info)
-        
+
+        #print(integration_id)
+
+        create_structure_client.set_globals(api_conection_info, data_conection_info, coorp_conection_info )
+      
         return True
     except Exception as e:
         logging.exception(f"An unexpected error occurred during DAG - {e}")
@@ -356,11 +360,13 @@ def creteinfra2(integration_id):
 
 if __name__ == "__main__":
     
-    
-    integration_id = "c01838dc-fc3b-401c-91ea-fa8eaeee4ce6"
+    #afcfca00-39c0-4f1e-86d4-497651579c65
+    #bf3a2ace-9b8d-459a-93a7-e9fcca08d63a
+    integration_id = "afcfca00-39c0-4f1e-86d4-497651579c65"
     
     # orders_items(integration_id)
     # orders_totals(integration_id)
     # orders_shipping(integration_id)
     # client_profile(integration_id)
-    brands(integration_id)
+    createinfra2(integration_id)
+ 
