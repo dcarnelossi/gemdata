@@ -8,6 +8,7 @@ import time
 from vtex.modules import dbpgconn
 
 
+
 load_dotenv()
 
 
@@ -337,19 +338,31 @@ def client_profile(integration_id):
     finally:
         pass
     
+
+def get_blob_conection_info(hashclient):
     
-def createinfra2(integration_id):    
+    blob_conection_info = {
+        'blobaccounturl': os.environ.get("BLOB_AZURE_ACCOUNT_URL"),
+        'blobcredential': os.environ.get("BLOB_AZURE_CREDENTIAL"),
+        'blobcontainer': os.environ.get("BLOB_AZURE_CONTAINER"),
+        'blobclient': hashclient
+    }
+
+    return blob_conection_info    
+    
+def testeblob(integration_id):    
     
     api_conection_info = get_api_conection_info(integration_id)
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info()
+    blob_conection_info = get_blob_conection_info(integration_id)
 
-    from vtex.modules import create_structure_client
+    from vtex.modules import corporativo_blob_json_t2
     try:
 
         #print(integration_id)
 
-        create_structure_client.set_globals(api_conection_info, data_conection_info, coorp_conection_info )
+        corporativo_blob_json_t2.set_globals(blob_conection_info)
       
         return True
     except Exception as e:
@@ -368,5 +381,5 @@ if __name__ == "__main__":
     # orders_totals(integration_id)
     # orders_shipping(integration_id)
     # client_profile(integration_id)
-    createinfra2(integration_id)
+    testeblob(integration_id)
  

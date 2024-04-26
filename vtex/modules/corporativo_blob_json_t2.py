@@ -1,13 +1,7 @@
-from vtex.modules.config import *
-
-
 import json
 import os
 import psycopg2
 from psycopg2 import sql
-
-
-
 from datetime import datetime
 
 import psycopg2.extensions
@@ -21,7 +15,7 @@ from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
 #pip install azure-storage-blob
 from vtex.modules.blobconn import *
 
-#blob_conection_info=None
+blob_conection_info=None
 
 
 
@@ -93,40 +87,40 @@ def executar_query_json(consulta,args=(), one= False):
 
 
 
-#file_dir,file_name,string_to_save
-def save_json_to_blob_storage(file_name,consulta):
-    try:
-        # Connect to Azure Blob Storage service
-        blob_connection = BlobServiceClient(
-            account_url=f"https://{'servicejson'}.blob.core.windows.net",
-            credential="ngj+AnjQWnNY5E/VqyaNUYyC+pRLkrnuIpKeauwnY7hPi4TQC+g8x319/cy0Y2Aq8WFrPvKsSUoL+AStUmxhHA=="
-        )
+# #file_dir,file_name,string_to_save
+# def save_json_to_blob_storage(file_name,consulta):
+#     try:
+#         # Connect to Azure Blob Storage service
+#         blob_connection = BlobServiceClient(
+#             account_url=f"https://{'servicejson'}.blob.core.windows.net",
+#             credential="ngj+AnjQWnNY5E/VqyaNUYyC+pRLkrnuIpKeauwnY7hPi4TQC+g8x319/cy0Y2Aq8WFrPvKsSUoL+AStUmxhHA=="
+#         )
 
-        #def create_blob_container(self, blob_service_client: BlobServiceClient, container_name):
-        try:
-            container_client = blob_connection.create_container(name=coorp_id_create_structure )
-        except ResourceExistsError:
-            container_client = blob_connection.get_container_client(container=coorp_id_create_structure)
+#         #def create_blob_container(self, blob_service_client: BlobServiceClient, container_name):
+#         try:
+#             container_client = blob_connection.create_container(name=coorp_id_create_structure )
+#         except ResourceExistsError:
+#             container_client = blob_connection.get_container_client(container=coorp_id_create_structure)
 
         
-        # Create or replace the blob in the container with the formatted JSON string
-        blob_client = container_client.get_blob_client(file_name)
+#         # Create or replace the blob in the container with the formatted JSON string
+#         blob_client = container_client.get_blob_client(file_name)
        
-        query_json=executar_query_json(consulta)
+#         query_json=executar_query_json(consulta)
 
-        #esse metodo é mais lento, mas no blob só consigo fazer esse. 
-        resuljson = json.dumps(query_json)
+#         #esse metodo é mais lento, mas no blob só consigo fazer esse. 
+#         resuljson = json.dumps(query_json)
        
-        blob_client.upload_blob(resuljson, blob_type="BlockBlob", overwrite=True)        
+#         blob_client.upload_blob(resuljson, blob_type="BlockBlob", overwrite=True)        
 
-       # print(f'The file {file_name} was successfully saved to Blob Storage.')
+#        # print(f'The file {file_name} was successfully saved to Blob Storage.')
 
-    except ResourceNotFoundError:
-        print(f'The container {container_name} was not found.')
-    except ResourceExistsError:
-        print(f'The blob {file_name} already exists in the container {container_name}. Use another file name.')
-    except Exception as e:
-        print(f'save_json_to_blob_storage - An unexpected error occurred: {e}')
+#     except ResourceNotFoundError:
+#         print(f'The container {container_name} was not found.')
+#     except ResourceExistsError:
+#         print(f'The blob {file_name} already exists in the container {container_name}. Use another file name.')
+#     except Exception as e:
+#         print(f'save_json_to_blob_storage - An unexpected error occurred: {e}')
 
 
 
@@ -142,23 +136,50 @@ def save_json_to_blob_storage(file_name,consulta):
 #estou fazendo a parte de storage azure agora, ai depois entro nas view que vão gerar esse json .. futuramente vai 
 #ser o seguinte : select * from schema.vw_json_nomegrafic ou ou nuemro do grafico.
 #criar_query_json_arquivo (nome do arquivo, e o select )
+def executa_teste ():
 
-query_json=executar_query_json(""" select distinct 
-cast( to_char(o.invoiceddate,'YYYYMMDD') as bigint) as datainvoicenum,
-cast( to_char(o.invoiceddate,'DD/MM/YYYY') as text) as datainvoicebrasil
-from orders o 
-where statusdescription = 'Faturado'
-
-""")
+    query_json=executar_query_json(""" select distinct 
+    cast( to_char(o.invoiceddate,'YYYYMMDD') as bigint) as datainvoicenum,
+    cast( to_char(o.invoiceddate,'DD/MM/YYYY') as text) as datainvoicebrasil
+    from orders o 
+    where statusdescription = 'Faturado'
+        """)
 
         #esse metodo é mais lento, mas no blob só consigo fazer esse. 
-resuljson = json.dumps(query_json)
+    resuljson = json.dumps(query_json)
+    #print (resuljson)
+
+    ActionBlob(blob_conection_info,"testedata",resuljson).blobupload()
 
 
-ActionBlob.blobupload(blob_conection_info, "teste","testedata.json",resuljson)
 
 
 
+def set_globals(blob_conection, **kwargs):
+    
+    global blob_conection_info
+    blob_conection_info = blob_conection
+    
+    # global coorp_conection_info
+    # coorp_conection_info = coorp_conection
+    
 
+    # global coorp_id_create_structure
+    # coorp_id_create_structure = data_conection['schema']
+    
+    #precisa colocar um log sobre isso 
+    #inserir as linhas com as query que deveram ser executadas no postgree
+    #white_integration_create_structure() 
+    
+    #executa as linhas 
+    executa_teste()
+
+if __name__ == "__main__":
+    #print(data_conection_info)
+    
+    executa_teste()
+
+
+    
 
 
