@@ -14,9 +14,9 @@ import psycopg2
 from psycopg2.extras import Json
 
 # import openai
-# from azure.storage.blob import BlobServiceClient
-# from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
-# from azure.cosmos import CosmosClient, exceptions, PartitionKey
+from azure.storage.blob import BlobServiceClient
+from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
+#from azure.cosmos import CosmosClient, exceptions, PartitionKey
 
 
 from vtex.modules.helpers import *

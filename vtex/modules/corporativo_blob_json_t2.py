@@ -1,3 +1,6 @@
+from vtex.modules.config import *
+
+
 import json
 import os
 import psycopg2
@@ -18,7 +21,7 @@ from azure.core.exceptions import ResourceNotFoundError, ResourceExistsError
 #pip install azure-storage-blob
 from vtex.modules.blobconn import *
 
-blob_conection_info=None
+#blob_conection_info=None
 
 
 
