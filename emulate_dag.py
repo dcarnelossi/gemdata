@@ -357,12 +357,12 @@ def testeblob(integration_id):
     coorp_conection_info = get_coorp_conection_info()
     blob_conection_info = get_blob_conection_info(integration_id)
 
-    from vtex.modules import corporativo_blob_json_t2
+    from gemdata.vtex.modules import criarJsonDash
     try:
 
         #print(integration_id)
 
-        corporativo_blob_json_t2.set_globals(blob_conection_info)
+        criarJsonDash.set_globals(blob_conection_info)
       
         return True
     except Exception as e:
