@@ -1,9 +1,10 @@
 import logging
 from datetime import datetime
 
-from airflow import DAG, TriggerDagRunOperator
-from airflow.decorators import task
+from airflow import DAG
+from airflow.decorators import dag, task
 from airflow.models.param import Param
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Lista de requisitos
