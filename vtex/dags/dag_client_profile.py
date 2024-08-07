@@ -9,7 +9,7 @@ from airflow.models.dag import DAG
 from airflow.models import Variable
 from airflow.settings import Session
 
-from ..modules import dbpgconn
+from modules import dbpgconn
 import time
 
 # Lista de requisitos
