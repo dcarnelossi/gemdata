@@ -1,0 +1,14 @@
+{
+    "recommendations": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-python.flake8",
+        "christian-kohler.path-intellisense",
+        "batisteo.vscode-django",
+        "almahdi.code-django",
+        "junstyle.vscode-django-support",
+        "charliermarsh.ruff",
+        "matangover.mypy"
+    ]
+}

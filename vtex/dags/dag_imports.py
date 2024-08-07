@@ -1,16 +1,12 @@
 import logging
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.decorators import dag, task
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
-from airflow.models.param import Param
-from airflow.models.dag import DAG
-from airflow.models import Variable
-from airflow.settings import Session
-
-from vtex.modules import dbpgconn
 import time
+from datetime import datetime
+
+from airflow import DAG
+from airflow.decorators import task
+from airflow.models import Variable
+from airflow.models.param import Param
+from modules import dbpgconn
 
 # Lista de requisitos
 requirements = [
@@ -22,115 +18,112 @@ requirements = [
 
 # Configuração padrão do DAG
 default_args = {
-    'owner': 'Daniel',
-    'depends_on_past': False,
-    'start_date': datetime(2024, 1, 1),
-    'email_on_failure': False,
-    'email_on_retry': False,
+    "owner": "Daniel",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "email_on_failure": False,
+    "email_on_retry": False,
 }
 
 
 with DAG(
-    'ImportVtex-v2',
+    "ImportVtex-v2",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
     tags=["brands", "categories", "skus", "products", "IMPORT"],
-    params={"PGSCHEMA": Param(
-        type="string",
-        title="PGSCHEMA:",
-        description="Enter the integration PGSCHEMA.",
-        section="Important params",
-        min_length=1,
-        max_length=200,
-    )}
+    params={
+        "PGSCHEMA": Param(
+            type="string",
+            title="PGSCHEMA:",
+            description="Enter the integration PGSCHEMA.",
+            section="Important params",
+            min_length=1,
+            max_length=200,
+        )
+    },
 ) as dag:
-    
-        
-    def integrationInfo(connection_info, integration_id):
 
+    def integrationInfo(connection_info, integration_id):
         try:
-            
             print("integrationInfo")
 
             start_time = time.time()
 
-            #postgres_conn = dbpgconn.PostgresConnection(connection_info)
-            
+            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
             query = f"""SELECT *
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
-            
-            
+
             select = dbpgconn.WriteJsonToPostgres(connection_info, query)
             result = select.query()
-            
 
             if result:
-                logging.info(f"Importação das BRANDS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos")
+                logging.info(
+                    f"Importação das BRANDS Concluída com sucesso. \
+                        Tempo de execução: {time.time() - start_time:.2f} segundos"
+                )
                 logging.info(f"Tempo de execução: {time.time() - start_time:.2f}")
                 print(result)
-                return result, 
+                return (result,)
             else:
-                logging.error(f"Importação das BRANDS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos")
+                logging.error(
+                    f"Importação das BRANDS deu pau. Tempo de execução: \
+                        {time.time() - start_time:.2f} segundos"
+                )
                 return False
         except Exception as e:
-            logging.exception(f"An unexpected error occurred during BRANDS import" - e)
+            logging.exception("An unexpected error occurred during BRANDS import" - e)
             return False
 
-
     def get_coorp_conection_info(integration_id):
-        
         coorp_conection_info = {
-            'host': Variable.get("COORP_PGHOST"),
-            'user': Variable.get("COORP_PGUSER"),
-            'port': 5432,
-            'database': Variable.get("COORP_PGDATABASE"),
-            'password': Variable.get("COORP_PGPASSWORD"),
-            'schema': 'public'
+            "host": Variable.get("COORP_PGHOST"),
+            "user": Variable.get("COORP_PGUSER"),
+            "port": 5432,
+            "database": Variable.get("COORP_PGDATABASE"),
+            "password": Variable.get("COORP_PGPASSWORD"),
+            "schema": "public",
         }
-        
+
         return coorp_conection_info
 
-
     def get_data_conection_info(integration_id):
-        
         data_conection_info = {
-            'host': Variable.get("DATA_PGHOST"),
-            'user': Variable.get("DATA_PGUSER"),
-            'port': 5432,
-            'database': Variable.get("DATA_PGDATABASE"),
-            'password': Variable.get("DATA_PGPASSWORD"),
-            'schema': integration_id
+            "host": Variable.get("DATA_PGHOST"),
+            "user": Variable.get("DATA_PGUSER"),
+            "port": 5432,
+            "database": Variable.get("DATA_PGDATABASE"),
+            "password": Variable.get("DATA_PGPASSWORD"),
+            "schema": integration_id,
         }
 
         return data_conection_info
 
-
     def get_api_conection_info(integration_id):
-        
         try:
-
-        
             print(integration_id)
-            
-            data = integrationInfo(get_coorp_conection_info(integration_id), integration_id)
-            
-            api_conection_info = data[0][1][0]
-            #VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
+            data = integrationInfo(
+                get_coorp_conection_info(integration_id), integration_id
+            )
+
+            api_conection_info = data[0][1][0]
+            # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-VTEX-API-AppKey': api_conection_info['vtex_api_appkey'],
-                    'X-VTEX-API-AppToken': api_conection_info['vtex_api_apptoken']
-                }
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-VTEX-API-AppKey": api_conection_info["vtex_api_appkey"],
+                "X-VTEX-API-AppToken": api_conection_info["vtex_api_apptoken"],
+            }
 
-            vtexapi= {
-                'VTEX_Domain':f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
-                'headers' : headers
-                }
+            vtexapi = {
+                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.\
+                    {api_conection_info['vtex_api_environment']}.com.br",
+                "headers": headers,
+            }
 
             return vtexapi
 
@@ -139,31 +132,28 @@ with DAG(
             raise e
         finally:
             pass
-    
-    
+
     @task(provide_context=True)
-    def brands(**kwargs):    
-        
-        
-        integration_id = kwargs['params']['PGSCHEMA']
-        
+    def brands(**kwargs):
+        integration_id = kwargs["params"]["PGSCHEMA"]
+
         coorp_conection_info = get_coorp_conection_info(integration_id)
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
-        
-        
+
         from vtex.modules import brand
 
         try:
-
             brand.get_brands_list_parallel(api_conection_info, data_conection_info)
-            
-             # Pushing data to XCom
-            kwargs['ti'].xcom_push(key='integration_id', value=integration_id)
-            kwargs['ti'].xcom_push(key='coorp_conection_info', value=coorp_conection_info)
-            kwargs['ti'].xcom_push(key='data_conection_info', value=data_conection_info)
-            kwargs['ti'].xcom_push(key='api_conection_info', value=api_conection_info)
-            
+
+            # Pushing data to XCom
+            kwargs["ti"].xcom_push(key="integration_id", value=integration_id)
+            kwargs["ti"].xcom_push(
+                key="coorp_conection_info", value=coorp_conection_info
+            )
+            kwargs["ti"].xcom_push(key="data_conection_info", value=data_conection_info)
+            kwargs["ti"].xcom_push(key="api_conection_info", value=api_conection_info)
+
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
@@ -171,18 +161,18 @@ with DAG(
         finally:
             pass
 
-
     @task(provide_context=True)
     def categories(**kwargs):
-        
-        ti = kwargs['ti']
-        integration_id = ti.xcom_pull(task_ids='brands', key='integration_id')
-        coorp_conection_info = ti.xcom_pull(task_ids='brands', key='coorp_conection_info')
-        data_conection_info = ti.xcom_pull(task_ids='brands', key='data_conection_info')
-        api_conection_info = ti.xcom_pull(task_ids='brands', key='api_conection_info')
-        
+        ti = kwargs["ti"]
+        # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
+        # coorp_conection_info = ti.xcom_pull(
+        #     task_ids="brands", key="coorp_conection_info"
+        # )
+        data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
+        api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
+
         from vtex.modules import category_concurrent as category
-        
+
         try:
             category.set_globals(30, api_conection_info, data_conection_info)
             return True
@@ -192,40 +182,41 @@ with DAG(
 
     @task(provide_context=True)
     def skus(**kwargs):
-        
-        ti = kwargs['ti']
-        integration_id = ti.xcom_pull(task_ids='brands', key='integration_id')
-        coorp_conection_info = ti.xcom_pull(task_ids='brands', key='coorp_conection_info')
-        data_conection_info = ti.xcom_pull(task_ids='brands', key='data_conection_info')
-        api_conection_info = ti.xcom_pull(task_ids='brands', key='api_conection_info')
-        
-        from vtex.modules import sku
-        try:
+        ti = kwargs["ti"]
+        # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
+        # coorp_conection_info = ti.xcom_pull(
+        #     task_ids="brands", key="coorp_conection_info"
+        # )
+        data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
+        api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
+        from vtex.modules import sku
+
+        try:
             sku.set_globals(1, api_conection_info, data_conection_info)
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-        
+
     @task
     def products(**kwargs):
-        
-        ti = kwargs['ti']
-        integration_id = ti.xcom_pull(task_ids='brands', key='integration_id')
-        coorp_conection_info = ti.xcom_pull(task_ids='brands', key='coorp_conection_info')
-        data_conection_info = ti.xcom_pull(task_ids='brands', key='data_conection_info')
-        api_conection_info = ti.xcom_pull(task_ids='brands', key='api_conection_info')
-        
-        from vtex.modules import products
-        try:
+        ti = kwargs["ti"]
+        # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
+        # coorp_conection_info = ti.xcom_pull(
+        #     task_ids="brands", key="coorp_conection_info"
+        # )
+        data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
+        api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
+        from vtex.modules import products
+
+        try:
             products.set_globals(api_conection_info, data_conection_info)
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-
 
     # Configurando a dependência entre as tasks
 
@@ -233,6 +224,5 @@ with DAG(
     categories_task = categories()
     sku_task = skus()
     products_task = products()
-
 
     brands_task >> categories_task >> sku_task >> products_task

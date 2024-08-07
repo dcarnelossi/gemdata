@@ -1,11 +1,10 @@
 import logging
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.decorators import dag, task
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.operators.dagrun_operator import TriggerDagRunOperator
+from datetime import datetime
+
+from airflow import DAG, TriggerDagRunOperator
+from airflow.decorators import task
 from airflow.models.param import Param
-from airflow.models.dag import DAG
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 # Lista de requisitos
 requirements = [
@@ -17,34 +16,36 @@ requirements = [
 
 # Configuração padrão do DAG
 default_args = {
-    'owner': 'Daniel',
-    'depends_on_past': False,
-    'start_date': datetime(2024, 1, 1),
-    'email_on_failure': False,
-    'email_on_retry': False,
+    "owner": "Daniel",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "email_on_failure": False,
+    "email_on_retry": False,
 }
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    'CreateInfra-Integration',
+    "CreateInfra-Integration",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["CreateInfra","v2", "trigger_dag_imports" ],
-    params={"PGSCHEMA": Param(
-        type="string",
-        title="PGSCHEMA:",
-        description="Enter the integration PGSCHEMA.",
-        section="Important params",
-        min_length=1,
-        max_length=200,
-    )}
+    tags=["CreateInfra", "v2", "trigger_dag_imports"],
+    params={
+        "PGSCHEMA": Param(
+            type="string",
+            title="PGSCHEMA:",
+            description="Enter the integration PGSCHEMA.",
+            section="Important params",
+            min_length=1,
+            max_length=200,
+        )
+    },
 ) as dag:
+
     @task(provide_context=True)
     def create_postgres_infra(**kwargs):
-        
-        PGSCHEMA = kwargs['params']['PGSCHEMA']
-        
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+
         from vtex.modules import sqlscripts
 
         try:
@@ -52,22 +53,26 @@ with DAG(
             sql_script = sqlscripts.vtexsqlscripts(PGSCHEMA)
 
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id='db-vetex-dev-00')
+            hook = PostgresHook(postgres_conn_id="db-vetex-dev-00")
             hook.run(sql_script)
             return True
-        
+
         except Exception as e:
-            logging.exception(f"An unexpected error occurred during create_postgres_infra - {e}")
+            logging.exception(
+                f"An unexpected error occurred during create_postgres_infra - {e}"
+            )
             return False
 
     trigger_dag_imports = TriggerDagRunOperator(
-        task_id='trigger_dag_imports',
-        trigger_dag_id='ImportVtex-v2',  # Substitua pelo nome real da sua segunda DAG
-        conf={"PGSCHEMA": '{{ params.PGSCHEMA }}'},  # Se precisar passar informações adicionais para a DAG_B
+        task_id="trigger_dag_imports",
+        trigger_dag_id="ImportVtex-v2",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
     )
 
     # Configurando a dependência entre as tarefas
-    
+
     create_postgres_infra_task = create_postgres_infra()
-    
+
     create_postgres_infra_task >> trigger_dag_imports

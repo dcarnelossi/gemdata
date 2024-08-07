@@ -1,19 +1,25 @@
 from vtex.modules.config import *
 from vtex.modules.dbpgconn import *
 
-category_levels=None
-api_conection_info=None
-data_conection_info=None
+category_levels = None
+api_conection_info = None
+data_conection_info = None
+
 
 def log_error(msg, exception=None):
     logging.error(f"{msg}: {exception}" if exception else msg)
 
 
-#TODO Trocar isso aqui pra função que esta no api_conection
+# TODO Trocar isso aqui pra função que esta no api_conection
 def make_request(method, endpoint, params=None):
     try:
         with requests.Session() as session:
-            response = session.request(method, f"https://{api_conection_info['VTEX_Domain']}{endpoint}", headers=api_conection_info['headers'], params=params)
+            response = session.request(
+                method,
+                f"https://{api_conection_info['VTEX_Domain']}{endpoint}",
+                headers=api_conection_info["headers"],
+                params=params,
+            )
             response.raise_for_status()  # Gera exceção se a resposta indicar erro (status HTTP >= 400)
             return response.json()
 
@@ -30,7 +36,9 @@ def make_request(method, endpoint, params=None):
 def handle_category_data(category_id, data):
     try:
         decoded_data = json.loads(data)
-        writer = WriteJsonToPostgres(data_conection_info, decoded_data, 'categories', 'Id')
+        writer = WriteJsonToPostgres(
+            data_conection_info, decoded_data, "categories", "Id"
+        )
 
         # if not writer.table_exists():
         #     try:
@@ -46,15 +54,19 @@ def handle_category_data(category_id, data):
         log_error(f"JSON decoding error: {e}")
         return None
     except Exception as e:
-        log_error(f"An unexpected error occurred in handle_category_data - {category_id}: {e}")
+        log_error(
+            f"An unexpected error occurred in handle_category_data - {category_id}: {e}"
+        )
         return None
 
+
 def extract_category_ids(objeto):
-    ids = [objeto['id']]
-    if 'children' in objeto:
-        for child in objeto['children']:
+    ids = [objeto["id"]]
+    if "children" in objeto:
+        for child in objeto["children"]:
             ids.extend(extract_category_ids(child))
     return ids
+
 
 def extract_category_ids_wrapper(category_list):
     try:
@@ -70,6 +82,7 @@ def extract_category_ids_wrapper(category_list):
 
     return []
 
+
 def process_category_id(category_id):
     category_details = make_request("GET", f"/api/catalog/pvt/category/{category_id}")
 
@@ -84,7 +97,9 @@ def process_category_id(category_id):
 
 def fetch_categories_from_api(category_levels):
     try:
-        return make_request("GET", f"/api/catalog_system/pub/category/tree/{category_levels}")
+        return make_request(
+            "GET", f"/api/catalog_system/pub/category/tree/{category_levels}"
+        )
     except Exception as e:
         log_error(f"Error fetching categories from API: {e}")
         return None
@@ -96,15 +111,14 @@ def process_categories(data):
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(process_category_id, category_lists))
-            
-            #results = list(executor.map(executor.map(lambda category_list: process_category_id(api_conection_info, data_conection_info, category_list), category_lists)))
-            
-            #executor.map(lambda brand_id: get_brand_id(api_conection_info, data_conection_info, brand_id), brand_ids)
+
+            # results = list(executor.map(executor.map(lambda category_list: process_category_id(api_conection_info, data_conection_info, category_list), category_lists)))
+
+            # executor.map(lambda brand_id: get_brand_id(api_conection_info, data_conection_info, brand_id), brand_ids)
     except Exception as e:
         log_error(f"Error processing categories: {e}")
 
 
-    
 def set_globals(categories_info, api_info, conection_info):
     global category_levels
     category_levels = categories_info
@@ -112,30 +126,25 @@ def set_globals(categories_info, api_info, conection_info):
     api_conection_info = api_info
     global data_conection_info
     data_conection_info = conection_info
-    
+
     process_category_tree(categories_info)
-    
-    
+
 
 def process_category_tree(category_levels):
-    
     try:
         data = fetch_categories_from_api(category_levels)
 
         if data:
             logging.info("Categories tree retrieved successfully.")
             process_categories(data)
-            
+
         return data
     except Exception as e:
         log_error(f"Error processing category tree: {e}")
         return e
 
-    
 
 if __name__ == "__main__":
-
-
     # Exemplo de uso
     result = process_category_tree(30)  # Substitua 3 pelo número desejado de níveis
     if result:

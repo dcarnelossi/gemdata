@@ -1,4 +1,4 @@
-from vtex.modules.config import *
+from config import *
 
 
 class PostgresConnection:
