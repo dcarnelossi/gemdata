@@ -6,7 +6,6 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
-from modules import dbpgconn
 
 # Lista de requisitos
 requirements = [
@@ -43,6 +42,7 @@ with DAG(
         )
     },
 ) as dag:
+    from modules.dbpgconn import WriteJsonToPostgres
 
     def integrationInfo(connection_info, integration_id):
         try:
@@ -56,7 +56,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            select = WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -87,7 +87,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            select = WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -163,12 +163,10 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from vtex.modules import orders_items
+        from modules.orders_items import set_globals
 
         try:
-            orders_items.set_globals(
-                api_conection_info, data_conection_info, coorp_conection_info
-            )
+            set_globals(api_conection_info, data_conection_info, coorp_conection_info)
 
             # Pushing data to XCom
             kwargs["ti"].xcom_push(key="integration_id", value=integration_id)

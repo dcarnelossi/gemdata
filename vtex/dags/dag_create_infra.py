@@ -47,11 +47,11 @@ with DAG(
     def create_postgres_infra(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
 
-        from vtex.modules import sqlscripts
+        from modules.sqlscripts import vtexsqlscripts
 
         try:
             # Defina o código SQL para criar a tabela
-            sql_script = sqlscripts.vtexsqlscripts(PGSCHEMA)
+            sql_script = vtexsqlscripts(PGSCHEMA)
 
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="db-vetex-dev-00")

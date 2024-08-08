@@ -6,11 +6,10 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
-from modules import dbpgconn
 
 # Lista de requisitos
 requirements = [
-    "openai==1.6.0",
+    "openai==1.40.1",
     "azure-core==1.29.6",
     "azure-cosmos==4.5.1",
     "azure-storage-blob==12.19.0",
@@ -43,6 +42,7 @@ with DAG(
         )
     },
 ) as dag:
+    from modules.dbpgconn import WriteJsonToPostgres
 
     def integrationInfo(connection_info, integration_id):
         try:
@@ -56,7 +56,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            select = WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -87,7 +87,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            select = WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -163,7 +163,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from vtex.modules import client_profile
+        from modules import client_profile
 
         try:
             client_profile.set_globals(

@@ -141,7 +141,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from vtex.modules import brand
+        from modules import brand
 
         try:
             brand.get_brands_list_parallel(api_conection_info, data_conection_info)
@@ -190,7 +190,7 @@ with DAG(
         data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
         api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-        from vtex.modules import sku
+        from modules import sku
 
         try:
             sku.set_globals(1, api_conection_info, data_conection_info)
@@ -209,7 +209,7 @@ with DAG(
         data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
         api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-        from vtex.modules import products
+        from modules import products
 
         try:
             products.set_globals(api_conection_info, data_conection_info)
