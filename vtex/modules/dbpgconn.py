@@ -1,19 +1,23 @@
-from config import *
+import json
+import logging
+
+import openai
+import psycopg2
+from dotenv import load_dotenv
 
 
 class PostgresConnection:
     def __init__(self, connection_info):
         load_dotenv()
-        
-        self.host = connection_info['host']
-        self.port = connection_info['port']
-        self.database = connection_info['database']
-        self.user = connection_info['user']
-        self.password = connection_info['password']
-        self.schema = connection_info['schema']
+
+        self.host = connection_info["host"]
+        self.port = connection_info["port"]
+        self.database = connection_info["database"]
+        self.user = connection_info["user"]
+        self.password = connection_info["password"]
+        self.schema = connection_info["schema"]
         self.conn = None
-        
-        
+
     def connect(self):
         if self.conn is None:
             self.conn = psycopg2.connect(
@@ -22,7 +26,7 @@ class PostgresConnection:
                 database=self.database,
                 user=self.user,
                 password=self.password,
-                options=f"-c search_path={self.schema}"
+                options=f"-c search_path={self.schema}",
             )
             # Added to set the connection to use transactions
             self.conn.autocommit = False
@@ -45,8 +49,7 @@ class PostgresConnection:
             self.conn.rollback()
 
 
-class WriteJsonToPostgres():
-
+class WriteJsonToPostgres:
     def __init__(self, connection_info, data, tablename=None, table_key=None):
         self.connection = PostgresConnection(connection_info)
         self.data = data
@@ -58,8 +61,7 @@ class WriteJsonToPostgres():
         if isinstance(data, dict):
             data = json.dumps(data)
         return data
-    
-        
+
     def table_exists(self):
         try:
             with self.connection.connect() as conn:
@@ -84,34 +86,33 @@ class WriteJsonToPostgres():
         except Exception as e:
             print(f"Erro ao verificar a existência da tabela {self.tablename}: {e}")
             return False
-        
+
     def query(self):
-        
         try:
             logging.info(self.data)
-            #cursor = self.connection.connect().cursor()
+            # cursor = self.connection.connect().cursor()
             # cursor.execute(self.data)
             # result = cursor.fetchall()
             # return result
-        
+
             cursor = self.connection.connect().cursor()
             cursor.execute(self.data)
-            
+
             # Obter os nomes das colunas
             column_names = [desc[0] for desc in cursor.description]
-            
+
             # Obter os resultados com colunas nomeadas
             results = cursor.fetchall()
             results_named = [dict(zip(column_names, row)) for row in results]
-            
+
             return results, results_named
-    
+
         except Exception as e:
             # Em caso de falha, faça o rollback da transação e feche a conexão
             self.connection.rollback()
 
             # Caso o cursor já tenha sido criado, feche-o
-            if 'cursor' in locals():
+            if "cursor" in locals():
                 cursor.close()
 
             # Registro o erro para depuração
@@ -124,41 +125,38 @@ class WriteJsonToPostgres():
             if self.connection:
                 self.connection.close()
 
-        
-    #def generate_create_table(json_file_path, api_key, engine="text-davinci-003"):
+    # def generate_create_table(json_file_path, api_key, engine="text-davinci-003"):
     def generate_create_table(self):
         try:
-            
-            print('----------------------------------------')
-            print('Tentando criar tabela')
-            
+            print("----------------------------------------")
+            print("Tentando criar tabela")
+
             print(json.dumps(self.data))
 
             # Configuração da chave API da OpenAI
             openai.api_key = OPENAI_APIKEY
-            
+
             # Verificar se a chave API foi configurada corretamente
             if openai.api_key is None:
                 raise Exception("A chave API da OpenAI não foi definida.")
-            
-            messages=[
-                    {
-                        "role": "user",
-                        "content": f"""Crie uma instrução SQL com 'CREATE TABLE IF NOT EXISTS' para PostgreSQL. \
+
+            messages = [
+                {
+                    "role": "user",
+                    "content": f"""Crie uma instrução SQL com \
+                                'CREATE TABLE IF NOT EXISTS' para PostgreSQL. \
                                 Use o nome da tabela como '{self.tablename}'. \
-                                Retorne somente a clausula solicitada. \+
+                                Retorne somente a clausula solicitada. \\+
                                 Nunca use o datatype JSONB[] prefira JSONB \
-                                Defina as colunas e os tipos de dados baseando-se neste JSON: {json.dumps(self.data)}. \
-                                """
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "CREATE TABLE IF NOT EXISTS "
-                    }
-                ]
-            
+                                Defina as colunas e os tipos de dados baseando-se \
+                                neste JSON: {json.dumps(self.data)}. \
+                                """,
+                },
+                {"role": "assistant", "content": "CREATE TABLE IF NOT EXISTS "},
+            ]
+
             print(messages)
-            
+
             # Fazer a chamada para a API da OpenAI
             response = openai.chat.completions.create(
                 model="gpt-3.5-turbo-16k",
@@ -167,9 +165,9 @@ class WriteJsonToPostgres():
                 max_tokens=1000,
                 top_p=1,
                 frequency_penalty=0,
-                presence_penalty=0
+                presence_penalty=0,
             )
-            
+
             # Construção da cláusula SQL CREATE TABLE
             sql_create = f"{response.choices[0].message.content}"
             print(sql_create)
@@ -180,8 +178,6 @@ class WriteJsonToPostgres():
             # raise e # Descomente esta linha para re-lançar a exceção
             return None
 
-
-                
     def create_table(self):
         if not self.table_exists():
             try:
@@ -189,7 +185,7 @@ class WriteJsonToPostgres():
                 with PostgresConnection() as db_connection:
                     cursor = db_connection.conn.cursor()
                     sql = f"CREATE TABLE IF NOT EXISTS {self.generate_create_table()}"
-                    
+
                     if sql:
                         print("Criando tabela")
                         cursor.execute(sql)
@@ -204,8 +200,6 @@ class WriteJsonToPostgres():
 
         return True
 
-        
-        
     def insert_data(self):
         try:
             cursor = self.connection.connect().cursor()
@@ -213,44 +207,50 @@ class WriteJsonToPostgres():
             # Extraia colunas e valores
             columns = self.data.keys()
             # values = [self.data[column] for column in columns]
+
             # Retorna os valore e se for dicionario retonar esse como string
-            # values = [str(self.data[column]) if not isinstance(self.data[column], dict) else str(self.data[column]) for column in columns]
-            #values = [str(json.loads(self.data[column])) if isinstance(self.data[column], dict) else str(self.data[column]) for column in columns]
+            # values = [str(self.data[column]) if not isinstance(self.data[column], dict)
+            # else str(self.data[column]) for column in columns]
+
+            # values = [str(json.loads(self.data[column])) if
+            # isinstance(self.data[column], dict) else str(self.data[column])
+            # for column in columns]
             values = []
             for column in columns:
                 if isinstance(self.data[column], (dict, list)):
                     value = str(json.dumps(self.data[column]))
                 else:
                     value = self.data[column]
-                    
+
                 values.append(value)
-                    
-                #print (column, value, type(value))
-            #print(values)
+
+                # print (column, value, type(value))
+            # print(values)
 
             # Crie uma string para os placeholders, por exemplo, (%s, %s, ...)
-            placeholders = ', '.join(['%s'] * len(columns))
-
+            placeholders = ", ".join(["%s"] * len(columns))
 
             # Prepare a instrução SQL com placeholders para os valores
             table_name = self.tablename  # Assume tablename é uma string
             sql_insert = "INSERT INTO {} ({}) VALUES ({})".format(
                 table_name,
-                ', '.join(columns),  # Certifique-se de que os nomes das colunas estão corretos
-                placeholders
+                ", ".join(
+                    columns
+                ),  # Certifique-se de que os nomes das colunas estão corretos
+                placeholders,
             )
-            
-            #print(sql_insert)
+
+            # print(sql_insert)
 
             # Execute a instrução SQL com os valores reais
-            cursor.execute(sql_insert , values)
+            cursor.execute(sql_insert, values)
 
             # Confirme a transação
             self.connection.commit()
 
             # Feche o cursor e a conexão
             cursor.close()
-            #print(f"dados inseridos com sucesso: {values}")
+            # print(f"dados inseridos com sucesso: {values}")
             return True  # Retorno em caso de sucesso
 
         except Exception as e:
@@ -258,7 +258,7 @@ class WriteJsonToPostgres():
             self.connection.rollback()
 
             # Caso o cursor já tenha sido criado, feche-o
-            if 'cursor' in locals():
+            if "cursor" in locals():
                 cursor.close()
 
             # Registro o erro para depuração
@@ -270,8 +270,6 @@ class WriteJsonToPostgres():
             # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
-                
-    
 
     def upsert_data(self):
         try:
@@ -280,7 +278,10 @@ class WriteJsonToPostgres():
                 columns = self.data.keys()
 
                 # Convert values to JSON for dictionary and list types
-                data_values = [json.dumps(value) if isinstance(value, (dict, list)) else value for value in self.data.values()]
+                data_values = [
+                    json.dumps(value) if isinstance(value, (dict, list)) else value
+                    for value in self.data.values()
+                ]
 
                 # Construct the UPSERT query using INSERT...ON CONFLICT
                 upsert_query = f"""
@@ -292,7 +293,9 @@ class WriteJsonToPostgres():
                 """
 
                 # Use mogrify to safely substitute the values into the query
-                upsert_query = cursor.mogrify(upsert_query, (tuple(data_values), tuple(data_values)))
+                upsert_query = cursor.mogrify(
+                    upsert_query, (tuple(data_values), tuple(data_values))
+                )
 
                 # print("Upsert Query:", upsert_query.decode())
 
@@ -310,8 +313,6 @@ class WriteJsonToPostgres():
             logging.error(f"Error during upsert operation: {e}")
             return None
 
-
-                
     def insert_data_batch(self, batch_data):
         try:
             cursor = self.connection.connect().cursor()
@@ -319,14 +320,12 @@ class WriteJsonToPostgres():
             columns = list(batch_data[0].keys())
 
             # Construa uma string para os placeholders, por exemplo, (%s, %s, ...)
-            placeholders = ', '.join(['%s'] * len(columns))
+            placeholders = ", ".join(["%s"] * len(columns))
 
             # Construa a instrução SQL com os placeholders para os valores
             table_name = self.tablename
             sql_insert = "INSERT INTO {} ({}) VALUES ({})".format(
-                table_name,
-                ', '.join(columns),
-                placeholders
+                table_name, ", ".join(columns), placeholders
             )
 
             # Construa uma lista de valores para todos os registros no lote
@@ -357,7 +356,7 @@ class WriteJsonToPostgres():
             self.connection.rollback()
 
             # Caso o cursor já tenha sido criado, feche-o
-            if 'cursor' in locals():
+            if "cursor" in locals():
                 cursor.close()
 
             # Registre o erro para depuração

@@ -2,17 +2,16 @@ import logging
 from datetime import datetime, time
 
 from brand import get_brands_list_parallel
-from category_concurrent import *
-from client_profile import *
-from config import *
+from category_concurrent import process_category_tree
+from client_profile import write_client_profile_to_database
 from dbpgconn import PostgresConnection, WriteJsonToPostgres
-from orders import *
-from orders_items import *
+from orders import execute_process_orders_list, process_orders
+from orders_items import write_orders_item_to_database
 from orders_list import *
-from orders_shipping import *
-from orders_totals import *
-from products import *
-from sku import *
+from orders_shipping import write_orders_shippingdata_to_database
+from orders_totals import write_orders_totals_to_database_colunar
+from products import process_products
+from sku import get_skus
 
 
 def integrationInfo(connection_info, integration_id):
@@ -83,12 +82,14 @@ def categories():
 
         if result:
             logging.info(
-                f"Importação das CATEGORIES Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação das CATEGORIES Concluída com sucesso.\
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação das CATEGORIES deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação das CATEGORIES deu pau. Tempo de execução:\
+                    {time.time() - start_time:.2f} segundos"
             )
             return False
     except Exception as e:
@@ -105,12 +106,14 @@ def skus():
 
         if result:
             logging.info(
-                f"Importação dos SKUS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos SKUS Concluída com sucesso.\
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos SKUS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos SKUS deu pau. Tempo de execução:\
+                    {time.time() - start_time:.2f} segundos"
             )
             return False
     except Exception as e:
@@ -127,12 +130,14 @@ def products():
 
         if result:
             logging.info(
-                f"Importação dos PRODUCTS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos PRODUCTS Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos PRODUCTS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos PRODUCTS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception("An unexpected error occurred during PRODUCTS import" - e)
@@ -150,12 +155,14 @@ def orders_list(delta):
 
         if result:
             logging.info(
-                f"Importação dos dados da Lista de Ordens Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos dados da Lista de Ordens Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos dados da Lista de Ordens deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos dados da Lista de Ordens deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception("An unexpected error occurred during ORDENS LISTA import" - e)
@@ -171,12 +178,14 @@ def orders():
 
         if result:
             logging.info(
-                f"Importação das ORDENS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação das ORDENS Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação das ORDENS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação das ORDENS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception("An unexpected error occurred during ORDENS import" - e)
@@ -192,12 +201,14 @@ def items():
 
         if result:
             logging.info(
-                f"Importação dos ITENS DAS ORDENS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos ITENS DAS ORDENS Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos ITENS DAS ORDENS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos ITENS DAS ORDENS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception(
@@ -215,12 +226,14 @@ def orders_totals():
 
         if result:
             logging.info(
-                f"Importação dos TOTAL DAS ORDENS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos TOTAL DAS ORDENS Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos TOTAL DAS ORDENS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos TOTAL DAS ORDENS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception(
@@ -238,12 +251,14 @@ def orders_shipping():
 
         if result:
             logging.info(
-                f"Importação dos ENVIO DAS ORDENS Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos ENVIO DAS ORDENS Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos ENVIO DAS ORDENS deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos ENVIO DAS ORDENS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception(
@@ -261,12 +276,14 @@ def client_profile():
 
         if result:
             logging.info(
-                f"Importação dos PROFILE DOS CLIENTES Concluída com sucesso. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos PROFILE DOS CLIENTES Concluída com sucesso. \
+                    Tempo de execução: {time.time() - start_time:.2f} segundos"
             )
             return True
         else:
             logging.error(
-                f"Importação dos PROFILE DOS CLIENTES deu pau. Tempo de execução: {time.time() - start_time:.2f} segundos"
+                f"Importação dos PROFILE DOS CLIENTES deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
             )
     except Exception as e:
         logging.exception(

@@ -1,8 +1,6 @@
-
 def vtexsqlscripts(schema):
-    
     scripts = f"""
-        
+
     CREATE SCHEMA IF NOT EXISTS "{schema}";
 
     CREATE TABLE IF NOT EXISTS "{schema}".brands
@@ -489,8 +487,8 @@ def vtexsqlscripts(schema):
 
     return scripts
 
+
 if __name__ == "__main__":
-    
     with open("Output.txt", "w") as text_file:
-        text_file.write(vtexsqlscripts('6d41d249-d875-41ef-800e-eb0941f6d86f'))
-        print(vtexsqlscripts('6d41d249-d875-41ef-800e-eb0941f6d86f'))
+        text_file.write(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
+        print(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))

@@ -1,20 +1,21 @@
-from vtex.modules.config import *
-from vtex.modules.dbpgconn import *
-from vtex.modules.api_conection import *
-from vtex.modules.helpers import *
+import concurrent.futures
+import logging
 
-api_conection_info=None
-data_conection_info=None
-coorp_conection_info=None
+from api_conection import make_request
+from dbpgconn import WriteJsonToPostgres
+
+api_conection_info = None
+data_conection_info = None
+coorp_conection_info = None
 
 
 def get_orders_ids_from_db():
-    try: 
+    try:
         query = """SELECT DISTINCT orders_list.orderid
             FROM orders_list
             LEFT JOIN orders ON orders_list.orderid = orders.orderid
             WHERE orders.orderid IS NULL;"""
-        result = WriteJsonToPostgres(data_conection_info, query, 'orders_list')
+        result = WriteJsonToPostgres(data_conection_info, query, "orders_list")
         result = result.query()
         return result
 
@@ -24,14 +25,22 @@ def get_orders_ids_from_db():
 
 
 def get_order_by_id(orderId):
-    return make_request(api_conection_info['VTEX_Domain'], "GET", f"api/oms/pvt/orders/{orderId[0]}", params=None, headers=api_conection_info['headers'])
+    return make_request(
+        api_conection_info["VTEX_Domain"],
+        "GET",
+        f"api/oms/pvt/orders/{orderId[0]}",
+        params=None,
+        headers=api_conection_info["headers"],
+    )
 
 
 def write_orders_to_db(order_id):
     try:
         order_json = get_order_by_id(order_id)
         try:
-            writer = WriteJsonToPostgres(data_conection_info, order_json, 'orders', 'orderid')
+            writer = WriteJsonToPostgres(
+                data_conection_info, order_json, "orders", "orderid"
+            )
             writer.upsert_data()
             logging.info("Created record for order ID: %s", order_id)
         except Exception as e:
@@ -41,19 +50,17 @@ def write_orders_to_db(order_id):
         logging.error(f"An unexpected error occurred: {e}")
 
 
-def set_globals(api_info, data_conection,coorp_conection, **kwargs):
-
+def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info
     api_conection_info = api_info
-    
+
     global data_conection_info
     data_conection_info = data_conection
-    
+
     global coorp_conection_info
     coorp_conection_info = coorp_conection
-    
-    process_orders()
 
+    process_orders()
 
 
 def process_orders():

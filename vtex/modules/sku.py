@@ -1,25 +1,38 @@
-from vtex.modules.config import *
-from vtex.modules.dbpgconn import *
+import concurrent.futures
+import logging
+
+import requests
+
+# from api_conection import make_request
+from dbpgconn import WriteJsonToPostgres
 
 # set Globals
-api_conection_info=None
-data_conection_info=None
+api_conection_info = None
+data_conection_info = None
 
 session = requests.Session()
 
+
 def make_request(method, path, params=None):
     try:
-        response = session.request(method, f"https://{api_conection_info['VTEX_Domain']}/api/catalog_system/pvt/sku/{path}", params=params, headers=api_conection_info['headers'])
+        response = session.request(
+            method,
+            f"https://{api_conection_info['VTEX_Domain']}/api/catalog_system/pvt/sku/{path}",
+            params=params,
+            headers=api_conection_info["headers"],
+        )
         response.raise_for_status()
-        #print (response.json())
+        # print (response.json())
         return response.json() if response.status_code == 200 else None
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
         return None
 
+
 def get_skus_list_pages(page):
     query_params = {"page": page, "pagesize": 1000}
     return make_request("GET", "stockkeepingunitids", params=query_params)
+
 
 def get_skus_ids(init_page):
     skus_ids = []
@@ -33,14 +46,15 @@ def get_skus_ids(init_page):
         skus_ids.extend(skus_page)
         init_page += 1
 
-    #logging.info(skus_ids)
+    # logging.info(skus_ids)
     return skus_ids
+
 
 def get_sku_by_id(sku_id):
     return make_request("GET", f"stockkeepingunitbyid/{sku_id}")
 
+
 def process_sku(sku_id):
-    
     sku_json = get_sku_by_id(sku_id)
 
     if sku_json:
@@ -54,10 +68,10 @@ def process_sku(sku_id):
         #         logging.error(f"Unknown error - {e}")
 
         try:
-            #decoded_data = json.loads(sku_json)
-            writer = WriteJsonToPostgres(data_conection_info, sku_json, 'skus', 'Id')
+            # decoded_data = json.loads(sku_json)
+            writer = WriteJsonToPostgres(data_conection_info, sku_json, "skus", "Id")
             writer.upsert_data()
-            logger.info("Data upsert successfully.")
+            logging.info("Data upsert successfully.")
             return True
         except Exception as e:
             logging.error(f"Error inserting data - {e}")
@@ -65,6 +79,7 @@ def process_sku(sku_id):
     else:
         logging.error(f"Error inserting data - {sku_json}")
         return False
+
 
 def get_skus(init_page):
     try:
@@ -78,18 +93,16 @@ def get_skus(init_page):
     except Exception as e:
         logging.error(f"get_skus - An unexpected error occurred: {e}")
         return None
-    
-def set_globals(init_page, api_info, conection_info):
 
+
+def set_globals(init_page, api_info, conection_info):
     global api_conection_info
     api_conection_info = api_info
     global data_conection_info
     data_conection_info = conection_info
-    
+
     get_skus(init_page)
-    
+
 
 if __name__ == "__main__":
     get_skus(1)
-
-    

@@ -1,5 +1,9 @@
-from vtex.modules.config import *
-from vtex.modules.dbpgconn import *
+import concurrent.futures
+import json
+import logging
+
+import requests
+from dbpgconn import WriteJsonToPostgres
 
 category_levels = None
 api_conection_info = None
@@ -20,7 +24,8 @@ def make_request(method, endpoint, params=None):
                 headers=api_conection_info["headers"],
                 params=params,
             )
-            response.raise_for_status()  # Gera exceção se a resposta indicar erro (status HTTP >= 400)
+            # Gera exceção se a resposta indicar erro (status HTTP >= 400)
+            response.raise_for_status()
             return response.json()
 
     except requests.RequestException as e:
@@ -112,9 +117,13 @@ def process_categories(data):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             results = list(executor.map(process_category_id, category_lists))
 
-            # results = list(executor.map(executor.map(lambda category_list: process_category_id(api_conection_info, data_conection_info, category_list), category_lists)))
+            # results = list(executor.map(executor.map(lambda category_list:
+            # process_category_id(api_conection_info,
+            # data_conection_info, category_list),
+            # category_lists)))
 
-            # executor.map(lambda brand_id: get_brand_id(api_conection_info, data_conection_info, brand_id), brand_ids)
+            # executor.map(lambda brand_id: get_brand_id(api_conection_info,
+            # data_conection_info, brand_id), brand_ids)
     except Exception as e:
         log_error(f"Error processing categories: {e}")
 

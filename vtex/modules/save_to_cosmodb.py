@@ -1,5 +1,7 @@
+import json
 
-from vtex.modules.config import *
+from azure.cosmos import CosmosClient, PartitionKey, exceptions
+
 
 def save_json_to_cosmosdb(container_id, json_data):
     try:
@@ -10,7 +12,7 @@ def save_json_to_cosmosdb(container_id, json_data):
 
         # Obter ou criar um banco de dados
         database = client.create_database_if_not_exists(id=database_id)
-        
+
         # Definir o throughput desejado em RU/s (100 neste caso)
         throughput = 400
 
@@ -18,7 +20,7 @@ def save_json_to_cosmosdb(container_id, json_data):
         container = database.create_container_if_not_exists(
             id=container_id,
             partition_key=PartitionKey(path=f"/{database_id}"),
-            offer_throughput=throughput
+            offer_throughput=throughput,
         )
 
         # Converter a string JSON para um dicionário
@@ -27,7 +29,6 @@ def save_json_to_cosmosdb(container_id, json_data):
         # Corrigir a propriedade "Id" para "id" (minúsculo)
         if "Id" in json_data_dict:
             json_data_dict["id"] = str(json_data_dict.pop("Id"))
-            
 
         # Adicionar um item ao contêiner
         container.create_item(body=json_data_dict)
@@ -42,6 +43,7 @@ def save_json_to_cosmosdb(container_id, json_data):
 
     except Exception as e:
         print(f"Erro desconhecido - {e}")
+
 
 # Exemplo de uso da função
 # database_id = "YOUR_DATABASE_ID"

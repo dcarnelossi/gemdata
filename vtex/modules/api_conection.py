@@ -1,10 +1,14 @@
-from vtex.modules.config import *
+import http.client
+import logging
+
+import requests
+
 
 def vtex_test_conection(domain, method, path, params=None, headers=None):
     try:
         conn = http.client.HTTPSConnection(domain)
 
-        conn.request("GET", f"api/catalog_system/pub/category/tree/1", headers=headers)
+        conn.request("GET", "api/catalog_system/pub/category/tree/1", headers=headers)
 
         res = conn.getresponse()
         data = res.read()
@@ -27,16 +31,20 @@ def vtex_test_conection(domain, method, path, params=None, headers=None):
 
 
 session = requests.Session()
+
+
 def make_request(domain, method, path, params=None, headers=None):
     try:
-        response = session.request(method, f"https://{domain}/{path}", params=params, headers=headers)
+        response = session.request(
+            method, f"https://{domain}/{path}", params=params, headers=headers
+        )
         response.raise_for_status()
         # print (response.json())
         return response.json() if response.status_code == 200 else None
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
         return None
-    
+
 
 if __name__ == "__main__":
     vtex_test_conection(1)

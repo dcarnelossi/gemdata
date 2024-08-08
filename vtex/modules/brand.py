@@ -1,19 +1,27 @@
-from vtex.modules.config import *
-from vtex.modules.dbpgconn import *
+import concurrent.futures
+import http.client
+import json
+import logging
+
+from dbpgconn import WriteJsonToPostgres
 
 
 def get_brands_list(api_conection_info):
     try:
-        conn = http.client.HTTPSConnection(api_conection_info['VTEX_Domain'])
+        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
 
-        conn.request("GET", f"/api/catalog_system/pvt/brand/list", headers=api_conection_info['headers'])
+        conn.request(
+            "GET",
+            "/api/catalog_system/pvt/brand/list",
+            headers=api_conection_info["headers"],
+        )
 
         res = conn.getresponse()
         data = res.read()
 
         if res.status == 200:
             print(data.decode("utf-8"))
-            #save_json_to_blob_storage("brands","brands",data.decode("utf-8"))
+            # save_json_to_blob_storage("brands","brands",data.decode("utf-8"))
             for id in extract_brand_ids(data.decode("utf-8")):
                 get_brand_id(id)
             return data.decode("utf-8")
@@ -29,20 +37,23 @@ def get_brands_list(api_conection_info):
         return None
     finally:
         conn.close()
-        
-        
+
+
 def get_brands_list_parallel(api_conection_info, data_conection_info):
     try:
-        
         print("brand")
-              
-        conn = http.client.HTTPSConnection(api_conection_info['VTEX_Domain'])
 
-        conn.request("GET", f"/api/catalog_system/pvt/brand/list", headers=api_conection_info['headers'])
+        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
+
+        conn.request(
+            "GET",
+            "/api/catalog_system/pvt/brand/list",
+            headers=api_conection_info["headers"],
+        )
 
         res = conn.getresponse()
         data = res.read()
-        
+
         print("data")
         print(data)
 
@@ -53,8 +64,14 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
             # Use ThreadPoolExecutor para obter dados de marcas em paralelo
             brand_ids = extract_brand_ids(data.decode("utf-8"))
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                #executor.map(get_brand_id, brand_ids, api_conection_info, data_conection_info)
-                executor.map(lambda brand_id: get_brand_id(api_conection_info, data_conection_info, brand_id), brand_ids)
+                # executor.map
+                # (get_brand_id, brand_ids, api_conection_info, data_conection_info)
+                executor.map(
+                    lambda brand_id: get_brand_id(
+                        api_conection_info, data_conection_info, brand_id
+                    ),
+                    brand_ids,
+                )
 
             return True
         else:
@@ -73,18 +90,25 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
 
 def get_brand_id(api_conection_info, data_conection_info, brand_id):
     try:
-        conn = http.client.HTTPSConnection(api_conection_info['VTEX_Domain'])
+        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
 
-        conn.request("GET", f"/api/catalog/pvt/brand/{brand_id}", headers=api_conection_info['headers'])
+        conn.request(
+            "GET",
+            f"/api/catalog/pvt/brand/{brand_id}",
+            headers=api_conection_info["headers"],
+        )
 
         res = conn.getresponse()
         data = res.read()
 
         if res.status == 200:
-            # save_json_to_blob_storage("brands",f"brand_{brand_id}", data.decode("utf-8"))
+            # save_json_to_blob_storage("brands",f"brand_{brand_id}",
+            # data.decode("utf-8"))
             # save_json_to_cosmosdb("brands", data.decode("utf-8"))
 
-            writer = WriteJsonToPostgres(data_conection_info, json.loads(data.decode("utf-8")), 'brands','Id')
+            writer = WriteJsonToPostgres(
+                data_conection_info, json.loads(data.decode("utf-8")), "brands", "Id"
+            )
 
             # if not writer.table_exists():
             #     try:
@@ -94,7 +118,7 @@ def get_brand_id(api_conection_info, data_conection_info, brand_id):
             #         logging.error(f"Error creating table - {e}")
 
             try:
-                #writer.insert_data()
+                # writer.insert_data()
                 writer.upsert_data()
                 logging.info("Data upsert successfully.")
                 return True
@@ -123,9 +147,9 @@ def extract_brand_ids(brand_list):
 
     # Função para extrair recursivamente os IDs
     def extrair_ids(objeto):
-        ids = [objeto['id']]
-        if 'children' in objeto:
-            for child in objeto['children']:
+        ids = [objeto["id"]]
+        if "children" in objeto:
+            for child in objeto["children"]:
                 ids.extend(extrair_ids(child))
         return ids
 
@@ -139,5 +163,4 @@ def extract_brand_ids(brand_list):
 
 
 if __name__ == "__main__":
-
     get_brands_list_parallel()
