@@ -52,9 +52,18 @@ with DAG(
 
             # postgres_conn = dbpgconn.PostgresConnection(connection_info)
 
-            query = f"""SELECT *
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
+            query = f"""SELECT
+                            integration.*
+                        FROM
+                            public.integrations_integration AS integration
+                        JOIN
+                            public.teams_team AS team
+                        ON integration.team_id = team.id
+                        WHERE
+                            team.slug = '{integration_id}'
+                        AND
+                            integration.is_active = TRUE;
+                        """
 
             select = dbpgconn.WriteJsonToPostgres(connection_info, query)
             result = select.query()
