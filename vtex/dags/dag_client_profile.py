@@ -75,7 +75,7 @@ with DAG(
                 return False
         except Exception as e:
             logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return False
+            raise e
 
     def get_import_last_rum_date(connection_info, integration_id):
         try:
@@ -97,7 +97,7 @@ with DAG(
                 return False
         except Exception as e:
             logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return e
+            raise e
 
     def get_coorp_conection_info(integration_id):
         coorp_conection_info = {
@@ -152,8 +152,6 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-        finally:
-            pass
 
     @task(provide_context=True)
     def client_profile(**kwargs):
@@ -182,8 +180,6 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-        finally:
-            pass
 
     # Configurando a dependência entre as tasks
 
