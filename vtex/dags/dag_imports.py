@@ -114,7 +114,9 @@ with DAG(
 
             print(data)
 
-            api_conection_info = data
+            api_conection_info = data[0]
+
+            print(api_conection_info)
             # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {
