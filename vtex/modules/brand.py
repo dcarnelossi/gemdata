@@ -3,7 +3,7 @@ import http.client
 import json
 import logging
 
-from dbpgconn import WriteJsonToPostgres
+from modules import dbpgconn
 
 
 def get_brands_list(api_conection_info):
@@ -106,7 +106,7 @@ def get_brand_id(api_conection_info, data_conection_info, brand_id):
             # data.decode("utf-8"))
             # save_json_to_cosmosdb("brands", data.decode("utf-8"))
 
-            writer = WriteJsonToPostgres(
+            writer = dbpgconn.WriteJsonToPostgres(
                 data_conection_info, json.loads(data.decode("utf-8")), "brands", "Id"
             )
 
