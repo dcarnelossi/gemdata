@@ -42,7 +42,7 @@ with DAG(
         )
     },
 ) as dag:
-    from modules.dbpgconn import WriteJsonToPostgres
+    from modules import dbpgconn
 
     def integrationInfo(connection_info, integration_id):
         try:
@@ -56,7 +56,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = WriteJsonToPostgres(connection_info, query)
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -87,7 +87,7 @@ with DAG(
                         FROM public.integrations_integration
                         WHERE id = '{integration_id}';"""
 
-            select = WriteJsonToPostgres(connection_info, query)
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:

@@ -6,7 +6,6 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
-from modules import dbpgconn
 
 # Lista de requisitos
 requirements = [
@@ -43,6 +42,7 @@ with DAG(
         )
     },
 ) as dag:
+    from modules import dbpgconn
 
     def integrationInfo(connection_info, integration_id):
         try:
@@ -164,7 +164,7 @@ with DAG(
         api_conection_info = get_api_conection_info(integration_id)
         last_rum_date = get_import_last_rum_date(coorp_conection_info, integration_id)
 
-        from vtex.modules import orders_list
+        from modules import orders_list
 
         try:
             end_date = datetime.now()

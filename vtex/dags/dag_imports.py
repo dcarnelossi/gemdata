@@ -6,7 +6,6 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
-from modules import dbpgconn
 
 # Lista de requisitos
 requirements = [
@@ -43,6 +42,7 @@ with DAG(
         )
     },
 ) as dag:
+    from modules import dbpgconn
 
     def integrationInfo(connection_info, integration_id):
         try:
@@ -171,7 +171,7 @@ with DAG(
         data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
         api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-        from vtex.modules import category_concurrent as category
+        from modules import category_concurrent as category
 
         try:
             category.set_globals(30, api_conection_info, data_conection_info)
