@@ -93,7 +93,7 @@ with DAG(
             result = select.query()
 
             if result:
-                return result
+                return result[1]
             else:
                 logging.error(
                     f"Importação das BRANDS deu pau. Tempo de execução: \
@@ -114,7 +114,7 @@ with DAG(
 
             print(data)
 
-            api_conection_info = data[0][1][0]
+            api_conection_info = data
             # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {

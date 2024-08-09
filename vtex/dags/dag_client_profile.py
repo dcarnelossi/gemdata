@@ -131,7 +131,7 @@ with DAG(
                 get_coorp_conection_info(integration_id), integration_id
             )
 
-            api_conection_info = data[0][0]
+            api_conection_info = data[0][1][0]
             # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {
