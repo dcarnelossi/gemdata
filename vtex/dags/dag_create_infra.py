@@ -68,7 +68,7 @@ with DAG(
 
     trigger_dag_imports = TriggerDagRunOperator(
         task_id="trigger_dag_imports",
-        trigger_dag_id="ImportVtex-v2",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
         },  # Se precisar passar informações adicionais para a DAG_B

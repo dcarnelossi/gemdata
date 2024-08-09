@@ -26,7 +26,7 @@ default_args = {
 
 
 with DAG(
-    "ImportVtex-v2",
+    "ImportVtex-Brands-Categories-Skus-Products",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
