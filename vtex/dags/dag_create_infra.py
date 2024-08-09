@@ -54,7 +54,7 @@ with DAG(
             sql_script = vtexsqlscripts(PGSCHEMA)
 
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="db-vetex-dev-00")
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             hook.run(sql_script)
             return True
 
