@@ -3,7 +3,7 @@ import json
 import logging
 
 import requests
-from modules.dbpgconn import WriteJsonToPostgres
+from modules import dbpgconn
 
 category_levels = None
 api_conection_info = None
@@ -41,7 +41,7 @@ def make_request(method, endpoint, params=None):
 def handle_category_data(category_id, data):
     try:
         decoded_data = json.loads(data)
-        writer = WriteJsonToPostgres(
+        writer = dbpgconn.WriteJsonToPostgres(
             data_conection_info, decoded_data, "categories", "Id"
         )
 
