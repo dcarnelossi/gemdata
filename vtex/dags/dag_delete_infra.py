@@ -51,7 +51,9 @@ with DAG(
             sql_script = f"""DROP SCHEMA IF EXISTS "{PGSCHEMA}" CASCADE;"""
 
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="db-vetex-dev-00")
+            # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
+            # não pode estar cravada aqui no codigo
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             hook.run(sql_script)
             return True
 

@@ -51,7 +51,7 @@ with DAG(
 
         try:
             # Defina o código SQL para criar a tabela
-            sql_script = vtexsqlscripts(PGSCHEMA)
+            sql_script = vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
 
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
@@ -64,7 +64,7 @@ with DAG(
             logging.exception(
                 f"An unexpected error occurred during create_postgres_infra - {e}"
             )
-            return False
+            return e
 
     trigger_dag_imports = TriggerDagRunOperator(
         task_id="trigger_dag_imports",
