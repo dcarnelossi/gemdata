@@ -44,6 +44,30 @@ with DAG(
 ) as dag:
     from modules import dbpgconn
 
+    def get_coorp_conection_info():
+        coorp_conection_info = {
+            "host": Variable.get("COORP_PGHOST"),
+            "user": Variable.get("COORP_PGUSER"),
+            "port": 5432,
+            "database": Variable.get("COORP_PGDATABASE"),
+            "password": Variable.get("COORP_PGPASSWORD"),
+            "schema": "public",
+        }
+
+        return coorp_conection_info
+
+    def get_data_conection_info(integration_id):
+        data_conection_info = {
+            "host": Variable.get("DATA_PGHOST"),
+            "user": Variable.get("DATA_PGUSER"),
+            "port": 5432,
+            "database": Variable.get("DATA_PGDATABASE"),
+            "password": Variable.get("DATA_PGPASSWORD"),
+            "schema": integration_id,
+        }
+
+        return data_conection_info
+
     def integrationInfo(connection_info, integration_id):
         try:
             print("integrationInfo")
@@ -69,13 +93,7 @@ with DAG(
             result = select.query()
 
             if result:
-                logging.info(
-                    f"Importação das BRANDS Concluída com sucesso. \
-                        Tempo de execução: {time.time() - start_time:.2f} segundos"
-                )
-                logging.info(f"Tempo de execução: {time.time() - start_time:.2f}")
-                print(result)
-                return (result,)
+                return result
             else:
                 logging.error(
                     f"Importação das BRANDS deu pau. Tempo de execução: \
@@ -86,37 +104,15 @@ with DAG(
             logging.exception("An unexpected error occurred during BRANDS import" - e)
             raise e
 
-    def get_coorp_conection_info(integration_id):
-        coorp_conection_info = {
-            "host": Variable.get("COORP_PGHOST"),
-            "user": Variable.get("COORP_PGUSER"),
-            "port": 5432,
-            "database": Variable.get("COORP_PGDATABASE"),
-            "password": Variable.get("COORP_PGPASSWORD"),
-            "schema": "public",
-        }
-
-        return coorp_conection_info
-
-    def get_data_conection_info(integration_id):
-        data_conection_info = {
-            "host": Variable.get("DATA_PGHOST"),
-            "user": Variable.get("DATA_PGUSER"),
-            "port": 5432,
-            "database": Variable.get("DATA_PGDATABASE"),
-            "password": Variable.get("DATA_PGPASSWORD"),
-            "schema": integration_id,
-        }
-
-        return data_conection_info
-
     def get_api_conection_info(integration_id):
         try:
             print(integration_id)
 
-            data = integrationInfo(
-                get_coorp_conection_info(integration_id), integration_id
-            )
+            connection_info = get_coorp_conection_info()
+
+            data = integrationInfo(connection_info, integration_id)
+
+            print(data)
 
             api_conection_info = data[0][1][0]
             # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
@@ -144,7 +140,7 @@ with DAG(
     def brands(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
 
-        coorp_conection_info = get_coorp_conection_info(integration_id)
+        coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
