@@ -3,7 +3,7 @@ import json
 import logging
 
 import requests
-from dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
 category_levels = None
 api_conection_info = None
@@ -115,7 +115,7 @@ def process_categories(data):
         category_lists = extract_category_ids_wrapper(json.dumps(data))
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            results = list(executor.map(process_category_id, category_lists))
+            list(executor.map(process_category_id, category_lists))
 
             # results = list(executor.map(executor.map(lambda category_list:
             # process_category_id(api_conection_info,
