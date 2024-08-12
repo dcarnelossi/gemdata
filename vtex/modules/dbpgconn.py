@@ -308,10 +308,15 @@ class WriteJsonToPostgres:
                 return True
 
         except Exception as e:
-            # Handle exceptions and log errors
+            # Handle exceptions and log the full error
             self.connection.rollback()
-            logging.error(f"Error during upsert operation: {e}")
-            raise e
+            logging.error("Error during upsert operation", exc_info=True)
+            raise  # Re-raise the exception to propagate it
+        
+        finally:
+            # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
+            if self.connection:
+                self.connection.close()
 
     def insert_data_batch(self, batch_data):
         try:

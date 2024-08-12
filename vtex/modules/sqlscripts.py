@@ -38,6 +38,7 @@ def vtexsqlscripts(schema, user):
         keywords text COLLATE pg_catalog."default",
         isactive boolean,
         treepath text COLLATE pg_catalog."default",
+        treepathids bigint,
         lomadeecampaigncode text COLLATE pg_catalog."default",
         adwordsremarketingcode text COLLATE pg_catalog."default",
         showinstorefront boolean,
