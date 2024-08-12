@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 
-from api_conection import make_request
+from modules.api_conection import make_request
 from modules.dbpgconn import WriteJsonToPostgres
 
 # set Globals
