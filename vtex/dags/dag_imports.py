@@ -97,7 +97,7 @@ with DAG(
             else:
                 logging.error(
                     f"Importação das BRANDS deu pau. Tempo de execução: \
-                        {time.time() - start_time:.2f} segundos"
+                    {time.time() - start_time:.2f} segundos"
                 )
                 return False
         except Exception as e:
