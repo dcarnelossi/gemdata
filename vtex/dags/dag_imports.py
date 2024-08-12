@@ -127,8 +127,7 @@ with DAG(
             }
 
             vtexapi = {
-                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.\
-                {api_conection_info['vtex_api_environment']}.com.br",
+                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
                 "headers": headers,
             }
 
