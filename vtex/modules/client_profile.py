@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 
-from modules import dbpgconn
+from modules.dbpgconn import WriteJsonToPostgres
 
 api_conection_info = None
 data_conection_info = None
@@ -16,7 +16,7 @@ def write_client_profile_to_database(batch_size=600):
                         FROM orders 
                         WHERE NOT EXISTS (SELECT 1 FROM client_profile WHERE orders.orderid = client_profile.orderid )
                         LIMIT {batch_size};"""
-            result = dbpgconn.WriteJsonToPostgres(
+            result = WriteJsonToPostgres(
                 data_conection_info, query, "client_profile"
             ).query()
 
@@ -39,7 +39,7 @@ def process_client_profile(result):
         order_id, client_profile = result
         client_profile["orderid"] = order_id
 
-        writer = dbpgconn.WriteJsonToPostgres(
+        writer = WriteJsonToPostgres(
             data_conection_info, client_profile, "client_profile", "orderid"
         )
         writer.upsert_data()

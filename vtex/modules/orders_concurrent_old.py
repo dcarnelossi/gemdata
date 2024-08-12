@@ -5,8 +5,8 @@ import logging
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
-from dbpgconn import WriteJsonToPostgres
-from helpers import increment_one_day
+from modules.dbpgconn import WriteJsonToPostgres
+from modules.helpers import increment_one_day
 
 
 def create_orders_database():

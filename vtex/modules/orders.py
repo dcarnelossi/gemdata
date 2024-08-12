@@ -1,8 +1,8 @@
 import concurrent.futures
 import logging
 
-from api_conection import make_request
-from dbpgconn import WriteJsonToPostgres
+from modules.api_conection import make_request
+from modules.dbpgconn import WriteJsonToPostgres
 
 api_conection_info = None
 data_conection_info = None
@@ -48,6 +48,7 @@ def write_orders_to_db(order_id):
 
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
+        raise e
 
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):

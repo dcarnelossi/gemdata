@@ -1,13 +1,13 @@
 import concurrent.futures
 import logging
 
-from dbpgconn import WriteJsonToPostgres
-from helpers import flatten_json
+from modules.dbpgconn import WriteJsonToPostgres
+from modules.helpers import flatten_json
 
+# Variáveis globais
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
-
 
 def write_orders_shippingdata_to_database(batch_size=600):
     try:
@@ -23,19 +23,26 @@ def write_orders_shippingdata_to_database(batch_size=600):
             )
             result = result.query()
 
-            if not result[0]:
+            if not result or not result[0]:
+                logging.info("No more orders to process. Exiting loop.")
                 break  # No more results, exit the loop
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                # Mapeia a função para cada item em result usando threads
-                results = list(executor.map(process_orders_shippingdata, result[0]))
-
-        return True
+                futures = {executor.submit(process_orders_shippingdata, res): res for res in result[0]}
+                for future in concurrent.futures.as_completed(futures):
+                    res = futures[future]
+                    try:
+                        success, error_message = future.result()
+                        if not success:
+                            logging.error(f"Failed to process shipping data for order {res[0]}: {error_message}")
+                            raise Exception(f"Failed to process shipping data for order {res[0]}: {error_message}")
+                    except Exception as e:
+                        logging.error(f"Error during shipping data processing: {e}")
+                        raise  # Rethrow to signal Airflow task failure
 
     except Exception as e:
-        logging.error(f"write_orders_shippingdata_to_database - Erro desconhecido - {e}")
-        raise e
-
+        logging.error(f"write_orders_shippingdata_to_database - Unexpected error: {e}")
+        raise  # Ensure Airflow registers the task as failed
 
 def process_orders_shippingdata(result):
     try:
@@ -54,31 +61,30 @@ def process_orders_shippingdata(result):
         )
         writer.upsert_data()
 
-        logging.info(f"Inserção de dados concluída para orderid - {order_id}")
+        logging.info(f"Data insertion completed for orderid - {order_id}")
 
-        return True, None  # Indica que a execução foi bem-sucedida
+        return True, None  # Indicates successful execution
 
     except Exception as e:
-        error_message = f"Erro ao processar orders_shippingdata - {e}"
+        error_message = f"Error processing orders_shippingdata - {e}"
         logging.error(error_message)
-        print(error_message)
-        return False, str(
-            e
-        )  # Indica que houve uma falha na execução e fornece detalhes do erro
-
+        return False, str(e)  # Indicates a failure in execution with error details
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
-    global api_conection_info
+    global api_conection_info, data_conection_info, coorp_conection_info
     api_conection_info = api_info
-
-    global data_conection_info
     data_conection_info = data_conection
-
-    global coorp_conection_info
     coorp_conection_info = coorp_conection
 
+    if not all([api_conection_info, data_conection_info, coorp_conection_info]):
+        logging.error("Global connection information is incomplete.")
+        raise ValueError("All global connection information must be provided.")
+
     write_orders_shippingdata_to_database()
 
-
-if __name__ == "__main__":
-    write_orders_shippingdata_to_database()
+# if __name__ == "__main__":
+#     set_globals(
+#         {"api_key": "example"}, 
+#         {"db_url": "postgresql://user:pass@localhost/db"}, 
+#         {"coorp_key": "example"}
+#     )

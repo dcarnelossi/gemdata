@@ -1,9 +1,6 @@
 import concurrent.futures
 import logging
-
 import requests
-
-# from api_conection import make_request
 from modules.dbpgconn import WriteJsonToPostgres
 
 # set Globals
@@ -12,8 +9,11 @@ data_conection_info = None
 
 session = requests.Session()
 
-
 def make_request(method, path, params=None):
+    if not api_conection_info:
+        logging.error("API connection info is not set.")
+        raise ValueError("API connection info is not set.")
+    
     try:
         response = session.request(
             method,
@@ -22,78 +22,73 @@ def make_request(method, path, params=None):
             headers=api_conection_info["headers"],
         )
         response.raise_for_status()
-        # print (response.json())
         return response.json() if response.status_code == 200 else None
+    except requests.JSONDecodeError as e:
+        logging.error(f"Failed to parse JSON response: {e}")
+        return None
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
-        return e
-
+        return None
 
 def get_skus_list_pages(page):
     query_params = {"page": page, "pagesize": 1000}
     return make_request("GET", "stockkeepingunitids", params=query_params)
 
-
 def get_skus_ids(init_page):
     skus_ids = []
-
     while True:
         skus_page = get_skus_list_pages(init_page)
-
         if not skus_page:
+            logging.info(f"No more SKUs found starting from page {init_page}.")
             break
-
         skus_ids.extend(skus_page)
         init_page += 1
-
-    # logging.info(skus_ids)
     return skus_ids
-
 
 def get_sku_by_id(sku_id):
     return make_request("GET", f"stockkeepingunitbyid/{sku_id}")
 
+class SkuNotFoundException(Exception):
+    pass
 
 def process_sku(sku_id):
     sku_json = get_sku_by_id(sku_id)
-
     if sku_json:
-        # logging.info(sku_id)
-
-        # if not writer.table_exists():
-        #     try:
-        #         writer.create_table()
-        #         logging.info("Created table -----------------------------------------")
-        #     except Exception as e:
-        #         logging.error(f"Unknown error - {e}")
-
         try:
-            # decoded_data = json.loads(sku_json)
             writer = WriteJsonToPostgres(data_conection_info, sku_json, "skus", "Id")
             writer.upsert_data()
-            logging.info("Data upsert successfully.")
+            logging.info(f"SKU {sku_id} upserted successfully.")
             return True
         except Exception as e:
-            logging.error(f"Error inserting data - {e}")
-            raise e
+            logging.error(f"Error inserting SKU {sku_id} data - {e}")
+            return e
     else:
-        logging.error(f"Error inserting data - {sku_json}")
-        return False
-
+        logging.error(f"SKU not found for ID: {sku_id}")
+        raise SkuNotFoundException(f"SKU with ID {sku_id} not found.")
 
 def get_skus(init_page):
+    if not api_conection_info or not data_conection_info:
+        logging.error("Global connection info is not set.")
+        raise ValueError("Global connection info is not set.")
+    
     try:
         skus = get_skus_ids(init_page)
+        if not skus:
+            logging.info("No SKUs found to process.")
+            return False
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(process_sku, skus)
-
+            futures = {executor.submit(process_sku, sku): sku for sku in skus}
+            for future in concurrent.futures.as_completed(futures):
+                sku = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"Error processing SKU {sku}: {e}")
         return True
-
     except Exception as e:
         logging.error(f"get_skus - An unexpected error occurred: {e}")
         raise e
-
 
 def set_globals(init_page, api_info, conection_info):
     global api_conection_info
@@ -103,6 +98,5 @@ def set_globals(init_page, api_info, conection_info):
 
     get_skus(init_page)
 
-
-if __name__ == "__main__":
-    get_skus(1)
+# if __name__ == "__main__":
+#     set_globals(1, {"VTEX_Domain": "example.com", "headers": {"Authorization": "Bearer your_token"}}, {"db_info": "details"})

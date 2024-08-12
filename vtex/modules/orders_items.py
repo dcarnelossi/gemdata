@@ -1,69 +1,56 @@
 import concurrent.futures
 import logging
 import math
+from modules.dbpgconn import WriteJsonToPostgres
 
-from dbpgconn import WriteJsonToPostgres
-
+# Variáveis globais
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 
-
 def create_orders_items_database(table_name):
     try:
-        writer = WriteJsonToPostgres("{}", table_name)
+        writer = WriteJsonToPostgres(data_conection_info, "{}", table_name)
 
         if not writer.table_exists():
-            # Construa a consulta dinâmica
-            query = (
-                f"""SELECT orders.orderid, orders.{table_name} FROM orders LIMIT 1;"""
-            )
-
-            result = WriteJsonToPostgres(query, table_name).query()
-            logging.info(result)
+            query = f"SELECT orders.orderid, orders.{table_name} FROM orders LIMIT 1;"
+            result = writer.query()
+            if not result or not result[0]:
+                logging.error(f"No data found to create the table '{table_name}'.")
+                raise ValueError(f"No data found to create the table '{table_name}'.")
 
             dados = result[0][1]
-
             for item in dados:
                 item["orderid"] = result[0][0]
 
-            logging.info(dados)
-
-            writer = WriteJsonToPostgres(dados, table_name)
+            writer = WriteJsonToPostgres(data_conection_info, dados, table_name)
             writer.create_table()
 
-            logging.info(
-                f"create_orders_items_database - Tabela '{table_name}' criada com sucesso."
-            )
-            return True
+            logging.info(f"Table '{table_name}' created successfully.")
         else:
-            logging.info(
-                f"create_orders_items_database - Tabela '{table_name}' já existe."
-            )
-            return True
-    except Exception as e:
-        logging.error(f"create_orders_items_database - Erro ao criar tabela - {e}")
-        return e
+            logging.info(f"Table '{table_name}' already exists.")
 
+    except Exception as e:
+        logging.error(f"Error creating table '{table_name}': {e}")
+        raise  # Rethrow the exception to ensure Airflow task failure
 
 def write_orders_item_to_database(batch_size=400):
     try:
-        # Conte o número total de registros
         count_query = """SELECT count(*)
                         FROM orders
                         WHERE orders.orderid NOT IN
                          (SELECT orderid FROM orders_items WHERE orderid IS NOT NULL)"""
-        records = WriteJsonToPostgres(
-            data_conection_info, count_query, "orders_items"
-        ).query()
-        total_records = records[0][0][0]
-
-        # Calcule o número total de lotes necessários
+        count_writer = WriteJsonToPostgres(data_conection_info, count_query, "orders_items")
+        records = count_writer.query()
+        
+        if not records or not records[0]:
+            logging.info("No records found to process.")
+            return
+        
+        total_records = records[0][0]
         total_batches = math.ceil(total_records / batch_size)
 
-        # Itere sobre os lotes
         for batch_num in range(total_batches):
-            # Construa a consulta dinâmica com a cláusula LIMIT para paginar os resultados
             offset = batch_num * batch_size
             query = f"""
             SELECT orders.orderid, orders.items
@@ -71,68 +58,59 @@ def write_orders_item_to_database(batch_size=400):
             WHERE orders.orderid NOT IN
             (SELECT orderid FROM orders_items WHERE orderid IS NOT NULL)
             ORDER BY orders.sequence
-            LIMIT {batch_size};
+            LIMIT {batch_size} OFFSET {offset};
             """
+            batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
+            result = batch_writer.query()
 
-            result = WriteJsonToPostgres(
-                data_conection_info, query, "orders_items"
-            ).query()
-
-            logging.info("query retornou")
-
-            #     with concurrent.futures.ThreadPoolExecutor() as executor:
-            #         futures = []
-            #         for order_itens in result[0]:
-            #             for id in order_itens[1]:
-            #                 id['orderid'] = order_itens[0]
-            #                 futures.append(executor.submit(insert_data_parallel, id, 'orders_items'))
-            #         # Esperar que todas as tarefas paralelas sejam concluídas
-            #         concurrent.futures.wait(futures)
-
-            # with concurrent.futures.ThreadPoolExecutor() as executor:
-            #     executor.map(write_orders_to_db, orders_ids[0])
+            if not result or not result[0]:
+                logging.info(f"No more data to process after batch {batch_num}.")
+                break
 
             futures = []
             for order_itens in result[0]:
-                for id in order_itens[1]:
-                    id["orderid"] = order_itens[0]
-                    futures.append(id)
+                for item in order_itens[1]:
+                    item["orderid"] = order_itens[0]
+                    futures.append(item)
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                executor.map(insert_data_parallel, futures)
-
-        return True
+                future_to_item = {executor.submit(insert_data_parallel, item): item for item in futures}
+                for future in concurrent.futures.as_completed(future_to_item):
+                    item = future_to_item[future]
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logging.error(f"Error processing orderid {item['orderid']}: {e}")
+                        raise  # Propagate the exception to fail the Airflow task
 
     except Exception as e:
-        logging.error(f"write_orders_item_to_database - Erro desconhecido - {e}")
-        return e
-
+        logging.error(f"Unexpected error in write_orders_item_to_database: {e}")
+        raise  # Ensure the Airflow task fails on error
 
 def insert_data_parallel(item):
     try:
-        writer = WriteJsonToPostgres(
-            data_conection_info, item, "orders_items", "uniqueid"
-        )
+        writer = WriteJsonToPostgres(data_conection_info, item, "orders_items", "uniqueid")
         writer.upsert_data()
         logging.info(f"Data upserted successfully for orderid - {item['orderid']}")
-        return True
     except Exception as e:
-        logging.error(f"insert_data_parallel - Erro ao inserir dados - {e}")
-        return e
-
+        logging.error(f"Error inserting data for orderid {item['orderid']}: {e}")
+        raise  # Propagate the exception to fail the Airflow task
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
-    global api_conection_info
+    global api_conection_info, data_conection_info, coorp_conection_info
     api_conection_info = api_info
-
-    global data_conection_info
     data_conection_info = data_conection
-
-    global coorp_conection_info
     coorp_conection_info = coorp_conection
+
+    if not all([api_conection_info, data_conection_info, coorp_conection_info]):
+        logging.error("Global connection information is incomplete.")
+        raise ValueError("All global connection information must be provided.")
 
     write_orders_item_to_database()
 
-
-if __name__ == "__main__":
-    write_orders_item_to_database("orders_items")
+# if __name__ == "__main__":
+#     set_globals(
+#         {"api_key": "example"}, 
+#         {"db_url": "postgresql://user:pass@localhost/db"}, 
+#         {"coorp_key": "example"}
+#     )
