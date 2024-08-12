@@ -151,13 +151,15 @@ with DAG(
             result = select.query()
 
             if result:
-                return result
+                return result[1]
+                print(result[1])
             else:
                 logging.error("Importação das get_import_last_rum_date deu pau")
                 return False
         except Exception as e:
             logging.exception("An unexpected error occurred during BRANDS import" - e)
             raise
+
 
     @task(provide_context=True)
     def orders_list(**kwargs):
@@ -173,10 +175,10 @@ with DAG(
         try:
             end_date = datetime.now()
 
-            if last_rum_date[0][0][0] is None:
+            if last_rum_date["import_last_rum_date"] is None:
                 start_date = end_date - timedelta(days=730)
             else:
-                start_date = last_rum_date[0][0][0] - timedelta(days=1)
+                start_date = last_rum_date["import_last_rum_date"] - timedelta(days=1)
 
             orders_list.set_globals(
                 api_conection_info,
