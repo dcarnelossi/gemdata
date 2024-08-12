@@ -2,7 +2,7 @@ import concurrent.futures
 import logging
 
 from api_conection import make_request
-from dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
 # set Globals
 api_conection_info = None
@@ -15,17 +15,19 @@ def get_categories_id_from_db():
         result = WriteJsonToPostgres(data_conection_info, query, "categories")
         result = result.query()
         return result
-
     except Exception as e:
         logging.error(f"An unexpected error occurred in get_categories_id_from_db: {e}")
         raise e
 
 
 def extract_product_ids(product_list):
-    data_list = [item for sublist in product_list["data"].values() for item in sublist]
-    return data_list
-
-
+    try:
+        data_list = [item for sublist in product_list["data"].values() for item in sublist]
+        return data_list
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in extract_product_ids: {e}")
+        raise e
+    
 def get_products_by_category(category_id):
     try:
         query_params = {"categoryId": category_id}
@@ -44,14 +46,17 @@ def get_products_by_category(category_id):
 
 
 def get_product_by_id(product_id):
-    return make_request(
-        api_conection_info["VTEX_Domain"],
-        "GET",
-        f"api/catalog/pvt/product/{product_id}",
-        headers=api_conection_info["headers"],
-    )
-
-
+    try:
+        return make_request(
+            api_conection_info["VTEX_Domain"],
+            "GET",
+            f"api/catalog/pvt/product/{product_id}",
+            headers=api_conection_info["headers"],
+        )
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in get_product_by_id: {e}")
+        raise e
+    
 def process_product(product_id):
     try:
         product_data = get_product_by_id(product_id)

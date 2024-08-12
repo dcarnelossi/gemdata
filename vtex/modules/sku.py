@@ -26,7 +26,7 @@ def make_request(method, path, params=None):
         return response.json() if response.status_code == 200 else None
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
-        return None
+        return e
 
 
 def get_skus_list_pages(page):
@@ -75,7 +75,7 @@ def process_sku(sku_id):
             return True
         except Exception as e:
             logging.error(f"Error inserting data - {e}")
-            return False
+            raise e
     else:
         logging.error(f"Error inserting data - {sku_json}")
         return False
@@ -92,7 +92,7 @@ def get_skus(init_page):
 
     except Exception as e:
         logging.error(f"get_skus - An unexpected error occurred: {e}")
-        return None
+        raise e
 
 
 def set_globals(init_page, api_info, conection_info):
