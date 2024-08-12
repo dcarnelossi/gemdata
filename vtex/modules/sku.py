@@ -4,7 +4,7 @@ import logging
 import requests
 
 # from api_conection import make_request
-from dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
 # set Globals
 api_conection_info = None

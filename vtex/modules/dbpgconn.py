@@ -311,7 +311,7 @@ class WriteJsonToPostgres:
             # Handle exceptions and log errors
             self.connection.rollback()
             logging.error(f"Error during upsert operation: {e}")
-            return None
+            raise e
 
     def insert_data_batch(self, batch_data):
         try:
@@ -362,7 +362,7 @@ class WriteJsonToPostgres:
             # Registre o erro para depuração
             print(f"Erro ao inserir os dados: {e}")
 
-            return False
+            return e
 
         finally:
             # Garanta que a conexão seja fechada mesmo se uma exceção ocorrer
