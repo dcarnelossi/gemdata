@@ -99,7 +99,7 @@ with DAG(
             logging.exception("An unexpected error occurred during BRANDS import" - e)
             return e
 
-    def get_coorp_conection_info(integration_id):
+    def get_coorp_conection_info():
         coorp_conection_info = {
             "host": Variable.get("COORP_PGHOST"),
             "user": Variable.get("COORP_PGUSER"),
