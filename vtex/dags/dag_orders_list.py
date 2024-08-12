@@ -44,62 +44,7 @@ with DAG(
 ) as dag:
     from modules import dbpgconn
 
-    def integrationInfo(connection_info, integration_id):
-        try:
-            print("integrationInfo")
-
-            start_time = time.time()
-
-            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
-
-            query = f"""SELECT *
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
-
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
-            result = select.query()
-
-            if result:
-                logging.info(
-                    f"Importação das BRANDS Concluída com sucesso. \
-                        Tempo de execução: {time.time() - start_time:.2f} segundos"
-                )
-                logging.info(f"Tempo de execução: {time.time() - start_time:.2f}")
-                print(result)
-                return (result,)
-            else:
-                logging.error(
-                    f"Importação das BRANDS deu pau. \
-                        Tempo de execução: {time.time() - start_time:.2f} segundos"
-                )
-                return False
-        except Exception as e:
-            logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return False
-
-    def get_import_last_rum_date(connection_info, integration_id):
-        try:
-            print("get_import_last_rum_date")
-
-            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
-
-            query = f"""SELECT import_last_rum_date
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
-
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
-            result = select.query()
-
-            if result:
-                return result
-            else:
-                logging.error("Importação das get_import_last_rum_date deu pau")
-                return False
-        except Exception as e:
-            logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return e
-
-    def get_coorp_conection_info(integration_id):
+    def get_coorp_conection_info():
         coorp_conection_info = {
             "host": Variable.get("COORP_PGHOST"),
             "user": Variable.get("COORP_PGUSER"),
@@ -123,15 +68,55 @@ with DAG(
 
         return data_conection_info
 
+    def integrationInfo(connection_info, integration_id):
+        try:
+            print("integrationInfo")
+
+            start_time = time.time()
+
+            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+            query = f"""SELECT
+                            integration.*
+                        FROM
+                            public.integrations_integration AS integration
+                        JOIN
+                            public.teams_team AS team
+                        ON integration.team_id = team.id
+                        WHERE
+                            team.slug = '{integration_id}'
+                        AND
+                            integration.is_active = TRUE;
+                        """
+
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            result = select.query()
+
+            if result:
+                return result[1]
+            else:
+                logging.error(
+                    f"Importação das BRANDS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
+                )
+                return False
+        except Exception as e:
+            logging.exception("An unexpected error occurred during BRANDS import" - e)
+            raise
+
     def get_api_conection_info(integration_id):
         try:
             print(integration_id)
 
-            data = integrationInfo(
-                get_coorp_conection_info(integration_id), integration_id
-            )
+            connection_info = get_coorp_conection_info()
 
-            api_conection_info = data[0][1][0]
+            data = integrationInfo(connection_info, integration_id)
+
+            print(data)
+
+            api_conection_info = data[0]
+
+            print(api_conection_info)
             # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {
@@ -142,8 +127,7 @@ with DAG(
             }
 
             vtexapi = {
-                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.\
-                    {api_conection_info['vtex_api_environment']}.com.br",
+                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
                 "headers": headers,
             }
 
@@ -151,15 +135,35 @@ with DAG(
 
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise e
-        finally:
-            pass
+            raise
+
+    def get_import_last_rum_date(connection_info, integration_id):
+        try:
+            print("get_import_last_rum_date")
+
+            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+            query = f"""SELECT import_last_rum_date
+                        FROM public.integrations_integration
+                        WHERE id = '{integration_id}';"""
+
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            result = select.query()
+
+            if result:
+                return result
+            else:
+                logging.error("Importação das get_import_last_rum_date deu pau")
+                return False
+        except Exception as e:
+            logging.exception("An unexpected error occurred during BRANDS import" - e)
+            raise
 
     @task(provide_context=True)
     def orders_list(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
 
-        coorp_conection_info = get_coorp_conection_info(integration_id)
+        coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
         last_rum_date = get_import_last_rum_date(coorp_conection_info, integration_id)

@@ -102,7 +102,7 @@ with DAG(
                 return False
         except Exception as e:
             logging.exception("An unexpected error occurred during BRANDS import" - e)
-            raise e
+            raise
 
     def get_api_conection_info(integration_id):
         try:
@@ -135,7 +135,7 @@ with DAG(
 
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise e
+            raise
 
     def get_import_last_rum_date(connection_info, integration_id):
         try:
@@ -157,7 +157,7 @@ with DAG(
                 return False
         except Exception as e:
             logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return e
+            raise
 
 
     @task(provide_context=True)
