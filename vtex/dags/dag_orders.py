@@ -127,12 +127,16 @@ with DAG(
         try:
             print(integration_id)
 
-            data = integrationInfo(
-                get_coorp_conection_info(integration_id), integration_id
-            )
+            connection_info = get_coorp_conection_info()
 
-            api_conection_info = data[0][1][0]
-            # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
+            data = integrationInfo(connection_info, integration_id)
+
+            print(data)
+
+            api_conection_info = data[0]
+
+            print(api_conection_info)
+            
 
             headers = {
                 "Accept": "application/json",
@@ -142,8 +146,7 @@ with DAG(
             }
 
             vtexapi = {
-                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.\
-                    {api_conection_info['vtex_api_environment']}.com.br",
+                "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
                 "headers": headers,
             }
 
