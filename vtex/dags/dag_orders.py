@@ -44,61 +44,6 @@ with DAG(
 ) as dag:
     from modules import dbpgconn
 
-    def integrationInfo(connection_info, integration_id):
-        try:
-            print("integrationInfo")
-
-            start_time = time.time()
-
-            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
-
-            query = f"""SELECT *
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
-
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
-            result = select.query()
-
-            if result:
-                logging.info(
-                    f"Importação das BRANDS Concluída com sucesso. \
-                        Tempo de execução: {time.time() - start_time:.2f} segundos"
-                )
-                logging.info(f"Tempo de execução: {time.time() - start_time:.2f}")
-                print(result)
-                return (result,)
-            else:
-                logging.error(
-                    f"Importação das BRANDS deu pau. \
-                        Tempo de execução: {time.time() - start_time:.2f} segundos"
-                )
-                return False
-        except Exception as e:
-            logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return False
-
-    def get_import_last_rum_date(connection_info, integration_id):
-        try:
-            print("get_import_last_rum_date")
-
-            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
-
-            query = f"""SELECT import_last_rum_date
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
-
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
-            result = select.query()
-
-            if result:
-                return result
-            else:
-                logging.error("Importação das get_import_last_rum_date deu pau")
-                return False
-        except Exception as e:
-            logging.exception("An unexpected error occurred during BRANDS import" - e)
-            return e
-
     def get_coorp_conection_info():
         coorp_conection_info = {
             "host": Variable.get("COORP_PGHOST"),
@@ -123,6 +68,42 @@ with DAG(
 
         return data_conection_info
 
+    def integrationInfo(connection_info, integration_id):
+        try:
+            print("integrationInfo")
+
+            start_time = time.time()
+
+            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+            query = f"""SELECT
+                            integration.*
+                        FROM
+                            public.integrations_integration AS integration
+                        JOIN
+                            public.teams_team AS team
+                        ON integration.team_id = team.id
+                        WHERE
+                            team.slug = '{integration_id}'
+                        AND
+                            integration.is_active = TRUE;
+                        """
+
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            result = select.query()
+
+            if result:
+                return result[1]
+            else:
+                logging.error(
+                    f"Importação das BRANDS deu pau. Tempo de execução: \
+                    {time.time() - start_time:.2f} segundos"
+                )
+                return False
+        except Exception as e:
+            logging.exception("An unexpected error occurred during BRANDS import" - e)
+            raise e
+
     def get_api_conection_info(integration_id):
         try:
             print(integration_id)
@@ -136,7 +117,7 @@ with DAG(
             api_conection_info = data[0]
 
             print(api_conection_info)
-            
+            # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
 
             headers = {
                 "Accept": "application/json",
@@ -155,8 +136,29 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-        finally:
-            pass
+
+    def get_import_last_rum_date(connection_info, integration_id):
+        try:
+            print("get_import_last_rum_date")
+
+            # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+            query = f"""SELECT import_last_rum_date
+                        FROM public.integrations_integration
+                        WHERE id = '{integration_id}';"""
+
+            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            result = select.query()
+
+            if result:
+                return result
+            else:
+                logging.error("Importação das get_import_last_rum_date deu pau")
+                return False
+        except Exception as e:
+            logging.exception("An unexpected error occurred during BRANDS import" - e)
+            return e
+
 
     @task(provide_context=True)
     def orders(**kwargs):
@@ -184,9 +186,7 @@ with DAG(
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise e
-        finally:
-            pass
+            raise
 
     # Configurando a dependência entre as tasks
 

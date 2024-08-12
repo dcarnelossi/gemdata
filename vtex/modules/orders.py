@@ -51,6 +51,17 @@ def write_orders_to_db(order_id):
         raise e
 
 
+def process_orders():
+    try:
+        orders_ids = get_orders_ids_from_db()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(write_orders_to_db, orders_ids[0])
+        return True
+    except Exception as e:
+        logging.error(f"An unexpected error occurred: {e}")
+        raise e
+
+
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info
     api_conection_info = api_info
@@ -64,15 +75,6 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     process_orders()
 
 
-def process_orders():
-    try:
-        orders_ids = get_orders_ids_from_db()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(write_orders_to_db, orders_ids[0])
-        return True
-    except Exception as e:
-        logging.error(f"An unexpected error occurred: {e}")
-        raise e
 
 
 if __name__ == "__main__":
