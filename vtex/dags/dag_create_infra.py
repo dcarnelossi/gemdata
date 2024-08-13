@@ -59,13 +59,17 @@ with DAG(
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             hook.run(sql_script)
             
-            query = f"""
+            query = """
             UPDATE public.integrations_integration
-            SET infra_create_date={datetime.now()}, infra_create_status=True
-            WHERE id={PGSCHEMA};
+            SET infra_create_date = %s, infra_create_status = True
+            WHERE id = %s;
             """
+
+            # Initialize the PostgresHook
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
-            hook2.run(query)
+
+            # Execute the query with parameters
+            hook2.run(query, parameters=(datetime.now(), PGSCHEMA))
             
             return True
 
