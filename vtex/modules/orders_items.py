@@ -47,7 +47,9 @@ def write_orders_item_to_database(batch_size=400):
             logging.info("No records found to process.")
             return
         
-        total_records = records[0][0]
+        print(records)
+        total_records = records[0][0][0]
+        print(total_records)
         total_batches = math.ceil(total_records / batch_size)
 
         for batch_num in range(total_batches):
