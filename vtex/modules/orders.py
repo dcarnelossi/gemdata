@@ -34,7 +34,7 @@ def get_order_by_id(order_id):
             headers=api_conection_info["headers"],
         )
     except Exception as e:
-        logging.error(f"An error occurred in get_order_by_id for order_id {order_id[0]}: {e}")
+        logging.error(f"An error occurred in get_order_by_id for order_id {order_id[0][0]}: {e}")
         raise  # Ensure the Airflow task fails on error
 
 

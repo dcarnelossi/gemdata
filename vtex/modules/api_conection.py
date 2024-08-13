@@ -38,7 +38,7 @@ def make_request(domain, method, path, params=None, headers=None):
         response = session.request(
             method, f"https://{domain}/{path}", params=params, headers=headers
         )
-        response.raise_for_status()
+        print(response)
         print (response.json())
         return response.json() if response.status_code == 200 else None
     except requests.RequestException as e:
