@@ -64,10 +64,12 @@ with DAG(
         try:
             end_date = datetime.now()
 
-            if last_rum_date[0]["import_last_rum_date"] is None:
+            print(last_rum_date[0])
+            
+            if last_rum_date[0]["import_last_run_date"] is None:
                 start_date = end_date - timedelta(days=730)
             else:
-                start_date = last_rum_date["import_last_rum_date"] - timedelta(days=1)
+                start_date = last_rum_date["import_last_run_date"] - timedelta(days=1)
 
             orders_list.set_globals(
                 api_conection_info,
