@@ -310,7 +310,7 @@ class WriteJsonToPostgres:
         except Exception as e:
             # Handle exceptions and log the full error
             self.connection.rollback()
-            logging.error("Error during upsert operation", exc_info=True)
+            logging.error(f"Error during upsert operation: {e}")
             raise  # Re-raise the exception to propagate it
         
         finally:
