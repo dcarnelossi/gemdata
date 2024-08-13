@@ -28,7 +28,7 @@ def get_order_by_id(orderId):
     return make_request(
         api_conection_info["VTEX_Domain"],
         "GET",
-        f"api/oms/pvt/orders/{orderId[0][0]}",
+        f"api/oms/pvt/orders/{orderId[0]}",
         params=None,
         headers=api_conection_info["headers"],
     )
