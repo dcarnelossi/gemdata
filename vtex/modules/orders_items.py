@@ -60,7 +60,7 @@ def write_orders_item_to_database(batch_size=400):
             WHERE orders.orderid NOT IN
             (SELECT orderid FROM orders_items WHERE orderid IS NOT NULL)
             ORDER BY orders.sequence
-            LIMIT {batch_size} OFFSET {offset};
+            LIMIT {batch_size};
             """
             batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
             result = batch_writer.query()

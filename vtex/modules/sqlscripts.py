@@ -214,6 +214,7 @@ def vtexsqlscripts(schema, user):
         attachmentofferings jsonb,
         parentassemblybinding jsonb,
         data_insercao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        manualpriceappliedby character varying COLLATE pg_catalog."default",
         CONSTRAINT constraint_orders_items_orderid UNIQUE (uniqueid)
     )
 
