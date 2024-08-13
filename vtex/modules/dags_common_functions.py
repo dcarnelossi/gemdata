@@ -41,13 +41,13 @@ def integrationInfo(connection_info, integration_id):
         # postgres_conn = dbpgconn.PostgresConnection(connection_info)
 
         query = f"""SELECT
-                        integration.*
+                        *
                     FROM
                         public.integrations_integration 
                     WHERE
-                        integration.id = '{integration_id}'
+                        id = '{integration_id}'
                     AND
-                        integration.is_active = TRUE;
+                        is_active = TRUE;
                     """
 
         select = WriteJsonToPostgres(connection_info, query)
