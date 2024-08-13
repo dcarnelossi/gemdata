@@ -38,8 +38,8 @@ def make_request(domain, method, path, params=None, headers=None):
         response = session.request(
             method, f"https://{domain}/{path}", params=params, headers=headers
         )
-        print(response)
-        print (response.json())
+        # print(response)
+        # print (response.json())
         return response.json() if response.status_code == 200 else None
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
