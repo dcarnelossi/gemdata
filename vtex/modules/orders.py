@@ -30,7 +30,7 @@ def get_order_by_id(order_id):
         return make_request(
             api_conection_info["VTEX_Domain"],
             "GET",
-            f"api/oms/pvt/orders/{order_id[0]}",
+            f"api/oms/pvt/orders/{order_id[0][0]}",
             headers=api_conection_info["headers"],
         )
     except Exception as e:
