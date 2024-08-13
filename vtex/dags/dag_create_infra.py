@@ -26,7 +26,7 @@ default_args = {
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "CreateInfra-Integration",
+    "0-CreateInfra",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
