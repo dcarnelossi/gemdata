@@ -42,7 +42,7 @@ with DAG(
         )
     },
 ) as dag:
-    from modules import dbpgconn
+    from modules.dbpgconn import WriteJsonToPostgres
 
     def get_coorp_conection_info():
         coorp_conection_info = {
@@ -56,19 +56,19 @@ with DAG(
 
         return coorp_conection_info
 
-    def get_data_conection_info(integration_id):
+    def get_data_conection_info(team_id):
         data_conection_info = {
             "host": Variable.get("DATA_PGHOST"),
             "user": Variable.get("DATA_PGUSER"),
             "port": 5432,
             "database": Variable.get("DATA_PGDATABASE"),
             "password": Variable.get("DATA_PGPASSWORD"),
-            "schema": integration_id,
+            "schema": team_id,
         }
 
         return data_conection_info
 
-    def integrationInfo(connection_info, integration_id):
+    def integrationInfo(connection_info, team_id):
         try:
             print("integrationInfo")
 
@@ -84,12 +84,12 @@ with DAG(
                             public.teams_team AS team
                         ON integration.team_id = team.id
                         WHERE
-                            team.slug = '{integration_id}'
+                            team.slug = '{team_id}'
                         AND
                             integration.is_active = TRUE;
                         """
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
+            select = WriteJsonToPostgres(connection_info, query)
             result = select.query()
 
             if result:
@@ -104,13 +104,13 @@ with DAG(
             logging.exception("An unexpected error occurred during BRANDS import" - e)
             raise
 
-    def get_api_conection_info(integration_id):
+    def get_api_conection_info(team_id):
         try:
-            print(integration_id)
+            print(team_id)
 
             connection_info = get_coorp_conection_info()
 
-            data = integrationInfo(connection_info, integration_id)
+            data = integrationInfo(connection_info, team_id)
 
             print(data)
 
@@ -137,22 +137,29 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise
 
-    def get_import_last_rum_date(connection_info, integration_id):
+    def get_import_last_rum_date(connection_info, team_id):
         try:
             print("get_import_last_rum_date")
 
             # postgres_conn = dbpgconn.PostgresConnection(connection_info)
 
-            query = f"""SELECT import_last_rum_date
-                        FROM public.integrations_integration
-                        WHERE id = '{integration_id}';"""
+            query = f"""SELECT
+                            integration.import_last_run_date
+                        FROM
+                            public.integrations_integration AS integration
+                        JOIN
+                            public.teams_team AS team
+                        ON integration.team_id = team.id
+                        WHERE
+                            team.slug = '{team_id}'
+                        AND
+                            integration.is_active = TRUE;"""
 
-            select = dbpgconn.WriteJsonToPostgres(connection_info, query)
-            result = select.query()
-
+            result = WriteJsonToPostgres(connection_info, query).query()
+            
             if result:
-                return result[1]
                 print(result[1])
+                return result[1]
             else:
                 logging.error("Importação das get_import_last_rum_date deu pau")
                 return False
@@ -163,12 +170,12 @@ with DAG(
 
     @task(provide_context=True)
     def orders_list(**kwargs):
-        integration_id = kwargs["params"]["PGSCHEMA"]
+        team_id = kwargs["params"]["PGSCHEMA"]
 
         coorp_conection_info = get_coorp_conection_info()
-        data_conection_info = get_data_conection_info(integration_id)
-        api_conection_info = get_api_conection_info(integration_id)
-        last_rum_date = get_import_last_rum_date(coorp_conection_info, integration_id)
+        data_conection_info = get_data_conection_info(team_id)
+        api_conection_info = get_api_conection_info(team_id)
+        last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
         from modules import orders_list
 
@@ -189,7 +196,7 @@ with DAG(
             )
 
             # Pushing data to XCom
-            kwargs["ti"].xcom_push(key="integration_id", value=integration_id)
+            kwargs["ti"].xcom_push(key="team_id", value=team_id)
             kwargs["ti"].xcom_push(
                 key="coorp_conection_info", value=coorp_conection_info
             )
