@@ -56,7 +56,7 @@ with DAG(
     def orders_items(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
 
-        coorp_conection_info = get_coorp_conection_info(integration_id)
+        coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
