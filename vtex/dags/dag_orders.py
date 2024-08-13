@@ -4,7 +4,7 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.decorators import task
-
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models.param import Param
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -77,8 +77,16 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise
-
+        
+    trigger_dag_imports = TriggerDagRunOperator(
+        task_id="trigger_dag_imports",
+        trigger_dag_id="4-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
     # Configurando a dependência entre as tasks
 
+
     orders_task = orders()
-    orders_task
+    orders_task >> trigger_dag_imports

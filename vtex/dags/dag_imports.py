@@ -6,6 +6,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -133,7 +134,14 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-
+        
+    trigger_dag_imports = TriggerDagRunOperator(
+        task_id="trigger_dag_imports",
+        trigger_dag_id="2-ImportVtex-Orders-List",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
     # Configurando a dependência entre as tasks
 
     brands_task = brands()
@@ -141,4 +149,4 @@ with DAG(
     sku_task = skus()
     products_task = products()
 
-    brands_task >> categories_task >> sku_task >> products_task
+    brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_imports

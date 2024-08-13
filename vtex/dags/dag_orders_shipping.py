@@ -6,7 +6,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
-
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
@@ -80,8 +80,15 @@ with DAG(
             raise e
         finally:
             pass
+    trigger_dag_imports = TriggerDagRunOperator(
+        task_id="trigger_dag_imports",
+        trigger_dag_id="7-ImportVtex-Client-Profile",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
 
     # Configurando a dependência entre as tasks
 
     orders_shipping_task = orders_shipping()
-    orders_shipping_task
+    orders_shipping_task >> trigger_dag_imports
