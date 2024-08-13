@@ -19,20 +19,20 @@ def get_coorp_conection_info():
     return coorp_conection_info
 
 
-def get_data_conection_info(team_id):
+def get_data_conection_info(integration_id):
     data_conection_info = {
         "host": Variable.get("DATA_PGHOST"),
         "user": Variable.get("DATA_PGUSER"),
         "port": 5432,
         "database": Variable.get("DATA_PGDATABASE"),
         "password": Variable.get("DATA_PGPASSWORD"),
-        "schema": team_id,
+        "schema": integration_id,
     }
 
     return data_conection_info
 
 
-def integrationInfo(connection_info, team_id):
+def integrationInfo(connection_info, integration_id):
     try:
         print("integrationInfo")
 
@@ -43,12 +43,9 @@ def integrationInfo(connection_info, team_id):
         query = f"""SELECT
                         integration.*
                     FROM
-                        public.integrations_integration AS integration
-                    JOIN
-                        public.teams_team AS team
-                    ON integration.team_id = team.id
+                        public.integrations_integration 
                     WHERE
-                        team.slug = '{team_id}'
+                        integration.id = '{integration_id}'
                     AND
                         integration.is_active = TRUE;
                     """
@@ -69,13 +66,13 @@ def integrationInfo(connection_info, team_id):
         raise
 
 
-def get_api_conection_info(team_id):
+def get_api_conection_info(integration_id):
     try:
-        print(team_id)
+        print(integration_id)
 
         connection_info = get_coorp_conection_info()
 
-        data = integrationInfo(connection_info, team_id)
+        data = integrationInfo(connection_info, integration_id)
 
         print(data)
 
@@ -103,7 +100,7 @@ def get_api_conection_info(team_id):
         raise
 
 
-def get_import_last_rum_date(connection_info, team_id):
+def get_import_last_rum_date(connection_info, integration_id):
     try:
         print("get_import_last_rum_date")
 
@@ -115,9 +112,9 @@ def get_import_last_rum_date(connection_info, team_id):
                         public.integrations_integration AS integration
                     JOIN
                         public.teams_team AS team
-                    ON integration.team_id = team.id
+                    ON integration.integration_id = team.id
                     WHERE
-                        team.slug = '{team_id}'
+                        team.slug = '{integration_id}'
                     AND
                         integration.is_active = TRUE;"""
 

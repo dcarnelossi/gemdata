@@ -58,6 +58,15 @@ with DAG(
             # não pode estar cravada aqui no codigo
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             hook.run(sql_script)
+            
+            query = f"""
+            UPDATE public.integrations_integration
+            SET infra_create_date={datetime.now()}, infra_create_status=True
+            WHERE id={PGSCHEMA};
+            """
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook2.run(query)
+            
             return True
 
         except Exception as e:
