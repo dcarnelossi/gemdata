@@ -149,6 +149,7 @@ def vtexsqlscripts(schema, user):
         cancellationdata jsonb,
         clientpreferencesdata jsonb,
         data_insercao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        cancellationrequests character varying COLLATE pg_catalog."default",
         CONSTRAINT constraint_orders_orderid UNIQUE (orderid)
     )
 
