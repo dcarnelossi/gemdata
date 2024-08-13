@@ -232,7 +232,7 @@ def vtexsqlscripts(schema, user):
         creationdate timestamp without time zone,
         clientname text COLLATE pg_catalog."default",
         items jsonb,
-        totalvalue numeric(10,2),
+        totalvalue numeric(14,2),
         paymentnames text COLLATE pg_catalog."default",
         status text COLLATE pg_catalog."default",
         statusdescription text COLLATE pg_catalog."default",
