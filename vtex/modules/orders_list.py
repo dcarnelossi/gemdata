@@ -12,6 +12,7 @@ api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 
+
 def get_orders_list_pages(query_params):
     try:
         return make_request(
@@ -24,6 +25,7 @@ def get_orders_list_pages(query_params):
     except Exception as e:
         logging.error(f"Failed to retrieve orders list pages: {e}")
         raise  # Rethrow the exception to signal the Airflow task failure
+
 
 def process_page(query_params):
     try:
@@ -50,6 +52,7 @@ def process_page(query_params):
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
 
+
 def process_order(order):
     try:
         writer = WriteJsonToPostgres(
@@ -60,6 +63,7 @@ def process_order(order):
     except Exception as e:
         logging.error(f"Error inserting order {order['orderId']}: {e}")
         raise  # Ensure failure is propagated to Airflow
+
 
 def process_orders_lists(start_date, end_date):
     try:
@@ -79,6 +83,7 @@ def process_orders_lists(start_date, end_date):
         logging.error(f"An unexpected error occurred while processing orders: {e}")
         raise  # Fail the task in case of any error
 
+
 def validate_and_convert_dates(start_date, end_date):
     try:
         if not isinstance(start_date, datetime):
@@ -89,6 +94,7 @@ def validate_and_convert_dates(start_date, end_date):
     except ValueError as e:
         logging.error(f"Invalid date format: {e}")
         raise  # Ensure Airflow fails if date conversion fails
+
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info, data_conection_info, coorp_conection_info
@@ -101,6 +107,7 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
         raise ValueError("All global connection information must be provided.")
 
     execute_process_orders_list(kwargs["start_date"], kwargs["end_date"])
+
 
 def execute_process_orders_list(start_date, end_date, delta=None):
     try:
