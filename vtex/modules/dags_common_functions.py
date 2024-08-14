@@ -107,14 +107,11 @@ def get_import_last_rum_date(connection_info, integration_id):
         # postgres_conn = dbpgconn.PostgresConnection(connection_info)
 
         query = f"""SELECT
-                        integration.import_last_run_date
+                        import_last_run_date
                     FROM
-                        public.integrations_integration AS integration
-                    JOIN
-                        public.teams_team AS team
-                    ON integration.integration_id = team.id
+                        public.integrations_integration
                     WHERE
-                        team.slug = '{integration_id}'
+                        id = '{integration_id}'
                     AND
                         integration.is_active = TRUE;"""
 
