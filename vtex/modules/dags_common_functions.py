@@ -113,7 +113,7 @@ def get_import_last_rum_date(connection_info, integration_id):
                     WHERE
                         id = '{integration_id}'
                     AND
-                        integration.is_active = TRUE;"""
+                        is_active = TRUE;"""
 
         result = WriteJsonToPostgres(connection_info, query).query()
 
