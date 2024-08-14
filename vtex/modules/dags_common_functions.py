@@ -126,3 +126,31 @@ def get_import_last_rum_date(connection_info, integration_id):
     except Exception as e:
         logging.exception("An unexpected error occurred during BRANDS import" - e)
         raise
+
+
+def update_import_last_rum_date(connection_info, integration_id):
+    try:
+        print("update_import_last_rum_date")
+
+        # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+        query = f"""SELECT
+                        import_last_run_date
+                    FROM
+                        public.integrations_integration
+                    WHERE
+                        id = '{integration_id}'
+                    AND
+                        is_active = TRUE;"""
+
+        result = WriteJsonToPostgres(connection_info, query).query()
+
+        if result:
+            print(result[1])
+            return result[1]
+        else:
+            logging.error("Importação das get_import_last_rum_date deu pau")
+            return False
+    except Exception as e:
+        logging.exception("An unexpected error occurred during BRANDS import" - e)
+        raise
