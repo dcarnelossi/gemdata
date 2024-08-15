@@ -68,20 +68,20 @@ with DAG(
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(team_id)
         api_conection_info = get_api_conection_info(team_id)
-        last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
+        # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
         from modules import orders_list
 
         try:
             end_date = datetime.now()
 
-            print(last_rum_date[0])
             
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
-            if isdaily == False :
+            if not isdaily :
                 start_date = end_date - timedelta(days=730)
             else:
-                start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+                #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+                start_date = datetime.now() - timedelta(days=90)
                 
 
             orders_list.set_globals(
