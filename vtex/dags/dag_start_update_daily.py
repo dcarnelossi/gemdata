@@ -80,7 +80,8 @@ with DAG(
                 )
                        
             
-                start_update_daily_task >> trigger_dag_imports
+                trigger_dag_imports
+
             return True
 
         except Exception as e:
