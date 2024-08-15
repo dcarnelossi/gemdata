@@ -62,7 +62,7 @@ with DAG(
             query = """
             select distinct id from public.integrations_integration
             where is_active = true 
-            and infra_create_status = true limit 1
+            and infra_create_status = true limit 2
             """
             integration_ids = hook.get_records(query)
 
