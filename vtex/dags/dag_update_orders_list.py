@@ -73,10 +73,9 @@ with DAG(
             
             query = """
             UPDATE public.integrations_integration
-            SET import_last_run_date = %s, is_active_status_date = True
+            SET import_last_run_date = %s
             WHERE id = %s;
             """
-
             # Initialize the PostgresHook
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
 
