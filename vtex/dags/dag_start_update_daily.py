@@ -67,7 +67,7 @@ with DAG(
             """
 
             integrationid=hook.run(query)
-            print(integrationid)
+            print("essa parte aqui: "+ integrationid)
             for integration in  integrationid:  
                 TriggerDagRunOperator(
                 task_id="trigger_dag_imports",
