@@ -328,7 +328,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_orders_list_daily_orderid ON "{schema}".orders_list_daily USING btree (orderid);
+    CREATE INDEX IF NOT EXISTS idx_orders_list_daily_orderid ON "{schema}".orders_list_daily USING btree (orderid);
 
     ALTER TABLE IF EXISTS "{schema}".orders_list_daily
         OWNER to {user};
