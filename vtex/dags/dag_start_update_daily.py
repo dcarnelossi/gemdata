@@ -68,7 +68,7 @@ with DAG(
 
             for integration in integration_ids:
                 trigger_dag_start=TriggerDagRunOperator(
-                task_id=f"trigger_dag_imports",
+                task_id=f"trigger_dag_imports_{integration[0]}",
                 trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
                 conf={
                     "PGSCHEMA": f"{integration[0]}",
