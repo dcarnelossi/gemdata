@@ -66,8 +66,8 @@ with DAG(
             infra_create_status = true limit 1
             """
 
-            integrationid=hook.run(query)
-            print("essa parte aqui: "+ integrationid)
+            integrationid=hook.get_records(query)
+            print("essa parte aqui: "+ integrationid[0])
             for integration in  integrationid:  
                 TriggerDagRunOperator(
                 task_id="trigger_dag_imports",
