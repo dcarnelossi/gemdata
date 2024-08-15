@@ -523,7 +523,7 @@ def vtexsqlscripts(schema, user):
         OWNER to {user};
 
 
-    CREATE VIEW IF NOT EXISTS "{schema}".counts_view AS
+    CREATE OR REPLACE VIEW "{schema}".counts_view AS
         SELECT
             (SELECT count(*) FROM "{schema}".brands) AS brand_count,
             (SELECT count(*) FROM "{schema}".categories) AS category_count,
