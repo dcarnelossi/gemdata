@@ -63,25 +63,22 @@ with DAG(
             select distinct id from public.integrations_integration
             where is_active = true 
             and 
-            infra_create_status = true limit 1
+            infra_create_status = true limit 2
             """
 
             integrationid=hook.get_records(query)
-            integration_id = integrationid[0][0]  # Pega o primeiro resultado da consulta
-            print(f"Integration ID: {integration_id}")
-
-
             
             for integration in  integrationid:  
                 TriggerDagRunOperator(
                 task_id="trigger_dag_imports",
                 trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
                 conf={
-                    "PGSCHEMA": integration[0],
+                    "PGSCHEMA":  {integration},
                     "ISDAILY": "{False}"
                         
                 },  # Se precisar passar informações adicionais para a DAG_B
                 )
+                print(f"Integration ID: {integration}")
         
 
             return True
