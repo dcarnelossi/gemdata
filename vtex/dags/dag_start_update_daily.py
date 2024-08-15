@@ -79,7 +79,7 @@ with DAG(
 
     for i, integration in enumerate(integration_ids):
         trigger_dag_imports = TriggerDagRunOperator(
-            task_id=f"trigger_dag_imports_{i}",  # Cria um task_id único para cada execução
+            task_id="trigger_dag_imports",  # Cria um task_id único para cada execução
             trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
             conf={
                 "PGSCHEMA":  f"{integration[0]}",
