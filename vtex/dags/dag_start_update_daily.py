@@ -58,7 +58,7 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
             # não pode estar cravada aqui no codigo
-            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
             select distinct id from public.integrations_integration
             where is_active = true 
