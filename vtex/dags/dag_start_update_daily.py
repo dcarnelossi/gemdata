@@ -73,6 +73,7 @@ with DAG(
                 }
                 # Retorne a configuração para ser usada pelo operador TriggerDagRunOperator
                 return dag_conf
+                
 
         except Exception as e:
             logging.exception(
