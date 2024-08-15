@@ -80,8 +80,8 @@ with DAG(
                 },  # Se precisar passar informações adicionais para a DAG_B
                 )
                        
-            
-                trigger_dag_imports.execute(context={})
+                trigger_dag_imports    
+               # trigger_dag_imports.execute(context={})
   
             return True
 
