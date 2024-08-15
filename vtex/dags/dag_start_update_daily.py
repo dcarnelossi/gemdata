@@ -66,24 +66,27 @@ with DAG(
 
             integrationid = hook.get_records(query)
             
-            return integrationid  # Retorne a lista de IDs
+            for integration in integrationid:  
+                dag_conf = {
+                    "PGSCHEMA":  f"{integration[0]}",
+                    "ISDAILY": False
+                }
+                # Retorne a configuração para ser usada pelo operador TriggerDagRunOperator
+                return dag_conf
 
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during create_postgres_infra - {e}"
             )
-            return []
+            return e
 
-    integration_ids = start_daily_update()
+    start_update_daily_task = start_daily_update()
 
-    for integration in integration_ids:
-        trigger_dag_imports = TriggerDagRunOperator(
-            task_id=f"trigger_dag_imports",  # Cria um task_id único para cada execução
-            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-            conf={
-                "PGSCHEMA":  f"{integration[0]}",
-                "ISDAILY": False
-            },
-        )
+    # Crie o TriggerDagRunOperator fora do loop
+    trigger_dag_imports = TriggerDagRunOperator(
+        task_id="trigger_dag_imports",
+        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
+        conf=start_update_daily_task,  # Usa a saída da tarefa anterior
+    )
 
-        integration_ids >> trigger_dag_imports  # Define a dependência
+    start_update_daily_task >> trigger_dag_imports
