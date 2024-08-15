@@ -59,7 +59,7 @@ with DAG(
         if isdaily is False:
             return True
 
-        from modules.sqlscripts import vtexsqlscriptsorderslistupdate
+        from modules.sqlscriptsdaily import vtexsqlscriptsorderslistupdate
 
         
 
