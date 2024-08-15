@@ -65,7 +65,7 @@ def vtexsqlscriptsorderslistupdate(schema):
         where 
         tmp.orderid is null 
         and 
-        creationdate>= (select min(creationdate) from tmp_orders_list_daily_old );
+        ora.creationdate>= (select min(creationdate) from tmp_orders_list_daily_old );
 
 
         delete from  "{schema}".orders_list 
