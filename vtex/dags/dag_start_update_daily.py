@@ -63,13 +63,13 @@ with DAG(
             select distinct id from public.integrations_integration
             where is_active = true 
             and 
-            infra_create_status = true limit 2
+            infra_create_status = true limit 1
             """
 
             integrationid=hook.get_records(query)
             
             for integration in  integrationid:  
-                TriggerDagRunOperator(
+                trigger_dag_imports = TriggerDagRunOperator(
                 task_id="trigger_dag_imports",
                 trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
                 conf={
@@ -78,9 +78,9 @@ with DAG(
                         
                 },  # Se precisar passar informações adicionais para a DAG_B
                 )
-                print(f'Integration ID: "{integration[0]}"')
-        
-
+                       
+            
+                start_update_daily_task >> trigger_dag_imports
             return True
 
         except Exception as e:
@@ -91,6 +91,6 @@ with DAG(
 
     # Configurando a dependência entre as tarefas
 
-    create_postgres_infra_task = start_daily_update()
+    start_update_daily_task = start_daily_update()
 
 
