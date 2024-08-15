@@ -66,13 +66,7 @@ with DAG(
 
             integrationid = hook.get_records(query)
             
-            for integration in integrationid:  
-                dag_conf = {
-                    "PGSCHEMA":  f"{integration[0]}",
-                    "ISDAILY": False
-                }
-                # Retorne a configuração para ser usada pelo operador TriggerDagRunOperator
-                return dag_conf
+            return integrationid  # Retorne a lista de IDs
                 
 
         except Exception as e:
@@ -83,11 +77,16 @@ with DAG(
 
     start_update_daily_task = start_daily_update()
 
-    # Crie o TriggerDagRunOperator fora do loop
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
-        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
-        conf=start_update_daily_task,  # Usa a saída da tarefa anterior
-    )
+    for i, integration in enumerate(start_update_daily_task):
+        # Crie o TriggerDagRunOperator fora do loop
+        trigger_dag_imports = TriggerDagRunOperator(
+            task_id="trigger_dag_imports_{i}",
+            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
+            conf = {
+                        "PGSCHEMA":  f"{integration[0]}",
+                        "ISDAILY": False
+                    },  # Usa a saída da tarefa anterior
+        )
+        start_update_daily_task >> trigger_dag_imports
 
-    start_update_daily_task >> trigger_dag_imports
+   

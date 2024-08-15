@@ -102,4 +102,4 @@ with DAG(
 
     update_daily_orders_list_task = update_daily_orders_list()
 
-    #update_daily_orders_list_task >> trigger_dag_orders
+    update_daily_orders_list_task >> trigger_dag_orders
