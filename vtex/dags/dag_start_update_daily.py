@@ -31,6 +31,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
+#    render_template_as_native_obj=True,
     # params={
     #     "PGSCHEMA": Param(
     #         type="string",
@@ -41,7 +42,6 @@ with DAG(
     #         max_length=200,
     #     ),
     #     "ISDAILY": Param(
-    #         False,
     #         type="boolean",
     #         title="ISDAILY:",
     #         description="Enter com False (processo total) ou True (processo diario) .",
@@ -67,19 +67,20 @@ with DAG(
             """
 
             integrationid=hook.run(query)
-           
-            TriggerDagRunOperator(
-            task_id="trigger_dag_imports",
-            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
-            conf={
-                "PGSCHEMA": "{integrationid[0]}",
-                "ISDAILY": "{False}"
-                    
-            },  # Se precisar passar informações adicionais para a DAG_B
-            )
-    
+            print(integrationid)
+            for integration in  integrationid:  
+                TriggerDagRunOperator(
+                task_id="trigger_dag_imports",
+                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
+                conf={
+                    "PGSCHEMA": integration[0],
+                    "ISDAILY": "{False}"
+                        
+                },  # Se precisar passar informações adicionais para a DAG_B
+                )
+        
 
-            return integrationid
+            return True
 
         except Exception as e:
             logging.exception(

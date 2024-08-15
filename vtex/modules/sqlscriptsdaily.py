@@ -65,7 +65,6 @@ def vtexsqlscriptsorderslistupdate(schema):
         DELETE FROM "{schema}".orders_items
         WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
-<<<<<<< HEAD
         left join tmp_orders_list_daily_old tmp  on 
         tmp.orderid = ora.orderid 
         and 
@@ -140,10 +139,6 @@ def vtexsqlscriptsorderslistupdate(schema):
         select
         *
         from tmp_orders_list_daily_new;
-=======
-        DELETE FROM "{schema}".orders_shippingdata
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
->>>>>>> aa628bdd88566ce30a8a4ded15ff85a4b9fe2da4
 
         DELETE FROM "{schema}".orders_totals
         WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
