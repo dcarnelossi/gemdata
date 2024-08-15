@@ -58,9 +58,9 @@ def vtexsqlscriptsorderslistupdate(schema):
         from "{schema}".orders_list_daily ora
 
         left join tmp_orders_list_daily_old tmp  on 
-        tmp.orderid = orderid 
+        tmp.orderid = ora.orderid 
         and 
-        tmp.lastchange = lastchange
+        tmp.lastchange = ora.lastchange
 
         where 
         tmp.orderid is null 
