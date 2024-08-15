@@ -55,7 +55,7 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def get_integration_ids():
+    def start_update_daily():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -65,26 +65,27 @@ with DAG(
             and infra_create_status = true limit 1
             """
             integration_ids = hook.get_records(query)
-            return [integration[0] for integration in integration_ids]  # Retorne apenas os IDs
+
+            for integration in integration_ids:
+                trigger_dag_start=TriggerDagRunOperator(
+                task_id=f"trigger_dag_imports",
+                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+                conf={
+                    "PGSCHEMA": f"{integration[0]}",
+                    "ISDAILY": False
+                    }
+                )   
+                trigger_dag_start.execute(context={}) 
+
+            return True
 
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
-            return []
+            return e
 
-    def create_trigger_task(integration_id, index):
-        return TriggerDagRunOperator(
-            task_id=f"trigger_dag_imports_{index}",
-            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-            conf={
-                "PGSCHEMA": integration_id,
-                "ISDAILY": False
-            }
-        )
 
-    integration_ids = get_integration_ids()
 
-    with TaskGroup("trigger_dag_group") as trigger_dag_group:
-        for i, integration_id in enumerate(integration_ids):
-            create_trigger_task(integration_id, i)
+    start_daily = start_update_daily()
+
