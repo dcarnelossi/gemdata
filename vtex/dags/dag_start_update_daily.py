@@ -67,7 +67,11 @@ with DAG(
             """
 
             integrationid=hook.get_records(query)
-            print("essa parte aqui: "+ integrationid[0])
+            integration_id = integrationid[0][0]  # Pega o primeiro resultado da consulta
+            print(f"Integration ID: {integration_id}")
+
+
+            
             for integration in  integrationid:  
                 TriggerDagRunOperator(
                 task_id="trigger_dag_imports",
