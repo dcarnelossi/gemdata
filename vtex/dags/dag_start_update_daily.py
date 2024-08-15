@@ -31,6 +31,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
+    render_template_as_native_obj=True,
 #    render_template_as_native_obj=True,
     # params={
     #     "PGSCHEMA": Param(
