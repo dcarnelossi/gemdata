@@ -1,62 +1,71 @@
 def vtexsqlscriptsorderslistupdate(schema):
     scripts = f"""
-                    
-        DROP TABLE IF exists tmp_orders_list_daily_old;
-
-        CREATE TEMPORARY TABLE tmp_orders_list_daily_old 
-        as
-            SELECT 
+        DROP TABLE IF EXISTS tmp_orders_list_daily_old;
+        CREATE TEMPORARY TABLE tmp_orders_list_daily_old AS
+        SELECT
             sequence_id, orderid, creationdate, lastchange
-            FROM "{schema}".orders_list
-            where creationdate >= (CURRENT_DATE  - INTERVAL '90 days');
+        FROM "{schema}".orders_list
+        WHERE creationdate >= (CURRENT_DATE - INTERVAL '90 days');
 
-        DROP TABLE IF exists tmp_orders_list_daily_new;
+        DROP TABLE IF EXISTS tmp_orders_list_daily_new;
+        CREATE TEMPORARY TABLE tmp_orders_list_daily_new AS
+        SELECT
+            ora.orderid,
+            ora.creationdate,
+            ora.clientname,
+            ora.items,
+            ora.totalvalue,
+            ora.paymentnames,
+            ora.status,
+            ora.statusdescription,
+            ora.marketplaceorderid,
+            ora."sequence",
+            ora.saleschannel,
+            ora.affiliateid,
+            ora.origin,
+            ora.workflowinerrorstate,
+            ora.workflowinretry,
+            ora.lastmessageunread,
+            ora.shippingestimateddate,
+            ora.shippingestimateddatemax,
+            ora.shippingestimateddatemin,
+            ora.orderiscomplete,
+            ora.listid,
+            ora.listtype,
+            ora.authorizeddate,
+            ora.callcenteroperatorname,
+            ora.totalitems,
+            ora.currencycode,
+            ora.hostname,
+            ora.invoiceoutput,
+            ora.invoiceinput,
+            ora.lastchange,
+            ora.isalldelivered,
+            ora.isanydelivered,
+            ora.giftcardproviders,
+            ora.orderformid,
+            ora.paymentapproveddate,
+            ora.readyforhandlingdate,
+            ora.deliverydates,
+            ora.data_insercao
+        FROM "{schema}".orders_list_daily ora
+        LEFT JOIN tmp_orders_list_daily_old tmp ON
+            tmp.orderid = ora.orderid AND
+            tmp.lastchange = ora.lastchange
+        WHERE
+            tmp.orderid IS NULL AND
+            ora.creationdate >= (SELECT MIN(creationdate) FROM tmp_orders_list_daily_old);
 
+        DELETE FROM "{schema}".orders_list
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
-        CREATE TEMPORARY TABLE tmp_orders_list_daily_new 
-        as
-        select 
-		ora.orderid
-        ,ora.creationdate
-        ,clientname
-        ,items
-        ,totalvalue
-        ,paymentnames
-        ,status
-        ,statusdescription
-        ,marketplaceorderid
-        ,"sequence"
-        ,saleschannel
-        ,affiliateid
-        ,origin
-        ,workflowinerrorstate
-        ,workflowinretry
-        ,lastmessageunread
-        ,shippingestimateddate
-        ,shippingestimateddatemax
-        ,shippingestimateddatemin
-        ,orderiscomplete
-        ,listid
-        ,listtype
-        ,authorizeddate
-        ,callcenteroperatorname
-        ,totalitems
-        ,currencycode
-        ,hostname
-        ,invoiceoutput
-        ,invoiceinput
-        ,ora.lastchange
-        ,isalldelivered
-        ,isanydelivered
-        ,giftcardproviders
-        ,orderformid
-        ,paymentapproveddate
-        ,readyforhandlingdate
-        ,deliverydates
-        ,data_insercao
+        DELETE FROM "{schema}".orders
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
-        from "{schema}".orders_list_daily ora
+        DELETE FROM "{schema}".orders_items
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
+<<<<<<< HEAD
         left join tmp_orders_list_daily_old tmp  on 
         tmp.orderid = ora.orderid 
         and 
@@ -131,13 +140,62 @@ def vtexsqlscriptsorderslistupdate(schema):
         select
         *
         from tmp_orders_list_daily_new;
+=======
+        DELETE FROM "{schema}".orders_shippingdata
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
+>>>>>>> aa628bdd88566ce30a8a4ded15ff85a4b9fe2da4
 
+        DELETE FROM "{schema}".orders_totals
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
+        DELETE FROM "{schema}".client_profile
+        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
+        INSERT INTO "{schema}".orders_list (
+            orderid,
+            creationdate,
+            clientname,
+            items,
+            totalvalue,
+            paymentnames,
+            status,
+            statusdescription,
+            marketplaceorderid,
+            "sequence",
+            saleschannel,
+            affiliateid,
+            origin,
+            workflowinerrorstate,
+            workflowinretry,
+            lastmessageunread,
+            shippingestimateddate,
+            shippingestimateddatemax,
+            shippingestimateddatemin,
+            orderiscomplete,
+            listid,
+            listtype,
+            authorizeddate,
+            callcenteroperatorname,
+            totalitems,
+            currencycode,
+            hostname,
+            invoiceoutput,
+            invoiceinput,
+            lastchange,
+            isalldelivered,
+            isanydelivered,
+            giftcardproviders,
+            orderformid,
+            paymentapproveddate,
+            readyforhandlingdate,
+            deliverydates,
+            data_insercao
+        )
+        SELECT *
+        FROM tmp_orders_list_daily_new;
     """
     print(scripts)
     return scripts
-
 
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:
