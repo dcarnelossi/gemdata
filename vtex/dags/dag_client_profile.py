@@ -34,7 +34,7 @@ default_args = {
 
 
 with DAG(
-    "7-ImportVtex-Client-Profile",
+    "8-ImportVtex-Client-Profile",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,

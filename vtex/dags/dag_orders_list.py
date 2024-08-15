@@ -14,6 +14,7 @@ from modules.dags_common_functions import (
     get_import_last_rum_date,
 )
 
+
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -46,6 +47,14 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=200,
+        ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
         )
     },
 ) as dag:
@@ -53,6 +62,7 @@ with DAG(
     @task(provide_context=True)
     def orders_list(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
+        isdaily = kwargs["params"]["ISDAILY"]
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(team_id)
@@ -66,10 +76,12 @@ with DAG(
 
             print(last_rum_date[0])
             
-            if last_rum_date[0]["import_last_run_date"] is None:
+            #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
+            if isdaily == False :
                 start_date = end_date - timedelta(days=730)
             else:
-                start_date = last_rum_date["import_last_run_date"] - timedelta(days=1)
+                start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+                
 
             orders_list.set_globals(
                 api_conection_info,
@@ -77,6 +89,7 @@ with DAG(
                 coorp_conection_info,
                 start_date=start_date,
                 end_date=end_date,
+                isdaily = isdaily 
             )
 
             # Pushing data to XCom
@@ -87,6 +100,8 @@ with DAG(
             kwargs["ti"].xcom_push(key="data_conection_info", value=data_conection_info)
             kwargs["ti"].xcom_push(key="api_conection_info", value=api_conection_info)
 
+            kwargs["ti"].xcom_push(key="isdaily", value=isdaily)
+
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
@@ -94,13 +109,15 @@ with DAG(
         finally:
             pass
         
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
-        trigger_dag_id="3-ImportVtex-Orders",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_update_orders_list = TriggerDagRunOperator(
+        task_id="trigger_dag_update_orders_list",
+        trigger_dag_id="3-DagUpdate-Orders-List",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+             "ISDAILY": "{{ params.ISDAILY }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 
     orders_list_task = orders_list()
-    orders_list_task >> trigger_dag_imports
+    
+    orders_list_task >> trigger_dag_update_orders_list
