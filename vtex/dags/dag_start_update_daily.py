@@ -80,8 +80,8 @@ with DAG(
                 )
                        
             
-                trigger_dag_imports
-
+                trigger_dag_imports.execute()
+  
             return True
 
         except Exception as e:
