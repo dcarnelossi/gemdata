@@ -77,16 +77,18 @@ with DAG(
 
     start_update_daily_task = start_daily_update()
 
-    for i, integration in enumerate(start_update_daily_task):
-        # Crie o TriggerDagRunOperator fora do loop
-        trigger_dag_imports = TriggerDagRunOperator(
-            task_id="trigger_dag_imports_{i}",
-            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
-            conf = {
-                        "PGSCHEMA":  f"{integration[0]}",
-                        "ISDAILY": False
-                    },  # Usa a saída da tarefa anterior
+    def create_trigger_task(integration_id, index):
+        return TriggerDagRunOperator(
+            task_id=f"trigger_dag_imports_{index}",  # Cria um task_id único para cada execução
+            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+            conf={
+                "PGSCHEMA":  f"{integration_id}",
+                "ISDAILY": False
+            },
+            dag=dag  # Adiciona a tarefa ao DAG atual
         )
-        start_update_daily_task >> trigger_dag_imports
 
+    for i, integration in enumerate(start_update_daily_task):
+        trigger_task = create_trigger_task(integration[0], i)
+        start_update_daily_task >> trigger_task  # Define a dependência
    
