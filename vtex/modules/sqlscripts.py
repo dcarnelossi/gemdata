@@ -87,7 +87,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_client_profile_orderid ON "{schema}".client_profile USING btree (orderid);
+    CREATE INDEX IF NOT EXISTS idx_client_profile_orderid ON "{schema}".client_profile USING btree (orderid);
 
     ALTER TABLE IF EXISTS "{schema}".client_profile
         OWNER to {user};
@@ -220,7 +220,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_orders_items_orderid ON "{schema}".orders_items USING btree (orderid);
+    CREATE INDEX IF NOT EXISTS idx_orders_items_orderid ON "{schema}".orders_items USING btree (orderid);
 
 
     ALTER TABLE IF EXISTS "{schema}".orders_items
@@ -274,7 +274,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_orders_list_orderid ON "{schema}".orders_list USING btree (orderid);
+    CREATE INDEX IF NOT EXISTS idx_orders_list_orderid ON "{schema}".orders_list USING btree (orderid);
 
     ALTER TABLE IF EXISTS "{schema}".orders_list
         OWNER to {user};
@@ -350,7 +350,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_orders_totals ON "{schema}".orders_totals USING btree (orderid);
+    CREATE INDEX IF NOT EXISTS idx_orders_totals ON "{schema}".orders_totals USING btree (orderid);
 
 
     ALTER TABLE IF EXISTS "{schema}".orders_totals
@@ -388,7 +388,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_products ON "{schema}".products USING btree (id);
+    CREATE INDEX IF NOT EXISTS idx_products ON "{schema}".products USING btree (id);
 
     ALTER TABLE IF EXISTS "{schema}".products
         OWNER to {user};
@@ -462,7 +462,7 @@ def vtexsqlscripts(schema, user):
 
     TABLESPACE pg_default;
 
-    CREATE INDEX idx_skus_id ON "{schema}".products USING btree (id);
+    CREATE INDEX IF NOT EXISTS idx_skus_id ON "{schema}".products USING btree (id);
 
     ALTER TABLE IF EXISTS "{schema}".skus
         OWNER to {user};
