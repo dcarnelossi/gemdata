@@ -54,41 +54,38 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def start_daily_update(**kwargs):
+    def get_integration_ids():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
             select distinct id from public.integrations_integration
             where is_active = true 
-            and infra_create_status = true limit 2
+            and infra_create_status = true limit 1
             """
-
-            integrationid = hook.get_records(query)
-            
-            return integrationid  # Retorne a lista de IDs
-                
+            integration_ids = hook.get_records(query)
+            return [integration[0] for integration in integration_ids]  # Retorne apenas os IDs
 
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during create_postgres_infra - {e}"
+                f"An unexpected error occurred during get_integration_ids - {e}"
             )
-            return e
+            return []
 
-    start_update_daily_task = start_daily_update()
+    @task(provide_context=True)
+    def trigger_import_dags(integration_ids):
+        for i, integration_id in enumerate(integration_ids):
+            trigger_dag = TriggerDagRunOperator(
+                task_id=f"trigger_dag_imports_{i}",
+                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": False
+                },
+                dag=dag  # Necessário para adicionar a tarefa ao DAG
+            )
+            trigger_dag.execute(context={})  # Execute a tarefa
 
-    def create_trigger_task(integration_id, index):
-        return TriggerDagRunOperator(
-            task_id=f"trigger_dag_imports_{index}",  # Cria um task_id único para cada execução
-            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-            conf={
-                "PGSCHEMA":  f"{integration_id}",
-                "ISDAILY": False
-            },
-            dag=dag  # Adiciona a tarefa ao DAG atual
-        )
-
-    for integration in start_update_daily_task:
-        trigger_task = create_trigger_task(integration[0], integration[0])
-        start_update_daily_task >> trigger_task  # Define a dependência
-   
+    # Defina as dependências
+    integration_ids = get_integration_ids()
+    trigger_import_dags(integration_ids)
