@@ -4,7 +4,6 @@ from datetime import datetime
 from airflow import DAG
 from airflow.decorators import task
 from airflow.models.param import Param
-from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
@@ -77,9 +76,9 @@ with DAG(
 
     integration_ids = start_daily_update()
 
-    for i, integration in enumerate(integration_ids):
+    for integration in integration_ids:
         trigger_dag_imports = TriggerDagRunOperator(
-            task_id="trigger_dag_imports",  # Cria um task_id único para cada execução
+            task_id=f"trigger_dag_imports_1",  # Cria um task_id único para cada execução
             trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
             conf={
                 "PGSCHEMA":  f"{integration[0]}",
