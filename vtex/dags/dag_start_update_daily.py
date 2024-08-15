@@ -74,7 +74,7 @@ with DAG(
                 task_id="trigger_dag_imports",
                 trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
                 conf={
-                    "PGSCHEMA":  f'"{integration[0]}"',
+                    "PGSCHEMA":  f"{integration[0]}",
                     "ISDAILY": False
                         
                 },  # Se precisar passar informações adicionais para a DAG_B
