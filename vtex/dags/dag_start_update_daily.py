@@ -78,9 +78,9 @@ with DAG(
                     "ISDAILY": False
                         
                 },  # Se precisar passar informações adicionais para a DAG_B
-                )
+                dag= dag)
                        
-                trigger_dag_imports    
+                trigger_dag_imports.dag = dag    
                # trigger_dag_imports.execute(context={})
   
             return True
