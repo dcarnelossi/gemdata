@@ -1,6 +1,6 @@
 def vtexsqlscriptsorderslistupdate(schema):
     scripts = f"""
-                
+                    
         DROP TABLE IF exists tmp_orders_list_daily_old;
 
         CREATE TEMPORARY TABLE tmp_orders_list_daily_old 
@@ -16,8 +16,8 @@ def vtexsqlscriptsorderslistupdate(schema):
         CREATE TEMPORARY TABLE tmp_orders_list_daily_new 
         as
         select 
-		orderid
-        ,creationdate
+		ora.orderid
+        ,ora.creationdate
         ,clientname
         ,items
         ,totalvalue
@@ -45,7 +45,7 @@ def vtexsqlscriptsorderslistupdate(schema):
         ,hostname
         ,invoiceoutput
         ,invoiceinput
-        ,lastchange
+        ,ora.lastchange
         ,isalldelivered
         ,isanydelivered
         ,giftcardproviders
@@ -66,11 +66,6 @@ def vtexsqlscriptsorderslistupdate(schema):
         tmp.orderid is null 
         and 
         creationdate>= (select min(creationdate) from tmp_orders_list_daily_old );
-
-
-
-
-
 
 
         delete from  "{schema}".orders_list 
@@ -136,6 +131,7 @@ def vtexsqlscriptsorderslistupdate(schema):
         select
         *
         from tmp_orders_list_daily_new;
+
 
 
     """
