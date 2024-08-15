@@ -4,6 +4,7 @@ from datetime import datetime
 from airflow import DAG
 from airflow.decorators import task
 from airflow.models.param import Param
+from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
@@ -78,7 +79,7 @@ with DAG(
                     "ISDAILY": False
                         
                 },  # Se precisar passar informações adicionais para a DAG_B
-                dag= dag)
+                )
                        
                 trigger_dag_imports.dag = dag    
                # trigger_dag_imports.execute(context={})
@@ -92,7 +93,13 @@ with DAG(
             return e
 
     # Configurando a dependência entre as tarefas
-
-    start_update_daily_task = start_daily_update()
+    # Crie uma tarefa no DAG que chama a função
+    trigger_task = PythonOperator(
+        task_id='trigger_dag_daily_update',
+        python_callable=start_daily_update,
+        provide_context=True,  # Isso fornece o contexto para a função se necessário
+        dag=dag
+    )
+    #start_update_daily_task = start_daily_update()
 
 
