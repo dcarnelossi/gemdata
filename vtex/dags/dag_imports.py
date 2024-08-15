@@ -40,6 +40,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["brands", "categories", "skus", "products", "IMPORT"],
+    render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
             type="string",
@@ -148,7 +149,7 @@ with DAG(
         trigger_dag_id="2-ImportVtex-Orders-List",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-             "ISDAILY": "{{ params.ISDAILY }}"
+            "ISDAILY": "{{ params.ISDAILY }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks

@@ -31,6 +31,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["Update", "v1", "ALTERAR"],
+    render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
             type="string",

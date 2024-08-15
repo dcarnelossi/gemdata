@@ -31,6 +31,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["CreateInfra", "v2", "trigger_dag_imports"],
+    render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
             type="string",
@@ -46,8 +47,6 @@ with DAG(
             title="ISDAILY:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-            min_length=1,
-            max_length=10,
         )
     },
 ) as dag:
