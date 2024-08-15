@@ -80,7 +80,7 @@ with DAG(
                 )
                        
             
-                trigger_dag_imports.execute()
+                trigger_dag_imports.execute(context={})
   
             return True
 
