@@ -72,11 +72,6 @@ def vtexsqlscriptsorderslistupdate(schema):
         ora.creationdate>= (select min(creationdate) from tmp_orders_list_daily_old );
 
 
-
-
-
-
-
         delete from  "{schema}".orders_list 
         where orderid in (select orderid from tmp_orders_list_daily_new);
 
@@ -105,11 +100,11 @@ def vtexsqlscriptsorderslistupdate(schema):
         from tmp_orders_list_daily_new;
 
     """
-
+    print(scripts)
     return scripts
 
 
-if __name__ == "__main__":
-    with open("Output.txt", "w") as text_file:
-        text_file.write(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))
-        print(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))
+# if __name__ == "__main__":
+#     with open("Output.txt", "w") as text_file:
+#         text_file.write(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))
+#         print(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))
