@@ -33,7 +33,7 @@ default_args = {
 
 
 with DAG(
-    "3-ImportVtex-Orders",
+    "4-ImportVtex-Orders",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -78,9 +78,9 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise
         
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
-        trigger_dag_id="4-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_orders_items = TriggerDagRunOperator(
+        task_id="trigger_dag_orders_items",
+        trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
         },  # Se precisar passar informações adicionais para a DAG_B
@@ -89,4 +89,4 @@ with DAG(
 
 
     orders_task = orders()
-    orders_task >> trigger_dag_imports
+    orders_task >> trigger_dag_orders_items

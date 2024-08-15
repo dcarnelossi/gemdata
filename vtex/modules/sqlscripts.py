@@ -279,6 +279,61 @@ def vtexsqlscripts(schema, user):
     ALTER TABLE IF EXISTS "{schema}".orders_list
         OWNER to {user};
 
+        
+
+    CREATE TABLE IF NOT EXISTS "{schema}".orders_list_daily
+    (
+        sequence_id SERIAL PRIMARY KEY,
+        orderid text COLLATE pg_catalog."default",
+        creationdate timestamp without time zone,
+        clientname text COLLATE pg_catalog."default",
+        items jsonb,
+        totalvalue numeric(14,2),
+        paymentnames text COLLATE pg_catalog."default",
+        status text COLLATE pg_catalog."default",
+        statusdescription text COLLATE pg_catalog."default",
+        marketplaceorderid text COLLATE pg_catalog."default",
+        sequence text COLLATE pg_catalog."default",
+        saleschannel text COLLATE pg_catalog."default",
+        affiliateid text COLLATE pg_catalog."default",
+        origin text COLLATE pg_catalog."default",
+        workflowinerrorstate boolean,
+        workflowinretry boolean,
+        lastmessageunread text COLLATE pg_catalog."default",
+        shippingestimateddate timestamp without time zone,
+        shippingestimateddatemax timestamp without time zone,
+        shippingestimateddatemin timestamp without time zone,
+        orderiscomplete boolean,
+        listid text COLLATE pg_catalog."default",
+        listtype text COLLATE pg_catalog."default",
+        authorizeddate timestamp without time zone,
+        callcenteroperatorname text COLLATE pg_catalog."default",
+        totalitems integer,
+        currencycode text COLLATE pg_catalog."default",
+        hostname text COLLATE pg_catalog."default",
+        invoiceoutput jsonb,
+        invoiceinput jsonb,
+        lastchange timestamp without time zone,
+        isalldelivered boolean,
+        isanydelivered boolean,
+        giftcardproviders jsonb,
+        orderformid text COLLATE pg_catalog."default",
+        paymentapproveddate timestamp without time zone,
+        readyforhandlingdate timestamp without time zone,
+        deliverydates jsonb,
+        data_insercao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT constraint_orders_list_daily_orderid UNIQUE (orderid)
+
+    )
+
+    TABLESPACE pg_default;
+
+    CREATE INDEX idx_orders_list_daily_orderid ON "{schema}".orders_list_daily USING btree (orderid);
+
+    ALTER TABLE IF EXISTS "{schema}".orders_list_daily
+        OWNER to {user};
+
+
 
     CREATE TABLE IF NOT EXISTS "{schema}".orders_shippingdata
     (

@@ -26,11 +26,11 @@ default_args = {
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "0-CreateInfra",
+    "3-DagUpdate-Orders-List",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["CreateInfra", "v2", "trigger_dag_imports"],
+    tags=["Update", "v1", "ALTERAR"],
     params={
         "PGSCHEMA": Param(
             type="string",
@@ -41,7 +41,6 @@ with DAG(
             max_length=200,
         ),
         "ISDAILY": Param(
-            False,
             type="boolean",
             title="ISDAILY:",
             description="Enter com False (processo total) ou True (processo diario) .",
@@ -53,14 +52,19 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def create_postgres_infra(**kwargs):
+    def update_daily_orders_list(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        isdaily = kwargs["params"]["ISDAILY"]
+        if isdaily is False:
+            return True
 
-        from modules.sqlscripts import vtexsqlscripts
+        from modules.sqlscripts import vtexsqlscriptsorderslistupdate
+
+        
 
         try:
             # Defina o código SQL para criar a tabela
-            sql_script = vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            sql_script = vtexsqlscriptsorderslistupdate(PGSCHEMA, "appgemdatapgserveradmin")
 
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
@@ -70,7 +74,7 @@ with DAG(
             
             query = """
             UPDATE public.integrations_integration
-            SET infra_create_date = %s, infra_create_status = True
+            SET import_last_run_date = %s, is_active_status_date = True
             WHERE id = %s;
             """
 
@@ -84,22 +88,20 @@ with DAG(
 
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during create_postgres_infra - {e}"
+                f"An unexpected error occurred during orders_update_postgres - {e}"
             )
             return e
 
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
-        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_orders = TriggerDagRunOperator(
+        task_id="trigger_dag_orders",
+        trigger_dag_id="4-ImportVtex-Orders",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "PGSCHEMA": "{{ params.PGSCHEMA }}",
-            "ISDAILY": "{{ params.ISDAILY }}"
-                
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 
     # Configurando a dependência entre as tarefas
 
-    create_postgres_infra_task = create_postgres_infra()
+    update_daily_orders_list_task = update_daily_orders_list()
 
-    create_postgres_infra_task >> trigger_dag_imports
+    update_daily_orders_list_task >> trigger_dag_orders

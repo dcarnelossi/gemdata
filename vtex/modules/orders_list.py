@@ -11,6 +11,7 @@ from modules.helpers import increment_one_day
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
+isdaily = None
 
 
 def get_orders_list_pages(query_params):
@@ -55,9 +56,16 @@ def process_page(query_params):
 
 def process_order(order):
     try:
-        writer = WriteJsonToPostgres(
-            data_conection_info, order, "orders_list", "orderid"
-        )
+        #modificado gabiru :
+        if(isdaily==False):
+            writer = WriteJsonToPostgres(
+                data_conection_info, order, "orders_list", "orderid"
+            )
+        else:
+            writer = WriteJsonToPostgres(
+                    data_conection_info, order, "orders_list_daily", "orderid"
+                )
+
         writer.upsert_data()
         logging.info(f"Order {order['orderId']} upserted successfully.")
     except Exception as e:
@@ -97,10 +105,11 @@ def validate_and_convert_dates(start_date, end_date):
 
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
-    global api_conection_info, data_conection_info, coorp_conection_info
+    global api_conection_info, data_conection_info, coorp_conection_info,isdaily
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
+    isdaily= isdaily
 
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logging.error("Global connection information is incomplete.")
