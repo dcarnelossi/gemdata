@@ -34,7 +34,7 @@ default_args = {
 
 
 with DAG(
-    "6-ImportVtex-Orders-Shipping",
+    "7-ImportVtex-Orders-Shipping",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -80,9 +80,9 @@ with DAG(
             raise e
         finally:
             pass
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
-        trigger_dag_id="7-ImportVtex-Client-Profile",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_client_profile = TriggerDagRunOperator(
+        task_id="trigger_dag_client_profile",
+        trigger_dag_id="8-ImportVtex-Client-Profile",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
         },  # Se precisar passar informações adicionais para a DAG_B
@@ -91,4 +91,4 @@ with DAG(
     # Configurando a dependência entre as tasks
 
     orders_shipping_task = orders_shipping()
-    orders_shipping_task >> trigger_dag_imports
+    orders_shipping_task >> trigger_dag_client_profile

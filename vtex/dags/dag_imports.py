@@ -48,6 +48,14 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=200,
+        ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
         )
     },
 ) as dag:
@@ -135,11 +143,12 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
         
-    trigger_dag_imports = TriggerDagRunOperator(
-        task_id="trigger_dag_imports",
+    trigger_dag_orders_list = TriggerDagRunOperator(
+        task_id="trigger_dag_orders_list",
         trigger_dag_id="2-ImportVtex-Orders-List",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+             "ISDAILY": "{{ params.ISDAILY }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
@@ -149,4 +158,4 @@ with DAG(
     sku_task = skus()
     products_task = products()
 
-    brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_imports
+    brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
