@@ -6,6 +6,7 @@ from airflow.decorators import task
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.utils.task_group import TaskGroup
 
 # Lista de requisitos
 requirements = [
@@ -72,20 +73,18 @@ with DAG(
             )
             return []
 
-    @task(provide_context=True)
-    def trigger_import_dags(integration_ids):
-        for i, integration_id in enumerate(integration_ids):
-            trigger_dag = TriggerDagRunOperator(
-                task_id=f"trigger_dag_imports_{i}",
-                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-                conf={
-                    "PGSCHEMA": integration_id,
-                    "ISDAILY": False
-                },
-                dag=dag  # Necessário para adicionar a tarefa ao DAG
-            )
-            trigger_dag.execute(context={})  # Execute a tarefa
+    def create_trigger_task(integration_id, index):
+        return TriggerDagRunOperator(
+            task_id=f"trigger_dag_imports_{index}",
+            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+            conf={
+                "PGSCHEMA": integration_id,
+                "ISDAILY": False
+            }
+        )
 
-    # Defina as dependências
     integration_ids = get_integration_ids()
-    trigger_import_dags(integration_ids)
+
+    with TaskGroup("trigger_dag_group") as trigger_dag_group:
+        for i, integration_id in enumerate(integration_ids):
+            create_trigger_task(integration_id, i)
