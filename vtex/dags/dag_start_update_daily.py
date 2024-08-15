@@ -88,7 +88,7 @@ with DAG(
             dag=dag  # Adiciona a tarefa ao DAG atual
         )
 
-    for i, integration in enumerate(start_update_daily_task):
-        trigger_task = create_trigger_task(integration[0], i)
+    for integration in start_update_daily_task:
+        trigger_task = create_trigger_task(integration[0], integration[0])
         start_update_daily_task >> trigger_task  # Define a dependência
    
