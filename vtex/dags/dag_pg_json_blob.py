@@ -27,17 +27,14 @@ default_args = {
     "email_on_retry": False,
 }
 
-PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
-   
+
+
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json():
+def extract_postgres_to_json(sql_script,file_name,pg_schema):
     
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
-        
-        
-        from modules.sqlscriptsjson import vtexsqlscriptjson
 
         try:
             
@@ -47,8 +44,6 @@ def extract_postgres_to_json():
             # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()
-
-            sql_script = vtexsqlscriptjson(PGSCHEMA)
 
             cursor.execute(sql_script)
 
@@ -62,17 +57,19 @@ def extract_postgres_to_json():
             json_data = json.dumps(data, indent=4)
 
             # Criando um diretório temporário para armazenar o arquivo JSON
-            tmp_dir = os.path.join(f'/tmp/{PGSCHEMA}/' )  # Gera um diretório temporário único
+            tmp_dir = os.path.join(f'/tmp/{pg_schema}/' )  # Gera um diretório temporário único
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
-            print(tmp_dir)
+   
             # Definindo o caminho completo para o arquivo JSON
-            output_filepath = os.path.join(tmp_dir, 'postgres_data2.json')
+            output_filepath = os.path.join(tmp_dir, f'{file_name}.json')
 
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
+
+            blob_name=f'{pg_schema}/{file_name}.json'    
             
-            return output_filepath
+            return output_filepath,blob_name
 
             
         except Exception as e:
@@ -90,14 +87,15 @@ def extract_postgres_to_json():
 def upload_to_blob_directory(ti):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
-    blob_name= f'{PGSCHEMA}/postgres_data2.json'
+    blob_name= output_filepath[1]
+    print(output_filepath[1])
         # Verifica se o arquivo já existe
     if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
         wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
 
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
+        file_path=output_filepath[0],  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
         blob_name= blob_name,
@@ -119,7 +117,9 @@ with DAG(
     tags=["jsonblob", "v2", "ALTERAR"],
 
 ) as dag:
-
+    
+    PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
+    #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
 
 
@@ -130,7 +130,7 @@ with DAG(
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
         extract_task = PythonOperator(
             task_id=f'extract_postgres_to_json{chave}',
-            python_callable=extract_postgres_to_json
+            python_callable=extract_postgres_to_json(valor,chave,PGSCHEMA)
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
