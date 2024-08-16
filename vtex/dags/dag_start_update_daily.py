@@ -55,7 +55,7 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def start_update_daily():
+    def get_integration_ids():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -65,28 +65,26 @@ with DAG(
             and infra_create_status = true limit 2
             """
             integration_ids = hook.get_records(query)
-
-            for integration in integration_ids:
-                trigger_dag_start=TriggerDagRunOperator(
-                task_id=f"trigger_dag_imports_{integration[0]}",
-                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-                conf={
-                    "PGSCHEMA": f"{integration[0]}",
-                    "ISDAILY": False
-                    }
-                )
-                print(integration[0])   
-                trigger_dag_start.execute(context={}) 
-
-            return True
+            return [integration[0] for integration in integration_ids]
 
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
-            return e
+            return []
 
+    integration_ids = get_integration_ids()
 
+    with TaskGroup("trigger_dag_group") as trigger_dag_group:
+        for i, integration_id in enumerate(integration_ids):
+            TriggerDagRunOperator(
+                task_id=f"trigger_dag_imports_{i}",
+                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": False
+                }
+            )
 
-    start_daily = start_update_daily()
-
+    # Definir a ordem das tarefas
+    integration_ids >> trigger_dag_group
