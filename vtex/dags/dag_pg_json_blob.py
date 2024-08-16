@@ -49,6 +49,7 @@ def extract_postgres_to_json():
             cursor = conn.cursor()
 
             sql_script = vtexsqlscriptjson(PGSCHEMA)
+
             cursor.execute(sql_script)
 
             records = cursor.fetchall()
@@ -104,6 +105,11 @@ def upload_to_blob_directory(ti):
     )
     upload_task.execute(ti)  # Executa a tarefa de upload
 
+
+
+
+
+
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "1-testeblob",
@@ -113,19 +119,26 @@ with DAG(
     tags=["jsonblob", "v2", "ALTERAR"],
 
 ) as dag:
-    
-    # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
-    extract_task = PythonOperator(
-        task_id='extract_postgres_to_json',
-        python_callable=extract_postgres_to_json
-    )
 
-    # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
-    upload_task = PythonOperator(
-        task_id='upload_to_blob_directory',
-        python_callable=upload_to_blob_directory,
-        provide_context=True
-    )
+    from modules.sqlscriptsjson import vtexsqlscriptjson
 
-    # Definindo a ordem das tarefas no DAG
-    extract_task >> upload_task
+
+    sql_script = vtexsqlscriptjson(PGSCHEMA)
+
+        
+    for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+        # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
+        extract_task = PythonOperator(
+            task_id='extract_postgres_to_json',
+            python_callable=extract_postgres_to_json
+        )
+
+        # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
+        upload_task = PythonOperator(
+            task_id='upload_to_blob_directory',
+            python_callable=upload_to_blob_directory,
+            provide_context=True
+        )
+
+        # Definindo a ordem das tarefas no DAG
+        extract_task >> upload_task
