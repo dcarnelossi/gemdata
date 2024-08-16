@@ -1,6 +1,8 @@
 import logging
 from datetime import datetime
 import json
+import os 
+import uuid
 
 import json
 from airflow import DAG
@@ -58,14 +60,19 @@ def extract_postgres_to_json(**kwargs):
             # Convertendo os dados para JSON string
             json_data = json.dumps(data, indent=4)
 
+            # Criando um diretório temporário para armazenar o arquivo JSON
+            tmp_dir = os.path.join('/tmp', str(uuid.uuid4()))  # Gera um diretório temporário único
+            os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
+
+            # Definindo o caminho completo para o arquivo JSON
+            output_filepath = os.path.join(tmp_dir, 'postgres_data.json')
+
             # Salvando o JSON string em um arquivo temporário
-            output_filepath = f"/tmp/{PGSCHEMA}/postgres_data.json"
-            print(f"ver aqui:{output_filepath}" )
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
             
-            
             return output_filepath
+
             
         except Exception as e:
             logging.exception(
