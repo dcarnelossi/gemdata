@@ -103,7 +103,7 @@ with DAG(
      # Tarefa para enviar o arquivo JSON para o Azure Blob Storage
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path=f"/tmp/{PGSCHEMA}/postgres_data.json",  # O arquivo JSON gerado na tarefa anterior
+        file_path=f"/tmp/{PGSCHEMA}//postgres_data.json",  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
         blob_name='postgres_data.json',  # Nome do arquivo no Blob Storage
         wasb_conn_id='azure_blob_storage_json'  # ID da conexão configurada no Airflow
