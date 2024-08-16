@@ -3,12 +3,13 @@ def vtexsqlscriptjson(schema):
                     SET CLIENT_ENCODING = 'UTF8';
                                                     
                     select 
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate
+                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate2
                     from "{schema}".orders ori
-                    limit 1       
+                    limit 1;       
                 """ 
    
-    print(scripts)
+   
     return scripts
 
 # if __name__ == "__main__":
