@@ -27,10 +27,10 @@ default_args = {
     "email_on_retry": False,
 }
 
-
+PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
    
 def extract_postgres_to_json(**kwargs):
-        PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
+      
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         
@@ -59,8 +59,8 @@ def extract_postgres_to_json(**kwargs):
             json_data = json.dumps(data, indent=4)
 
             # Salvando o JSON string em um arquivo temporário
-            output_filepath = '/tmp/{PGSCHEMA}/postgres_data.json'
-            print("ver aqui:{output_filepath}" )
+            output_filepath = f"/tmp/{PGSCHEMA}/postgres_data.json"
+            print(f"ver aqui:{output_filepath}" )
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
             
@@ -95,7 +95,7 @@ with DAG(
      # Tarefa para enviar o arquivo JSON para o Azure Blob Storage
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path='/tmp/{PGSCHEMA}/postgres_data.json',  # O arquivo JSON gerado na tarefa anterior
+        file_path=f"/tmp/{PGSCHEMA}/postgres_data.json",  # O arquivo JSON gerado na tarefa anterior
         container_name='nome-do-container',  # Substitua pelo nome do seu container no Azure Blob Storage
         blob_name='postgres_data.json',  # Nome do arquivo no Blob Storage
         wasb_conn_id='azure_blob_storage_json'  # ID da conexão configurada no Airflow
