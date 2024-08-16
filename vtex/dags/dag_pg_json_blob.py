@@ -129,13 +129,13 @@ with DAG(
     for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
         extract_task = PythonOperator(
-            task_id='extract_postgres_to_json',
+            task_id=f'extract_postgres_to_json{chave}',
             python_callable=extract_postgres_to_json
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
         upload_task = PythonOperator(
-            task_id='upload_to_blob_directory',
+            task_id=f'upload_to_blob_directory{chave}',
             python_callable=upload_to_blob_directory,
             provide_context=True
         )
