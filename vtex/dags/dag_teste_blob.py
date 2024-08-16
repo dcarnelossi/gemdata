@@ -44,8 +44,8 @@ def extract_postgres_to_json(**kwargs):
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             sql_script = vtexsqlscriptjson(PGSCHEMA)
             records  = hook.get_records(sql_script)
-           
-                # Obtendo os nomes das colunas
+            print(records)
+            # Obtendo os nomes das colunas
             colnames = [desc[0] for desc in hook.get_cursor().description]
             
             # Transformando os dados em uma lista de dicionários (JSON-like)
