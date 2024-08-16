@@ -1,16 +1,12 @@
-import logging
-from datetime import datetime
 import json
-import os 
-import uuid
-
-import json
+import os
 from airflow import DAG
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.decorators import task
 from airflow.operators.python import PythonOperator
 from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFilesystemToWasbOperator
+from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from datetime import datetime
+import logging
 
 # Lista de requisitos
 requirements = [
@@ -31,8 +27,10 @@ default_args = {
 
 PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
    
-def extract_postgres_to_json(**kwargs):
-      
+
+# Função para extrair dados do PostgreSQL e salvá-los como JSON
+def extract_postgres_to_json():
+    
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         
@@ -84,29 +82,54 @@ def extract_postgres_to_json(**kwargs):
             cursor.close()
             conn.close()
 
+# Função para verificar e criar diretório no Azure Blob Storage
+def check_and_create_directory(directory):
+    wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_conn')
+    container_name = "jsondashboard"  # Substitua pelo nome do seu container
+    directory_name = f"{directory}/"
+
+    # Verifica se o diretório existe
+    if not wasb_hook.check_for_prefix(container_name=container_name, prefix=directory_name):
+        # Se o diretório não existir, cria um blob vazio para representá-lo
+        wasb_hook.load_string("", container_name=container_name, blob_name=directory_name + "placeholder.txt")
+
+    return directory_name
+
+# Função para mover o arquivo JSON para o diretório no Blob Storage
+def upload_to_blob_directory(ti):
+    output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
+    directory_name = check_and_create_directory(PGSCHEMA)
+
+    upload_task = LocalFilesystemToWasbOperator(
+        task_id='upload_to_blob',
+        file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
+        container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
+        blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
+        wasb_conn_id='azure_blob_storage_json'  # ID da conexão configurada no Airflow
+    )
+    upload_task.execute(ti)  # Executa a tarefa de upload
+
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "0-testeblob",
+    "1-testeblob",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["Update", "v1", "ALTERAR"],
+    tags=["json_blob", "v1", "ALTERAR"],
 
 ) as dag:
-   
-  # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
+    
+    # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
     extract_task = PythonOperator(
         task_id='extract_postgres_to_json',
         python_callable=extract_postgres_to_json
     )
-    
-     # Tarefa para enviar o arquivo JSON para o Azure Blob Storage
-    upload_task = LocalFilesystemToWasbOperator(
-        task_id='upload_to_blob',
-        file_path=f"/tmp/{PGSCHEMA}/postgres_data.json",  # O arquivo JSON gerado na tarefa anterior
-        container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
-        blob_name='postgres_data.json',  # Nome do arquivo no Blob Storage
-        wasb_conn_id='azure_blob_storage_json'  # ID da conexão configurada no Airflow
+
+    # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
+    upload_task = PythonOperator(
+        task_id='upload_to_blob_directory',
+        python_callable=upload_to_blob_directory,
+        provide_context=True
     )
 
     # Definindo a ordem das tarefas no DAG
