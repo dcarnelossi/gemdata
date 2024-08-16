@@ -111,7 +111,7 @@ def upload_to_blob_directory(ti):
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "1-testeblob",
+    "0-testeblob",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
