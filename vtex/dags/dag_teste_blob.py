@@ -64,6 +64,7 @@ def extract_postgres_to_json(**kwargs):
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
             
+            
             return output_filepath
             
         except Exception as e:
