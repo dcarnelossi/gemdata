@@ -1,3 +1,6 @@
+import logging
+from datetime import datetime
+
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
@@ -5,10 +8,21 @@ from airflow.utils.dates import days_ago
 from airflow.hooks.postgres_hook import PostgresHook
 from airflow.operators.python import ShortCircuitOperator
 
+# Lista de requisitos
+requirements = [
+    "openai==1.6.0",
+    "azure-core==1.29.6",
+    "azure-cosmos==4.5.1",
+    "azure-storage-blob==12.19.0",
+]
+
+# Configuração padrão do DAG
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'retries': 1,
+    "owner": "Daniel",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "email_on_failure": False,
+    "email_on_retry": False,
 }
 
 def get_customer_ids(**kwargs):
@@ -20,11 +34,11 @@ def get_customer_ids(**kwargs):
     ids = [str(id[0]) for id in ids]  # Transform list of tuples to list of strings
     return ids
 
-def check_dag_status(ti, triggered_dag_run, **kwargs):
-    dag_run_status = triggered_dag_run.get_state()
-    if dag_run_status == 'success':
-        return True
-    return False
+# def check_dag_status(ti, triggered_dag_run, **kwargs):
+#     dag_run_status = triggered_dag_run.get_state()
+#     if dag_run_status == 'success':
+#         return True
+#     return False
 
 with DAG(
     dag_id='01-StartDaily',
