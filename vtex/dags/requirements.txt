@@ -2,3 +2,4 @@ openai
 azure-core
 azure-cosmos
 azure-storage-blob
+apache-airflow-providers-microsoft-azure
