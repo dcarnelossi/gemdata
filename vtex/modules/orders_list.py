@@ -57,7 +57,7 @@ def process_page(query_params):
 def process_order(order):
     try:
         #modificado gabiru :
-        if(isdaily==False):
+        if not isdaily:
             writer = WriteJsonToPostgres(
                 data_conection_info, order, "orders_list", "orderid"
             )
