@@ -3,7 +3,7 @@ def vtexsqlscriptjson(schema):
                     SET CLIENT_ENCODING = 'UTF8';
                                                     
                     select 
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate
                     from {schema}.orders ori
                     limit 1       
                 """ 
