@@ -56,7 +56,7 @@ with DAG(
         )
         a=get_ids.output
         print(get_ids.output)
-        for customer_id in get_ids.output:
+        for customer_id in a:
             trigger_dag = TriggerDagRunOperator(
                     task_id=f'trigger_dag_imports_{a}',
                     trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
