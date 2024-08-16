@@ -50,7 +50,7 @@ def extract_postgres_to_json(**kwargs):
             
             print(records)
             # Obtendo o cursor para pegar a descrição das colunas
-            cursor = hook.get_cursor()
+            cursor = hook.get_records(sql_script).get_cursor()
 
         # Verificando se o cursor tem descrição (o que indica que houve resultado)
             if cursor.description is None:
