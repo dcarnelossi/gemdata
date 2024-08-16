@@ -76,12 +76,12 @@ with DAG(
     integration_ids = get_integration_ids()
 
     with TaskGroup("trigger_dag_group") as trigger_dag_group:
-        for i, integration_id in enumerate(integration_ids):
+        for integration_id in integration_ids:
             TriggerDagRunOperator(
-                task_id=f"trigger_dag_imports_{i}",
+                task_id=f"trigger_dag_imports_{integration_id[0]}",
                 trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
                 conf={
-                    "PGSCHEMA": integration_id,
+                    "PGSCHEMA": "{integration_id[0]}",
                     "ISDAILY": False
                 }
             )
