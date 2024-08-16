@@ -64,7 +64,7 @@ with DAG(
                     "PGSCHEMA": customer_id,
                     "ISDAILY": False
                 }
-            #  wait_for_completion=True,
+              wait_for_completion=True,
             )
 
             # wait_for_dag = ShortCircuitOperator(
@@ -74,4 +74,4 @@ with DAG(
             #     provide_context=True,
             # )
 
-        get_ids >> trigger_dag #>> wait_for_dag
+            get_ids >> trigger_dag #>> wait_for_dag
