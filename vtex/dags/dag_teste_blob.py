@@ -44,9 +44,21 @@ def extract_postgres_to_json(**kwargs):
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             sql_script = vtexsqlscriptjson(PGSCHEMA)
             records  = hook.get_records(sql_script)
+                # Verificando se a consulta retornou algum resultado
+            if not records:
+                raise ValueError("A consulta SQL não retornou nenhum resultado.")
+            
             print(records)
+            # Obtendo o cursor para pegar a descrição das colunas
+            cursor = hook.get_cursor()
+
+        # Verificando se o cursor tem descrição (o que indica que houve resultado)
+            if cursor.description is None:
+                raise ValueError("A descrição do cursor é None, provavelmente a consulta não retornou colunas.")
+
+
             # Obtendo os nomes das colunas
-            colnames = [desc[0] for desc in hook.get_cursor().description]
+            colnames = [desc[0] for desc in cursor.description]
             
             # Transformando os dados em uma lista de dicionários (JSON-like)
             data = [dict(zip(colnames, row)) for row in records]
