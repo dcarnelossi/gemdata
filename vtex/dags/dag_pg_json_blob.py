@@ -91,7 +91,7 @@ def check_and_create_directory(directory):
     directory_name = f"{directory}/"
 
     # Verifica se o diretório existe
-    if not wasb_hook.check_for_prefix(container_name=container_name, prefix=directory_name):
+    if not wasb_hook.check_for_prefix(container_name=container_name, prefix=directory):
         # Se o diretório não existir, cria um blob vazio para representá-lo
         wasb_hook.load_string("", container_name=container_name, blob_name=directory_name + "placeholder.txt")
 
