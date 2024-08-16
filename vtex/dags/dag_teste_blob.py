@@ -39,6 +39,7 @@ with DAG(
 ) as dag:
 
 
+
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
         file_path='/caminho/para/o/seu/arquivo.txt',
