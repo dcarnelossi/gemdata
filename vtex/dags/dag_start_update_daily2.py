@@ -41,37 +41,40 @@ def get_customer_ids(**kwargs):
 #     return False
 
 with DAG(
-    dag_id='01-StartDaily',
+    "01-StartDaily",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     
 ) as dag:
-    
-    get_ids = PythonOperator(
-        task_id='get_customer_ids',
-        python_callable=get_customer_ids,
-        provide_context=True,
-    )
-
-
-    for customer_id in get_ids.output:
-        trigger_dag = TriggerDagRunOperator(
-            task_id=f'trigger_dag_imports_{customer_id}',
-            trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
-             conf={
-                "PGSCHEMA": customer_id,
-                "ISDAILY": False
-            }
-          #  wait_for_completion=True,
+    @task(provide_context=True)
+    def teste():
+        get_ids = PythonOperator(
+            task_id='get_customer_ids',
+            python_callable=get_customer_ids,
+            provide_context=True,
         )
 
-        # wait_for_dag = ShortCircuitOperator(
-        #     task_id=f'wait_for_dag_for_customer_{customer_id}',
-        #     python_callable=check_dag_status,
-        #     op_args=[trigger_dag],
-        #     provide_context=True,
-        # )
+
+        for customer_id in get_ids.output:
+            trigger_dag = TriggerDagRunOperator(
+                task_id=f'trigger_dag_imports_{customer_id}',
+                trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
+                conf={
+                    "PGSCHEMA": customer_id,
+                    "ISDAILY": False
+                }
+            #  wait_for_completion=True,
+            )
+
+            # wait_for_dag = ShortCircuitOperator(
+            #     task_id=f'wait_for_dag_for_customer_{customer_id}',
+            #     python_callable=check_dag_status,
+            #     op_args=[trigger_dag],
+            #     provide_context=True,
+            # )
 
         get_ids >> trigger_dag #>> wait_for_dag
+
+    teste()       
