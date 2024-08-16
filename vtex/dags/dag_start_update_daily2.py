@@ -55,23 +55,23 @@ with DAG(
             provide_context=True,
         )
         a=get_ids.output
+        print(get_ids.output)
+        for customer_id in get_ids.output:
+            trigger_dag = TriggerDagRunOperator(
+                    task_id=f'trigger_dag_imports_{a}',
+                    trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
+                    conf={
+                        "PGSCHEMA": a,
+                        "ISDAILY": False
+                    },
+                
+                )
 
-       # for customer_id in get_ids.output:
-        trigger_dag = TriggerDagRunOperator(
-                task_id=f'trigger_dag_imports_aaa',
-                trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
-                conf={
-                    "PGSCHEMA": a,
-                    "ISDAILY": False
-                },
-             
-            )
+                # wait_for_dag = ShortCircuitOperator(
+                #     task_id=f'wait_for_dag_for_customer_{customer_id}',
+                #     python_callable=check_dag_status,
+                #     op_args=[trigger_dag],
+                #     provide_context=True,
+                # )
 
-            # wait_for_dag = ShortCircuitOperator(
-            #     task_id=f'wait_for_dag_for_customer_{customer_id}',
-            #     python_callable=check_dag_status,
-            #     op_args=[trigger_dag],
-            #     provide_context=True,
-            # )
-
-        get_ids >> trigger_dag #>> wait_for_dag
+            get_ids >> trigger_dag #>> wait_for_dag
