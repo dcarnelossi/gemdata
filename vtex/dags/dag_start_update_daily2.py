@@ -48,7 +48,6 @@ with DAG(
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     
 ) as dag:
-    @task(provide_context=True)
     def teste():
         get_ids = PythonOperator(
             task_id='get_customer_ids',
