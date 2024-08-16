@@ -56,12 +56,12 @@ with DAG(
         )
 
 
-        for customer_id in get_ids.output:
-            trigger_dag = TriggerDagRunOperator(
-                task_id=f'trigger_dag_imports_{customer_id}',
+       # for customer_id in get_ids.output:
+        trigger_dag = TriggerDagRunOperator(
+                task_id=f'trigger_dag_imports_{get_ids.output}',
                 trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
                 conf={
-                    "PGSCHEMA": customer_id,
+                    "PGSCHEMA": get_ids.output,
                     "ISDAILY": False
                 }
               wait_for_completion=True,
