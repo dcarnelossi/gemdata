@@ -1,5 +1,7 @@
 import json
 import os
+
+from airflow.decorators import task
 from airflow import DAG
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.python import PythonOperator
@@ -111,11 +113,11 @@ def upload_to_blob_directory(ti):
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "0-testeblob",
+    "1-testeblob",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["json_blob", "v1", "ALTERAR"],
+    tags=["jsonblob", "v1", "ALTERAR"],
 
 ) as dag:
     
