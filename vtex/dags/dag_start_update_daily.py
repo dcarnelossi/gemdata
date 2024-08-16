@@ -74,7 +74,8 @@ with DAG(
                     "PGSCHEMA": f"{integration[0]}",
                     "ISDAILY": False
                     }
-                )   
+                )
+                print(integration[0])   
                 trigger_dag_start.execute(context={}) 
 
             return True
