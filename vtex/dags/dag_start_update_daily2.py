@@ -74,4 +74,4 @@ with DAG(
             #     provide_context=True,
             # )
 
-            get_ids >> trigger_dag #>> wait_for_dag
+        get_ids >> trigger_dag #>> wait_for_dag
