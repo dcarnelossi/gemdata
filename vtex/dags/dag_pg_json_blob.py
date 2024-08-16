@@ -118,7 +118,7 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["jsonblob", "v1", "ALTERAR"],
+    tags=["jsonblob", "v2", "ALTERAR"],
 
 ) as dag:
     
