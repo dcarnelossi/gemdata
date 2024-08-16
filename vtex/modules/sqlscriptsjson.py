@@ -4,7 +4,7 @@ def vtexsqlscriptjson(schema):
                                                     
                     select 
                     cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate
-                    from {schema}.orders ori
+                    from "{schema}".orders ori
                     limit 1       
                 """ 
    
