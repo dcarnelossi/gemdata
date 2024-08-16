@@ -63,8 +63,8 @@ with DAG(
                 conf={
                     "PGSCHEMA": a,
                     "ISDAILY": False
-                }
-              wait_for_completion=True,
+                },
+             
             )
 
             # wait_for_dag = ShortCircuitOperator(
