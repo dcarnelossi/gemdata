@@ -88,13 +88,19 @@ def extract_postgres_to_json():
 # Função para mover o arquivo JSON para o diretório no Blob Storage
 def upload_to_blob_directory(ti):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
- 
+    wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
+    blob_name= f'{PGSCHEMA}/postgres_data2.json',
+        # Verifica se o arquivo já existe
+    if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
+        # Se o arquivo existe, exclua-o
+        wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
+
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
         file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
-        blob_name= f'{PGSCHEMA}/postgres_data2.json',
+        blob_name= blob_name,
         wasb_conn_id='azure_blob_storage_json',  # ID da conexão configurada no Airflow
         overwrite=True 
     )
