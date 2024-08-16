@@ -73,18 +73,18 @@ with DAG(
             )
             return []
 
+    @task
+    def trigger_import_dag(integration_id):
+        return TriggerDagRunOperator(
+            task_id=f"trigger_dag_imports_{integration_id}",
+            trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+            conf={
+                "PGSCHEMA": integration_id,
+                "ISDAILY": False
+            }
+        ).execute(context={})
+
     integration_ids = get_integration_ids()
 
-    with TaskGroup("trigger_dag_group") as trigger_dag_group:
-        for integration_id in integration_ids:
-            TriggerDagRunOperator(
-                task_id=f"trigger_dag_imports_{integration_id[0]}",
-                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-                conf={
-                    "PGSCHEMA": "{integration_id[0]}",
-                    "ISDAILY": False
-                }
-            )
-
-    # Definir a ordem das tarefas
-    integration_ids >> trigger_dag_group
+    # Usando dynamic task mapping para criar tarefas dinamicamente
+    trigger_import_dag.expand(integration_id=integration_ids)
