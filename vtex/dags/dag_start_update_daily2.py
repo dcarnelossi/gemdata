@@ -48,7 +48,7 @@ with DAG(
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     
 ) as dag:
-    def teste():
+
         get_ids = PythonOperator(
             task_id='get_customer_ids',
             python_callable=get_customer_ids,
@@ -75,5 +75,3 @@ with DAG(
             # )
 
         get_ids >> trigger_dag #>> wait_for_dag
-
-    teste()       
