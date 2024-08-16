@@ -61,9 +61,9 @@ def extract_postgres_to_json(**kwargs):
             json_data = json.dumps(data, indent=4)
 
             # Criando um diretório temporário para armazenar o arquivo JSON
-            tmp_dir = os.path.join('/tmp', str(uuid.uuid4()))  # Gera um diretório temporário único
+            tmp_dir = os.path.join('/tmp/{PGSCHEMA}', str(uuid.uuid4()))  # Gera um diretório temporário único
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
-
+            print(tmp_dir)
             # Definindo o caminho completo para o arquivo JSON
             output_filepath = os.path.join(tmp_dir, 'postgres_data.json')
 
