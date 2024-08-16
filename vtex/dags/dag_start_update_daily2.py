@@ -41,11 +41,11 @@ def get_customer_ids(**kwargs):
 #     return False
 
 with DAG(
-    "01-StartDaily",
+    "1-StartDaily",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["StartDaily", "v1", "trigger_dag_daily_update"],
+    tags=["StartDaily", "v2", "trigger_dag_daily_update"],
     
 ) as dag:
 
@@ -58,7 +58,7 @@ with DAG(
 
        # for customer_id in get_ids.output:
         trigger_dag = TriggerDagRunOperator(
-                task_id=f'trigger_dag_imports_{a}',
+                task_id=f'trigger_dag_imports_aaa',
                 trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
                 conf={
                     "PGSCHEMA": a,
