@@ -42,22 +42,14 @@ def extract_postgres_to_json(**kwargs):
             
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+            # Estabelecendo a conexão e criando um cursor
+            conn = hook.get_conn()
+            cursor = conn.cursor()
+
             sql_script = vtexsqlscriptjson(PGSCHEMA)
-            records  = hook.get_records(sql_script)
-                # Verificando se a consulta retornou algum resultado
-            if not records:
-                raise ValueError("A consulta SQL não retornou nenhum resultado.")
-            
-            print(records)
-            # Obtendo o cursor para pegar a descrição das colunas
-            cursor = hook.get_records(sql_script).get_cursor()
+            cursor.execute(sql_script)
 
-        # Verificando se o cursor tem descrição (o que indica que houve resultado)
-            if cursor.description is None:
-                raise ValueError("A descrição do cursor é None, provavelmente a consulta não retornou colunas.")
-
-
-            # Obtendo os nomes das colunas
+            records = cursor.fetchall()
             colnames = [desc[0] for desc in cursor.description]
             
             # Transformando os dados em uma lista de dicionários (JSON-like)
@@ -79,6 +71,10 @@ def extract_postgres_to_json(**kwargs):
                 f"An unexpected error occurred during orders_update_postgres - {e}"
             )
             return e
+        finally:
+            # Fechando o cursor e a conexão
+            cursor.close()
+            conn.close()
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
