@@ -75,6 +75,7 @@ with DAG(
 
     @task
     def trigger_import_dag(integration_id):
+        
         return TriggerDagRunOperator(
             task_id=f"trigger_dag_imports_{integration_id}",
             trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
@@ -82,7 +83,7 @@ with DAG(
                 "PGSCHEMA": integration_id,
                 "ISDAILY": False
             }
-        ).execute(context={})
+        ).execute(context=integration_id)
 
     integration_ids = get_integration_ids()
 
