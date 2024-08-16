@@ -72,6 +72,7 @@ with DAG(
             )
             return []
 
+
     def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
         trigger_dag(
             dag_id=dag_id,
