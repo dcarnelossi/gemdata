@@ -86,7 +86,7 @@ def extract_postgres_to_json():
 
 # Função para verificar e criar diretório no Azure Blob Storage
 def check_and_create_directory(directory):
-    wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_conn')
+    wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
     container_name = "jsondashboard"  # Substitua pelo nome do seu container
     directory_name = f"{directory}/"
 
