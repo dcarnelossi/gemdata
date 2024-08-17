@@ -2,6 +2,7 @@
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
     scripts ={ 'aba_faturamento_item1':f""" 
+                                        DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
                                         SELECT generate_series as dategenerate FROM generate_series(
                                             '2022-01-01 00:00:00'::timestamp,
@@ -10,8 +11,8 @@ def vtexsqlscriptjson(schema):
                                         )
                                         );
 
-                                        --drop table faturamentodiario
-
+                                     
+                                        DROP TABLE IF EXISTS faturamentodiario;
                                         create temp table  faturamentodiario  as (
 
                                         select 
@@ -19,7 +20,7 @@ def vtexsqlscriptjson(schema):
                                         SUM(revenue)   as faturamento,
                                         cast(SUM(totalitems) as float)  as pedidos
 
-                                        from mahogany.orders_ia ia 
+                                        from "{schema}".orders_ia ia 
 
                                         where 
                                         statusdescription  = 'Faturado'
@@ -28,7 +29,7 @@ def vtexsqlscriptjson(schema):
                                         );
 
 
-                                        --drop table tempdataprojetado ;
+                                        DROP TABLE IF EXISTS tempdataprojetado;
                                         create temp table  tempdataprojetado  as (
                                         SELECT generate_series as dategenerate, to_char(generate_series,'mm-dd') as mesdia FROM generate_series(
                                             '1900-01-01 00:00:00'::timestamp,
@@ -38,8 +39,8 @@ def vtexsqlscriptjson(schema):
                                         );
 
 
-                                        --drop table faturamentoprojetado;
-
+                                        
+                                        DROP TABLE IF EXISTS faturamentoprojetado;
                                         create temp table  faturamentoprojetado  as (
 
                                         select 
@@ -90,7 +91,7 @@ def vtexsqlscriptjson(schema):
                                             cast(SUM(ori.sellingprice) as float)  as faturamento,
                                             cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                            from mahogany.orders_items_ia ori
+                                            from "{schema}".orders_items_ia ori
                                             group by 
                                             1,2,3,4,5 
                                             order by 1    
@@ -108,8 +109,8 @@ def vtexsqlscriptjson(schema):
                                         cast(round(SUM(ori.sellingprice)*1.15,2) as float)  as faturamento,
                                         cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                        from  mahogany.orders_ia as ord
-                                        inner join  mahogany.orders_items_ia  as ori on
+                                        from  "{schema}".orders_ia as ord
+                                        inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
                                         group by 1,3,4
@@ -124,8 +125,8 @@ def vtexsqlscriptjson(schema):
                                         cast(round(SUM(ori.sellingprice)*1,2) as float)  as faturamento,
                                         cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                        from  mahogany.orders_ia as ord
-                                        inner join  mahogany.orders_items_ia  as ori on
+                                        from  "{schema}".orders_ia as ord
+                                        inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
                                         group by 1,3,4
@@ -140,8 +141,8 @@ def vtexsqlscriptjson(schema):
                                         cast(round(SUM(ori.sellingprice)*0.80,2) as float)  as faturamento,
                                         cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                        from  mahogany.orders_ia as ord
-                                        inner join  mahogany.orders_items_ia  as ori on
+                                        from  "{schema}".orders_ia as ord
+                                        inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
                                         group by 1,3,4
@@ -155,8 +156,8 @@ def vtexsqlscriptjson(schema):
                                         cast(round(SUM(ori.sellingprice)*0.6,2) as float)  as faturamento,
                                         cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                        from  mahogany.orders_ia as ord
-                                        inner join  mahogany.orders_items_ia  as ori on
+                                        from  "{schema}".orders_ia as ord
+                                        inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
                                         group by 1,3,4
@@ -171,8 +172,8 @@ def vtexsqlscriptjson(schema):
                                         cast(round(SUM(ori.sellingprice)*0.20,2) as float)  as faturamento,
                                         cast(SUM(ori.quantity) as integer)  as pedidos
 
-                                        from  mahogany.orders_ia as ord
-                                        inner join  mahogany.orders_items_ia  as ori on
+                                        from  "{schema}".orders_ia as ord
+                                        inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
                                         group by 1,3,4
@@ -191,7 +192,7 @@ def vtexsqlscriptjson(schema):
                                             cast(SUM(revenue) as float)   as faturamento,
                                             cast(SUM(totalitems) as integer)  as pedidos
 
-                                            from mahogany.orders_ia ia 
+                                            from "{schema}".orders_ia ia 
 
                                             where 
                                             statusdescription  = 'Faturado'
