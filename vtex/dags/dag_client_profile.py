@@ -79,7 +79,15 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
 
-    # Configurando a dependência entre as tasks
+    trigger_dag_create_json = TriggerDagRunOperator(
+        task_id="trigger_dag_create_json_dash",
+        trigger_dag_id="9-create_json_dash",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
+
+     # Configurando a dependência entre as tasks
 
     client_profile_task = client_profile()
-    client_profile_task
+    client_profile_task >> trigger_dag_create_json
