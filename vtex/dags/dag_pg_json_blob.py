@@ -56,11 +56,11 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             json_data = json.dumps(data, indent=4)
 
             # Criando um diretório temporário para armazenar o arquivo JSON
-            tmp_dir = os.path.join(f'/tmp/{pg_schema}/' )  # Gera um diretório temporário único
+            tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
    
             # Definindo o caminho completo para o arquivo JSON
-            output_filepath = os.path.join(tmp_dir, f'{file_name}.json')
+            output_filepath = os.path.join(tmp_dir, f"{file_name}.json")
             print(output_filepath)
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
@@ -84,7 +84,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 def upload_to_blob_directory(ti,file_name,pg_schema):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
-    blob_name=f'{pg_schema}/{file_name}.json'  
+    blob_name=f"{pg_schema}/{file_name}.json" 
 
     #output_filepath[1]
     print(output_filepath)
