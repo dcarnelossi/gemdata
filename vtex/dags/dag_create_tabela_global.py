@@ -26,7 +26,7 @@ default_args = {
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "9-create_tabela_global_cliente",
+    "9-create-table-client",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -71,7 +71,7 @@ with DAG(
 
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
-        trigger_dag_id="10-create_json_dash",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="10-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
 

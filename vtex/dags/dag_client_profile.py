@@ -81,7 +81,7 @@ with DAG(
 
     trigger_dag_create_tab = TriggerDagRunOperator(
         task_id="trigger_dag_create_tab_global",
-        trigger_dag_id="9-create_tabela_global_cliente",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="9-create-table-client",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
         },  # Se precisar passar informações adicionais para a DAG_B
