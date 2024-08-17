@@ -98,7 +98,7 @@ def extract_postgres_to_json():   #(sql_script,file_name,pg_schema):
 def upload_to_blob_directory(ti):#,file_name,pg_schema):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
-    #blob_name=f"{pg_schema}/{file_name}.json" 
+    blob_name=f"{pg_schema}/{file_name}.json" 
     blob_name = 'grafico.json'
 
      ###   Verifica se o arquivo já existe
@@ -139,9 +139,9 @@ with DAG(
 
         
     
-    #for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+    for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
-    extract_task = PythonOperator(
+        extract_task = PythonOperator(
             task_id=f'extract_postgres_to_json_1',
             python_callable=extract_postgres_to_json,
             #op_args=[valor, chave, PGSCHEMA]
@@ -149,12 +149,12 @@ with DAG(
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
-    upload_task = PythonOperator(
+        upload_task = PythonOperator(
             task_id=f'upload_to_blob_directory_1',
             python_callable=upload_to_blob_directory,
-            #op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
+            op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
             provide_context=True
         )
 
         # Definindo a ordem das tarefas no DAG
-    extract_task >> upload_task
+        extract_task >> upload_task
