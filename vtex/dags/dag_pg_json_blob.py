@@ -31,7 +31,7 @@ default_args = {
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json(sql_script,file_name,pg_schema):
+def extract_postgres_to_json():#(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         sql_script =f"""  SET CLIENT_ENCODING = 'UTF8';
@@ -97,17 +97,13 @@ def upload_to_blob_directory(ti):#,file_name,pg_schema):
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
     #blob_name=f"{pg_schema}/{file_name}.json" 
     blob_name = "a5be7ce1-ce65-46f8-a293-4efff72819ce/grafico.json"
-    #output_filepath[1]
-    print(output_filepath)
-    print(blob_name)
-    print('PASSOUU AQUI')
-        # Verifica se o arquivo já existe
-    # if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
-    #     wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
 
-    print('PASSOUU AQUI 2')
+     ###   Verifica se o arquivo já existe
+    if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
+        wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
+
     upload_task = LocalFilesystemToWasbOperator(
-        task_id=f'upload_to_blob_grafico1',
+        task_id=f'upload_to_blob_grafico',
         file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
@@ -139,18 +135,19 @@ with DAG(
     sql_script = vtexsqlscriptjson(PGSCHEMA)
 
         
-    for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+    
+    #for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
-        extract_task = PythonOperator(
-            task_id=f'extract_postgres_to_json_{chave}',
+    extract_task = PythonOperator(
+            task_id=f'extract_postgres_to_json_1',
             python_callable=extract_postgres_to_json,
-            op_args=[valor, chave, PGSCHEMA]
+            #op_args=[valor, chave, PGSCHEMA]
             #provide_context=True
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
-        upload_task = PythonOperator(
-            task_id=f'upload_to_blob_directory_{chave}',
+    upload_task = PythonOperator(
+            task_id=f'upload_to_blob_directory_1',
             python_callable=upload_to_blob_directory,
             #op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
             provide_context=True
