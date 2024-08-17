@@ -65,7 +65,7 @@ def extract_postgres_to_json(**kwargs):
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
             print(tmp_dir)
             # Definindo o caminho completo para o arquivo JSON
-            output_filepath = os.path.join(tmp_dir, 'postgres_data.json')
+            output_filepath = os.path.join(tmp_dir, 'postgres_data3.json')
 
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
@@ -73,7 +73,7 @@ def extract_postgres_to_json(**kwargs):
             
             return output_filepath
  
- 
+
             
         except Exception as e:
             logging.exception(
@@ -104,9 +104,9 @@ with DAG(
      # Tarefa para enviar o arquivo JSON para o Azure Blob Storage
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path=f"/tmp/{PGSCHEMA}//postgres_data.json",  # O arquivo JSON gerado na tarefa anterior
+        file_path=f"/tmp/{PGSCHEMA}//postgres_data3.json",  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
-        blob_name='postgres_data.json',  # Nome do arquivo no Blob Storage
+        blob_name='postgres_data3.json',  # Nome do arquivo no Blob Storage
         wasb_conn_id='azure_blob_storage_json'  # ID da conexão configurada no Airflow
     )
 
