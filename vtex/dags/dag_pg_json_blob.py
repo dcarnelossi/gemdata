@@ -99,7 +99,7 @@ def upload_to_blob_directory(ti,file_name,pg_schema):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
     blob_name=f"{pg_schema}/{file_name}.json" 
-    blob_name = 'grafico.json'
+   
 
      ###   Verifica se o arquivo já existe
     if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
@@ -142,7 +142,7 @@ with DAG(
     for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
         extract_task = PythonOperator(
-            task_id=f'extract_postgres_to_json_1',
+            task_id=f'extract_postgres_to_json_{chave}',
             python_callable=extract_postgres_to_json,
             #op_args=[valor, chave, PGSCHEMA]
             #provide_context=True
@@ -150,7 +150,7 @@ with DAG(
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
         upload_task = PythonOperator(
-            task_id=f'upload_to_blob_directory_1',
+            task_id=f'upload_to_blob_directory_{chave}',
             python_callable=upload_to_blob_directory,
             op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
             provide_context=True
