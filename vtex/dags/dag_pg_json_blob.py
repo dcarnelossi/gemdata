@@ -102,7 +102,7 @@ def upload_to_blob_directory(file_name,pg_schema):
         blob_name= blob_name,
         wasb_conn_id='azure_blob_storage_json'
     )
-    upload_task.execute()  # Executa a tarefa de upload
+    upload_task.execute(file_name)  # Executa a tarefa de upload
 
 
 
