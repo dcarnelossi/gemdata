@@ -1,6 +1,6 @@
 
 def vtexsqlscriptjson(schema):
-    scripts ={ 'grafico1':f"""
+    scripts ={ 'grafico':f"""
                     SET CLIENT_ENCODING = 'UTF8';
                                                     
                     select 
@@ -10,7 +10,7 @@ def vtexsqlscriptjson(schema):
                     limit 1;       
                 """ ,
 
-                 'grafico2':f"""
+                 'graficoa':f"""
                     SET CLIENT_ENCODING = 'UTF8';
                                                     
                     select 
