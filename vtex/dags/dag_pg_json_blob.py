@@ -69,7 +69,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 
             blob_name=f'{pg_schema}/{file_name}.json'    
             
-            return output_filepath,blob_name
+            return output_filepath#,blob_name
 
             
         except Exception as e:
@@ -87,8 +87,9 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 def upload_to_blob_directory(ti):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
-    blob_name= output_filepath[1]
-    print(output_filepath[1])
+    blob_name= f'"a5be7ce1-ce65-46f8-a293-4efff72819ce"/aaa.json'
+    #output_filepath[1]
+    #print(output_filepath[1])
         # Verifica se o arquivo já existe
     if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
         wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
