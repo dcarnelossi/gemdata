@@ -39,7 +39,7 @@ def extract_postgres_to_json():   #(sql_script,file_name,pg_schema):
                     select 
                     cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                     cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate2
-                    from "{"a5be7ce1-ce65-46f8-a293-4efff72819ce"}".orders ori
+                    from "a5be7ce1-ce65-46f8-a293-4efff72819ce".orders ori
                     limit 1;     """
         file_name= "grafico.json"
         pg_schema = "a5be7ce1-ce65-46f8-a293-4efff72819ce"
