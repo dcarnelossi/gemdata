@@ -141,7 +141,7 @@ with DAG(
         upload_task = PythonOperator(
             task_id=f'upload_to_blob_directory_{chave}',
             python_callable=upload_to_blob_directory,
-            op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
+            #op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
             provide_context=True
         )
 
