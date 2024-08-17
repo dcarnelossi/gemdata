@@ -110,7 +110,7 @@ def upload_to_blob_directory(ti):#,file_name,pg_schema):
         file_path="aaa",  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
-        blob_name= "aaa.json",
+        blob_name= "aaa/",
         wasb_conn_id='azure_blob_storage_json'
     )
     upload_task.execute(ti)  # Executa a tarefa de upload
