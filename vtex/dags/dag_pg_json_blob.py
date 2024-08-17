@@ -106,11 +106,11 @@ def upload_to_blob_directory(ti):#,file_name,pg_schema):
         wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
 
     upload_task = LocalFilesystemToWasbOperator(
-        task_id=f'upload_to_blob_graficooooo',
-        file_path="aaa",  # O arquivo JSON gerado na tarefa anterior
+        task_id=f'upload_to_blob_grafico',
+        file_path="/tmp/grafico.json",  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
-        blob_name= "aaa/",
+        blob_name= 'grafico.json',
         wasb_conn_id='azure_blob_storage_json'
     )
     upload_task.execute(ti)  # Executa a tarefa de upload
