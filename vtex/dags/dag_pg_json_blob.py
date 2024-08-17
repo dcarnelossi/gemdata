@@ -67,12 +67,15 @@ def extract_postgres_to_json():   #(sql_script,file_name,pg_schema):
             json_data = json.dumps(data, indent=4)
             print(json_data)
             # Criando um diretório temporário para armazenar o arquivo JSON
-            tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+           # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+            tmp_dir = os.path.join("/tmp/" )
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
    
             # Definindo o caminho completo para o arquivo JSON
-            output_filepath = os.path.join(tmp_dir, f"{file_name}.json")
+            #output_filepath = os.path.join(tmp_dir, f"{file_name}.json")
         
+            output_filepath = os.path.join(tmp_dir, "grafico.json")
+            
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
