@@ -31,10 +31,7 @@ default_args = {
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json(sql_script):
-        sql_script = 'aaa'
-        file_name= 'aaa'
-        pg_schema = 'aaa'
+def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
 
@@ -71,7 +68,7 @@ def extract_postgres_to_json(sql_script):
 
             blob_name=f'{pg_schema}/{file_name}.json'    
             
-            return output_filepath#,blob_name
+            return output_filepath,blob_name
 
             
         except Exception as e:
@@ -89,7 +86,7 @@ def extract_postgres_to_json(sql_script):
 def upload_to_blob_directory(ti):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
-    blob_name= f'"a5be7ce1-ce65-46f8-a293-4efff72819ce"/aaa.json'
+    blob_name= output_filepath[1]
     #output_filepath[1]
     #print(output_filepath[1])
         # Verifica se o arquivo já existe
@@ -98,7 +95,7 @@ def upload_to_blob_directory(ti):
 
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
+        file_path=output_filepath[0],  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
         blob_name= blob_name,
@@ -133,7 +130,8 @@ with DAG(
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
         extract_task = PythonOperator(
             task_id=f'extract_postgres_to_json_{chave}',
-            python_callable=extract_postgres_to_json(valor)#,chave,PGSCHEMA)
+            python_callable=extract_postgres_to_json,
+            op_args=[valor, chave, 'PGSCHEMA']
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
