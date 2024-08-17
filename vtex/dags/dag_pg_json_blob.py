@@ -102,8 +102,8 @@ def upload_to_blob_directory(ti):#,file_name,pg_schema):
     print(blob_name)
     print('PASSOUU AQUI')
         # Verifica se o arquivo já existe
-    if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
-        wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
+    # if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
+    #     wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
 
     print('PASSOUU AQUI 2')
     upload_task = LocalFilesystemToWasbOperator(
