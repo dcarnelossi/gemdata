@@ -131,7 +131,7 @@ with DAG(
         extract_task = PythonOperator(
             task_id=f'extract_postgres_to_json_{chave}',
             python_callable=extract_postgres_to_json,
-            op_args=[valor, chave, 'PGSCHEMA'],
+            op_args=[valor, chave, PGSCHEMA],
             provide_context=True
         )
 
@@ -139,7 +139,7 @@ with DAG(
         upload_task = PythonOperator(
             task_id=f'upload_to_blob_directory_{chave}',
             python_callable=upload_to_blob_directory,
-            op_kwargs={'file_name': chave, 'pg_schema': 'PGSCHEMA'},
+            op_kwargs={'file_name': chave, 'pg_schema': PGSCHEMA},
             provide_context=True
         )
 
