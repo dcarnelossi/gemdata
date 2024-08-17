@@ -61,7 +61,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
    
             # Definindo o caminho completo para o arquivo JSON
             output_filepath = os.path.join(tmp_dir, f'{file_name}.json')
-
+            print(output_filepath)
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
@@ -87,7 +87,8 @@ def upload_to_blob_directory(ti,file_name,pg_schema):
     blob_name=f'{pg_schema}/{file_name}.json'  
 
     #output_filepath[1]
-    #print(output_filepath[1])
+    print(output_filepath)
+    print(blob_name)
         # Verifica se o arquivo já existe
     if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
         wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
