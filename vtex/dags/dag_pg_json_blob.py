@@ -31,7 +31,7 @@ default_args = {
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json():#(sql_script,file_name,pg_schema):
+def extract_postgres_to_json():   #(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         sql_script =f"""  SET CLIENT_ENCODING = 'UTF8';
@@ -154,4 +154,4 @@ with DAG(
         )
 
         # Definindo a ordem das tarefas no DAG
-        extract_task >> upload_task
+    extract_task >> upload_task
