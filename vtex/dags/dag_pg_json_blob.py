@@ -84,19 +84,19 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 
 
 # Função para mover o arquivo JSON para o diretório no Blob Storage
-def upload_to_blob_directory(ti,file_name,pg_schema):
-    output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
+def upload_to_blob_directory(file_name,pg_schema):
+    
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
     blob_name=f"{pg_schema}/{file_name}.json" 
-   
+    output_filepath = f"/tmp/{blob_name}"
 
      ###   Verifica se o arquivo já existe
     if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
         wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
-    print(f"testando::: {output_filepath}")
+    #print(f"testando::: {output_filepath}")
     upload_task = LocalFilesystemToWasbOperator(
         task_id=f'upload_to_blob_grafico',
-        file_path="/tmp/a5be7ce1-ce65-46f8-a293-4efff72819ce/grafico.json",  # O arquivo JSON gerado na tarefa anterior
+        file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
         blob_name= blob_name,
