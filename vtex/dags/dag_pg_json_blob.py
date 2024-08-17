@@ -112,7 +112,7 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "9-create_json_dash",
+    "10-create_json_dash",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,

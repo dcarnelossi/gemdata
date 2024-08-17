@@ -1,24 +1,210 @@
 
 def vtexsqlscriptjson(schema):
-    scripts ={ 'grafico':f"""
-                    SET CLIENT_ENCODING = 'UTF8';
-                                                    
-                    select 
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate2
-                    from "{schema}".orders ori
-                    limit 1;       
-                """ ,
+    #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
+    scripts ={ 'aba_faturamento_item1':f""" 
+                                        create temp table  tempdata  as (
+                                        SELECT generate_series as dategenerate FROM generate_series(
+                                            '2022-01-01 00:00:00'::timestamp,
+                                            '2025-01-01 00:00:00'::timestamp,
+                                            '1 day'::interval
+                                        )
+                                        );
 
-                 'graficoa':f"""
-                    SET CLIENT_ENCODING = 'UTF8';
-                                                    
-                    select 
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate2
-                    from "{schema}".orders ori
-                    limit 1;       
-                """ 
+                                        --drop table faturamentodiario
+
+                                        create temp table  faturamentodiario  as (
+
+                                        select 
+                                        DATE_TRUNC('day',  creationdate)   as dategenerate,
+                                        SUM(revenue)   as faturamento,
+                                        cast(SUM(totalitems) as float)  as pedidos
+
+                                        from mahogany.orders_ia ia 
+
+                                        where 
+                                        statusdescription  = 'Faturado'
+                                        group by 1
+
+                                        );
+
+
+                                        --drop table tempdataprojetado ;
+                                        create temp table  tempdataprojetado  as (
+                                        SELECT generate_series as dategenerate, to_char(generate_series,'mm-dd') as mesdia FROM generate_series(
+                                            '1900-01-01 00:00:00'::timestamp,
+                                            '1900-12-31 00:00:00'::timestamp,
+                                            '1 day'::interval
+                                        )
+                                        );
+
+
+                                        --drop table faturamentoprojetado;
+
+                                        create temp table  faturamentoprojetado  as (
+
+                                        select 
+                                        cast(concat(to_char(CURRENT_TIMESTAMP,'yyyy'),  to_char(ia.dategenerate,'-mm-dd')) as timestamp)  as dateprojecao,
+                                        cast(round((SUM(faturamento)*1.14),2) as float)   as faturamento
+
+                                        from faturamentodiario ia 
+                                        cross join tempdataprojetado 
+                                        where 
+                                        mesdia = to_char(ia.dategenerate,'mm-dd')
+                                        and 
+                                        DATE_TRUNC('day',  ia.dategenerate) >= '2023-01-01'
+                                        and 
+                                        DATE_TRUNC('day',  ia.dategenerate) < '2023-12-01'
+                                        group by 1
+
+                                        );
+
+
+                                    select 
+                                        cast(td.dategenerate as varchar(20)) as datadiaria,
+                                        cast(COALESCE(fd.faturamento,0.00)as float) as faturamento,
+                                        cast(COALESCE(fd.pedidos,0) as float) as pedidos,
+                                        cast(COALESCE(fp.faturamento,0) as float) as faturamentoprojetado,
+                                        CASE WHEN to_char(td.dategenerate,'yyyy') = '2024' then cast(round(cast(COALESCE(fd.faturamento,fp.faturamento) as numeric) *0.94 ,2) as float) ELSE 0.00 end as faturamentometa
+
+                                        from tempdata as td
+
+                                        left join faturamentodiario as fd on 
+                                        td.dategenerate = fd.dategenerate
+
+                                        left join faturamentoprojetado as fp on 
+                                        td.dategenerate = fp.dateprojecao
+
+                                        order by 1 
+                                        """ 
+                ,'aba_faturamento_item2': f"""
+                                            
+                                            SET CLIENT_ENCODING = 'UTF8';
+                                                                            
+                                            select 
+                                            cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                            cast(ori.idcategory as integer) as idcategoria,
+                                            ori.namecategory as nomecategoria,
+                                            cast(ori.idsku as integer) as idsku,
+                                            ori.namesku as nomesku ,
+
+                                            cast(SUM(ori.sellingprice) as float)  as faturamento,
+                                            cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                            from mahogany.orders_items_ia ori
+                                            group by 
+                                            1,2,3,4,5 
+                                            order by 1    
+                                            """
+                ,'aba_faturamento_item3': f"""
+                                            
+                                        SET CLIENT_ENCODING = 'UTF8';
+                                        
+                                        select 
+
+                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                        'Mercado Livre' as nomecanal,
+                                        cast(ori.idsku as integer) as idsku,
+                                        ori.namesku as nomesku ,
+                                        cast(round(SUM(ori.sellingprice)*1.15,2) as float)  as faturamento,
+                                        cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                        from  mahogany.orders_ia as ord
+                                        inner join  mahogany.orders_items_ia  as ori on
+                                        ord.orderid = ori.orderid
+
+                                        group by 1,3,4
+
+                                        union all 
+                                        select 
+
+                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                        'OLX' as nomecanal,
+                                        cast(ori.idsku as integer) as idsku,
+                                        ori.namesku as nomesku ,
+                                        cast(round(SUM(ori.sellingprice)*1,2) as float)  as faturamento,
+                                        cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                        from  mahogany.orders_ia as ord
+                                        inner join  mahogany.orders_items_ia  as ori on
+                                        ord.orderid = ori.orderid
+
+                                        group by 1,3,4
+
+                                        union all 
+                                        select 
+
+                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                        'Amazon' as nomecanal,
+                                        cast(ori.idsku as integer) as idsku,
+                                        ori.namesku as nomesku ,
+                                        cast(round(SUM(ori.sellingprice)*0.80,2) as float)  as faturamento,
+                                        cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                        from  mahogany.orders_ia as ord
+                                        inner join  mahogany.orders_items_ia  as ori on
+                                        ord.orderid = ori.orderid
+
+                                        group by 1,3,4
+                                        union all 
+                                        select 
+
+                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                        'Google' as nomecanal,
+                                        cast(ori.idsku as integer) as idsku,
+                                        ori.namesku as nomesku ,
+                                        cast(round(SUM(ori.sellingprice)*0.6,2) as float)  as faturamento,
+                                        cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                        from  mahogany.orders_ia as ord
+                                        inner join  mahogany.orders_items_ia  as ori on
+                                        ord.orderid = ori.orderid
+
+                                        group by 1,3,4
+
+                                        union all 
+                                        select 
+
+                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                        'Site proprio' as nomecanal,
+                                        cast(ori.idsku as integer) as idsku,
+                                        ori.namesku as nomesku ,
+                                        cast(round(SUM(ori.sellingprice)*0.20,2) as float)  as faturamento,
+                                        cast(SUM(ori.quantity) as integer)  as pedidos
+
+                                        from  mahogany.orders_ia as ord
+                                        inner join  mahogany.orders_items_ia  as ori on
+                                        ord.orderid = ori.orderid
+
+                                        group by 1,3,4
+                                        """
+                ,'aba_faturamento_item4': f"""
+                                                                        
+                                            SET CLIENT_ENCODING = 'UTF8';
+                                            
+                                            select 
+                                            cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
+                                            trim(selectedaddresses_0_state) as estado,
+                                            INITCAP(translate(trim(selectedaddresses_0_city),  
+                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
+                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
+                                            )) as cidade,
+                                            cast(SUM(revenue) as float)   as faturamento,
+                                            cast(SUM(totalitems) as integer)  as pedidos
+
+                                            from mahogany.orders_ia ia 
+
+                                            where 
+                                            statusdescription  = 'Faturado'
+                                            and 
+                                            selectedaddresses_0_city not in ('11986771137'
+                                            ,'19346065702'
+                                            ,'19989507870')
+
+                                            group by 1,2,3
+                                            order by 3
+
+
+                                        """                          
     
     }
     # Convertendo o dicionário para uma string JSON
