@@ -96,7 +96,7 @@ def upload_to_blob_directory(ti):
 
     upload_task = LocalFilesystemToWasbOperator(
         task_id='upload_to_blob',
-        file_path=output_filepath[0],  # O arquivo JSON gerado na tarefa anterior
+        file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
         blob_name= blob_name,
