@@ -31,8 +31,10 @@ default_args = {
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json(sql_script,file_name,pg_schema):
-    
+def extract_postgres_to_json():
+        sql_script = 'aaa'
+        file_name= 'aaa'
+        pg_schema = 'aaa'
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
 
@@ -130,13 +132,13 @@ with DAG(
     for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
         extract_task = PythonOperator(
-            task_id=f'extract_postgres_to_json{chave}',
-            python_callable=extract_postgres_to_json(valor,chave,PGSCHEMA)
+            task_id=f'extract_postgres_to_json_{chave}',
+            python_callable=extract_postgres_to_json#(valor,chave,PGSCHEMA)
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
         upload_task = PythonOperator(
-            task_id=f'upload_to_blob_directory{chave}',
+            task_id=f'upload_to_blob_directory_{chave}',
             python_callable=upload_to_blob_directory,
             provide_context=True
         )
