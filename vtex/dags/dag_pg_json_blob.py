@@ -86,6 +86,8 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 def upload_to_blob_directory(ti):
     output_filepath = ti.xcom_pull(task_ids='extract_postgres_to_json')
     wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
+    
+    print(output_filepath[1])
     blob_name= output_filepath[1]
     #output_filepath[1]
     #print(output_filepath[1])
