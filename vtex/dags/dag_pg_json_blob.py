@@ -58,7 +58,8 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             json_data = json.dumps(data, indent=4)
             print(json_data)
             # Criando um diretório temporário para armazenar o arquivo JSON
-            tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+           # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+            tmp_dir = os.path.join('/tmp/' )  # Gera um diretório temporário único
         
             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
         
@@ -95,7 +96,7 @@ def upload_to_blob_directory(ti,file_name,pg_schema):
     print(f"testando::: {output_filepath}")
     upload_task = LocalFilesystemToWasbOperator(
         task_id=f'upload_to_blob_grafico',
-        file_path="/tmp/a5be7ce1-ce65-46f8-a293-4efff72819ce/grafico.json",  # O arquivo JSON gerado na tarefa anterior
+        file_path="/tmp/grafico.json",  # O arquivo JSON gerado na tarefa anterior
         container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
       #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
         blob_name= blob_name,
