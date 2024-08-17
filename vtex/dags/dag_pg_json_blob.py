@@ -34,6 +34,16 @@ default_args = {
 def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
+        sql_script =f"""  SET CLIENT_ENCODING = 'UTF8';
+                                                    
+                    select 
+                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                    cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate2
+                    from "{"a5be7ce1-ce65-46f8-a293-4efff72819ce"}".orders ori
+                    limit 1;     """
+        file_name= "grafico.json"
+        pg_schema = "a5be7ce1-ce65-46f8-a293-4efff72819ce"
+
 
         try:
             
@@ -117,7 +127,7 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["jsonblob", "v2", "ALTERAR"],
+    tags=["jsonblob", "v1", "ALTERAR"],
 
 ) as dag:
     
@@ -134,8 +144,8 @@ with DAG(
         extract_task = PythonOperator(
             task_id=f'extract_postgres_to_json_{chave}',
             python_callable=extract_postgres_to_json,
-            op_args=[valor, chave, PGSCHEMA],
-            provide_context=True
+            op_args=[valor, chave, PGSCHEMA]
+            #provide_context=True
         )
 
         # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
