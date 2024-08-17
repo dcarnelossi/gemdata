@@ -7,6 +7,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.python import PythonOperator
 from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFilesystemToWasbOperator
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
+from airflow.models.param import Param
 from datetime import datetime
 import logging
 
@@ -111,15 +112,23 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "1-testeblob",
+    "9-create_json_dash",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
     tags=["jsonblob", "v1", "ALTERAR"],
-
+     params={
+        "PGSCHEMA": Param(
+            type="string",
+            title="PGSCHEMA:",
+            description="Enter the integration PGSCHEMA.",
+            section="Important params",
+            min_length=1,
+            max_length=200,
+        )
+    },
 ) as dag:
-    
-    PGSCHEMA= "a5be7ce1-ce65-46f8-a293-4efff72819ce"
+    PGSCHEMA = ["params"]["PGSCHEMA"]
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
 
