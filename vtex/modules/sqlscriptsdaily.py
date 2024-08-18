@@ -56,34 +56,12 @@ def vtexsqlscriptsorderslistupdate(schema):
             tmp.orderid IS NULL AND
             ora.creationdate >= (SELECT MIN(creationdate) FROM tmp_orders_list_daily_old);
 
-            
-        truncate table "{schema}".orders_list_daily;
-
-        DELETE FROM "{schema}".orders_list
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
-
-        DELETE FROM "{schema}".orders
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
-
-        DELETE FROM "{schema}".orders_items
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
-
-        left join tmp_orders_list_daily_old tmp  on 
-        tmp.orderid = ora.orderid 
-        and 
-        tmp.lastchange = ora.lastchange
-
-        where 
-        tmp.orderid is null 
-        and 
-        ora.creationdate>= (select min(creationdate) from tmp_orders_list_daily_old );
-
-
-        delete from  "{schema}".orders_list 
+        truncate table "{schema}".orders_list_daily ;
+  
+        delete from  "{schema}".orders
         where orderid in (select orderid from tmp_orders_list_daily_new);
 
-
-        delete from  "{schema}".orders
+        delete from  "{schema}".orders_list
         where orderid in (select orderid from tmp_orders_list_daily_new);
 
         delete from "{schema}".orders_items
@@ -143,54 +121,7 @@ def vtexsqlscriptsorderslistupdate(schema):
         *
         from tmp_orders_list_daily_new;
 
-        DELETE FROM "{schema}".orders_totals
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
 
-        DELETE FROM "{schema}".client_profile
-        WHERE orderid IN (SELECT orderid FROM tmp_orders_list_daily_new);
-
-        INSERT INTO "{schema}".orders_list (
-            orderid,
-            creationdate,
-            clientname,
-            items,
-            totalvalue,
-            paymentnames,
-            status,
-            statusdescription,
-            marketplaceorderid,
-            "sequence",
-            saleschannel,
-            affiliateid,
-            origin,
-            workflowinerrorstate,
-            workflowinretry,
-            lastmessageunread,
-            shippingestimateddate,
-            shippingestimateddatemax,
-            shippingestimateddatemin,
-            orderiscomplete,
-            listid,
-            listtype,
-            authorizeddate,
-            callcenteroperatorname,
-            totalitems,
-            currencycode,
-            hostname,
-            invoiceoutput,
-            invoiceinput,
-            lastchange,
-            isalldelivered,
-            isanydelivered,
-            giftcardproviders,
-            orderformid,
-            paymentapproveddate,
-            readyforhandlingdate,
-            deliverydates,
-            data_insercao
-        )
-        SELECT *
-        FROM tmp_orders_list_daily_new;
     """
     print(scripts)
     return scripts

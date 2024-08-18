@@ -6,6 +6,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
@@ -82,7 +83,11 @@ with DAG(
             else:
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
                 start_date = datetime.now() - timedelta(days=90)
+                query = f"""truncate table "{team_id}".orders_list_daily;""" 
+                hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+                hook.run(query)
                 
+
 
             orders_list.set_globals(
                 api_conection_info,
