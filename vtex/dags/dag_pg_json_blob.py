@@ -155,13 +155,13 @@ with DAG(
             #provide_context=True
         )
 
-        # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
-        upload_task = PythonOperator(
-            task_id=f'upload_to_blob_directory_{chave}',
-            python_callable=upload_to_blob_directory,
-            op_kwargs={'file_name': chave, 'pg_schema': "{{ params.PGSCHEMA }}"},
-            provide_context=True
-        )
+        # # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
+        # upload_task = PythonOperator(
+        #     task_id=f'upload_to_blob_directory_{chave}',
+        #     python_callable=upload_to_blob_directory,
+        #     op_kwargs={'file_name': chave, 'pg_schema': "{{ params.PGSCHEMA }}"},
+        #     provide_context=True
+        # )
 
         # Definindo a ordem das tarefas no DAG
-        extract_task >> upload_task
+        extract_task #>> upload_task
