@@ -17,8 +17,8 @@ def vtexsqlscriptjson(schema):
 
                                         select 
                                         DATE_TRUNC('day',  creationdate)   as dategenerate,
-                                        SUM(revenue)   as faturamento,
-                                        cast(SUM(totalitems) as float)  as pedidos
+                                        cast(SUM(revenue) as float)   as faturamento,
+                                        cast(SUM(quantityorder) as float)  as pedidos
 
                                         from "{schema}".orders_ia ia 
 
@@ -44,8 +44,9 @@ def vtexsqlscriptjson(schema):
                                         create temp table  faturamentoprojetado  as (
 
                                         select 
-                                        cast(concat(to_char(CURRENT_TIMESTAMP,'yyyy'),  to_char(ia.dategenerate,'-mm-dd')) as timestamp)  as dateprojecao,
-                                        cast(round((SUM(faturamento)*1.14),2) as float)   as faturamento
+                                        cast(concat(to_char(CURRENT_TIMESTAMP ,'yyyy'),
+                                        	to_char(ia.dategenerate,'-mm-dd')) as timestamp)  as dateprojecao,
+                                        cast(round(cast(SUM(faturamento)*1.14 as numeric),2) as float)   as faturamento
 
                                         from faturamentodiario ia 
                                         cross join tempdataprojetado 
@@ -60,7 +61,7 @@ def vtexsqlscriptjson(schema):
                                         );
 
 
-                                    select 
+                                        select 
                                         cast(td.dategenerate as varchar(20)) as datadiaria,
                                         cast(COALESCE(fd.faturamento,0.00)as float) as faturamento,
                                         cast(COALESCE(fd.pedidos,0) as float) as pedidos,
@@ -79,104 +80,106 @@ def vtexsqlscriptjson(schema):
                                         """ 
                 ,'aba_faturamento_item2': f"""
                                             
+          
                                             SET CLIENT_ENCODING = 'UTF8';
                                                                             
                                             select 
                                             cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                            cast(ori.idcategory as integer) as idcategoria,
+                                            cast('999' as integer) as idcategoria,
                                             ori.namecategory as nomecategoria,
-                                            cast(ori.idsku as integer) as idsku,
+                                            cast('9999' as integer) as idsku,
                                             ori.namesku as nomesku ,
 
                                             cast(SUM(ori.sellingprice) as float)  as faturamento,
-                                            cast(SUM(ori.quantity) as integer)  as pedidos
+                                            cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                             from "{schema}".orders_items_ia ori
                                             group by 
                                             1,2,3,4,5 
                                             order by 1    
+                                               
                                             """
                 ,'aba_faturamento_item3': f"""
-                                            
+                                                
                                         SET CLIENT_ENCODING = 'UTF8';
                                         
                                         select 
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Mercado Livre' as nomecanal,
-                                        cast(ori.idsku as integer) as idsku,
+                                       -- cast(ori.idsku as integer) as idsku,
                                         ori.namesku as nomesku ,
-                                        cast(round(SUM(ori.sellingprice)*1.15,2) as float)  as faturamento,
-                                        cast(SUM(ori.quantity) as integer)  as pedidos
+                                        cast(round(cast(SUM(ori.sellingprice)*1.15 as numeric),2) as float)  as faturamento,
+                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                         from  "{schema}".orders_ia as ord
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3,4
+                                        group by 1,3
 
                                         union all 
                                         select 
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'OLX' as nomecanal,
-                                        cast(ori.idsku as integer) as idsku,
+                                       -- cast(ori.idsku as integer) as idsku,
                                         ori.namesku as nomesku ,
-                                        cast(round(SUM(ori.sellingprice)*1,2) as float)  as faturamento,
-                                        cast(SUM(ori.quantity) as integer)  as pedidos
+                                        cast(round(cast(SUM(ori.sellingprice)*1 as numeric),2) as float)  as faturamento,
+                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                         from  "{schema}".orders_ia as ord
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3,4
+                                        group by 1,3
 
                                         union all 
                                         select 
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Amazon' as nomecanal,
-                                        cast(ori.idsku as integer) as idsku,
+                                       -- cast(ori.idsku as integer) as idsku,
                                         ori.namesku as nomesku ,
-                                        cast(round(SUM(ori.sellingprice)*0.80,2) as float)  as faturamento,
-                                        cast(SUM(ori.quantity) as integer)  as pedidos
+                                        cast(round(cast(SUM(ori.sellingprice)*0.80 as numeric),2) as float)  as faturamento,
+                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                         from  "{schema}".orders_ia as ord
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3,4
+                                        group by 1,3
                                         union all 
                                         select 
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Google' as nomecanal,
-                                        cast(ori.idsku as integer) as idsku,
+                                      --  cast(ori.idsku as integer) as idsku,
                                         ori.namesku as nomesku ,
-                                        cast(round(SUM(ori.sellingprice)*0.6,2) as float)  as faturamento,
-                                        cast(SUM(ori.quantity) as integer)  as pedidos
+                                        cast(round(cast(SUM(ori.sellingprice)*0.6 as numeric),2) as float)  as faturamento,
+                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                         from  "{schema}".orders_ia as ord
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3,4
+                                        group by 1,3
 
                                         union all 
                                         select 
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Site proprio' as nomecanal,
-                                        cast(ori.idsku as integer) as idsku,
+                                     --   cast(ori.idsku as integer) as idsku,
                                         ori.namesku as nomesku ,
-                                        cast(round(SUM(ori.sellingprice)*0.20,2) as float)  as faturamento,
-                                        cast(SUM(ori.quantity) as integer)  as pedidos
+                                        cast(round(cast(SUM(ori.sellingprice)*0.20 as numeric),2) as float)  as faturamento,
+                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
 
                                         from  "{schema}".orders_ia as ord
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3,4
+                                        group by 1,3
                                         """
                 ,'aba_faturamento_item4': f"""
                                                                         
@@ -190,7 +193,7 @@ def vtexsqlscriptjson(schema):
                                             'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
                                             )) as cidade,
                                             cast(SUM(revenue) as float)   as faturamento,
-                                            cast(SUM(totalitems) as integer)  as pedidos
+                                            cast(SUM(quantityorder) as integer)  as pedidos
 
                                             from "{schema}".orders_ia ia 
 
