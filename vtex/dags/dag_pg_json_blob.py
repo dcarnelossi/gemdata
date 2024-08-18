@@ -70,6 +70,16 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_data)
 
+            upload_task = LocalFilesystemToWasbOperator(
+                task_id=f'upload_to_blob_grafico',
+                file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
+                container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
+            #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
+                blob_name= f"{pg_schema}/{file_name}.json",
+                wasb_conn_id='azure_blob_storage_json'
+            )
+            upload_task.execute(file_name)  # Executa a tarefa de upload
+
             return output_filepath
 
             
