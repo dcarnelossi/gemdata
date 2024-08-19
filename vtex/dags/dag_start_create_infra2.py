@@ -35,7 +35,7 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def trigger_dag_create_infra():
+    def trigger_dag_create_infra(**kwargs):
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -61,13 +61,14 @@ with DAG(
     teste1=trigger_task = PythonOperator(
         task_id="trigger_import_dags",
         python_callable=trigger_dag_create_infra,
+        provide_context=True,
     )
         
     teste=TriggerDagRunOperator(
             task_id=f"0-CreateInfra-teste",
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
-                "PGSCHEMA": teste1[1],
+                "PGSCHEMA": '{{ ti.xcom_pull(task_ids="trigger_import_dags") }}',
                 "ISDAILY": False                
                 },  
         )
