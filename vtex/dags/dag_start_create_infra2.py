@@ -27,7 +27,7 @@ default_args = {
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "00-Start-CreateInfra",
+    "00-Start-CreateInfra2",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -72,3 +72,4 @@ with DAG(
     start_create_infra >> teste
 
 
+ 
