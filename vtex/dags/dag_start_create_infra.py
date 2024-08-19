@@ -63,7 +63,7 @@ with DAG(
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
                 "PGSCHEMA": integration_id,
-                "ISDAILY": 0                
+                "ISDAILY": False            
             },
         ).execute(context=context)
 
