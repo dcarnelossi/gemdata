@@ -47,7 +47,7 @@ with DAG(
             limit 1;
             """
             integration_ids = hook.get_records(query)
-            return integration_ids[0]
+            return [integration[0] for integration in integration_ids]
 
         except Exception as e:
             logging.exception(
@@ -57,7 +57,7 @@ with DAG(
         
     def trigger_dag_crete_infra(integration_id):
         TriggerDagRunOperator(
-        task_id=f"0-CreateInfra - {integration_id}",
+        task_id=f"0-CreateInfra-{integration_id[0]}",
         trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": integration_id,
