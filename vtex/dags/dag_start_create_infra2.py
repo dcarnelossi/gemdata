@@ -33,8 +33,7 @@ with DAG(
     default_args=default_args,
     tags=["Start-CreateInfra", "v1", "teste"],
 ) as dag:
-    global_integration = ''
-    
+
     @task(provide_context=True)
     def trigger_dag_create_infra():
         try:
@@ -48,28 +47,33 @@ with DAG(
             """
             integration_ids = hook.get_records(query)
             integration_id = [integration[0] for integration in integration_ids]
-            global global_integration
-            global_integration = integration_id
-            print(global_integration)
+           
+            return integration_id
+           
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
             raise
         
-    print(global_integration)
+    
+    # Crie a tarefa Python para disparar a DAG
+    teste1=trigger_task = PythonOperator(
+        task_id="trigger_import_dags",
+        python_callable=trigger_dag_create_infra,
+    )
         
     teste=TriggerDagRunOperator(
             task_id=f"0-CreateInfra-teste",
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
-                "PGSCHEMA": global_integration,
+                "PGSCHEMA": teste1[1],
                 "ISDAILY": False                
                 },  
         )
 
-    start_create_infra = trigger_dag_create_infra()
-    start_create_infra >> teste
+
+    teste1 >> teste
 
 
  
