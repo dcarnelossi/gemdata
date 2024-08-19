@@ -58,10 +58,10 @@ with DAG(
         print(integration_id)
         
         TriggerDagRunOperator(
-            task_id=f"0-CreateInfra-{integration_id}",
+            task_id=f"0-CreateInfra-{integration_id[0]}",
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
-                "PGSCHEMA": integration_id,
+                "PGSCHEMA": "{{integration_id[0]}}",
                 "ISDAILY": 0                
                 },  
         )
