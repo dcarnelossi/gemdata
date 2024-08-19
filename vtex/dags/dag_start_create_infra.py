@@ -57,7 +57,7 @@ with DAG(
         
     def trigger_dag_crete_infra(integration_id):
         TriggerDagRunOperator(
-        task_id=f"0-CreateInfra - {integration_id[0]}",
+        task_id=f"0-CreateInfra-{integration_id[0]}",
         trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": integration_id,
