@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.decorators import task
@@ -20,7 +20,7 @@ default_args = {
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "00-Start-CreateInfra",
-    schedule_interval=None,
+    schedule_interval=timedelta(minutes=1),  # Rodar a cada 1 minuto
     catchup=False,
     default_args=default_args,
     tags=["Start-CreateInfra", "v2", "Schedule"],
@@ -63,7 +63,7 @@ with DAG(
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
                 "PGSCHEMA": integration_id,
-                "ISDAILY": False            
+                "ISDAILY": False              
             },
         ).execute(context=context)
 
@@ -90,4 +90,3 @@ with DAG(
     integration_id >> next_step
     next_step >> trigger_dag
     next_step >> no_integration_ids
-    #asdasd
