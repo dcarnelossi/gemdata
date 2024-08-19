@@ -47,7 +47,7 @@ with DAG(
             limit 1;
             """
             integration_ids = hook.get_records(query)
-            return integration_ids[0]
+            return [integration[0] for integration in integration_ids]
 
         except Exception as e:
             logging.exception(
@@ -57,13 +57,14 @@ with DAG(
         
     def trigger_dag_crete_infra(integration_id):
         TriggerDagRunOperator(
-        task_id=f"0-CreateInfra - {integration_id}",
+        task_id=f"0-CreateInfra-{integration_id[0]}",
         trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": integration_id,
             "ISDAILY": 0
                 
         },  # Se precisar passar informações adicionais para a DAG_B
+
     )
 
     # Configurando a dependência entre as tarefas
@@ -71,18 +72,8 @@ with DAG(
     # Crie a tarefa Python para disparar a DAG
     trigger_task = PythonOperator(
         task_id="trigger_import_dags",
-        python_callable=get_integration_ids(),
-        op_args=[],
+        python_callable=trigger_dag_crete_infra,
+        op_args=[get_integration_ids()],
     )
 
-    teste=TriggerDagRunOperator(
-        task_id=f"0-CreateInfra - {trigger_task[0]}",
-        trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
-        conf={
-            "PGSCHEMA": trigger_task[0],
-            "ISDAILY": 0
-                
-        },
-      )  # Se precisar passar informações adicionais para a DAG_B
-
-    trigger_task >> teste
+    trigger_task
