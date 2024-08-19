@@ -50,14 +50,14 @@ with DAG(
             integration_id = [integration[0] for integration in integration_ids]
             global global_integration
             global_integration = integration_id[0]
-
+            print(global_integration)
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
             raise
         
-        print(integration_id)
+    print(global_integration)
         
     teste=TriggerDagRunOperator(
             task_id=f"0-CreateInfra-teste",
