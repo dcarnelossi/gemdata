@@ -47,7 +47,7 @@ with DAG(
             limit 1;
             """
             integration_ids = hook.get_records(query)
-            return integration_ids[0]
+            return [integration[0] for integration in integration_ids]
 
         except Exception as e:
             logging.exception(
