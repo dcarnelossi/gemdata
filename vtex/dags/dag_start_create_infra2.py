@@ -31,8 +31,7 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["Start-CreateInfra", "v2", "Schedule"],
-    render_template_as_native_obj=True,
+    tags=["Start-CreateInfra", "v1", "teste"],
 ) as dag:
 
     @task(provide_context=True)
