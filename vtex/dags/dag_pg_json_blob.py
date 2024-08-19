@@ -127,11 +127,11 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
-    "010-create-json-dash",
+    "a10-create-json-dash",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["jsonblob", "v1", "ALTERAR"],
+    tags=["jsonblob", "v1", "vtex"],
      params={
         "PGSCHEMA": Param(
             type="string",

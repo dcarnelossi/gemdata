@@ -30,7 +30,7 @@ with DAG(
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["Update", "v1", "ALTERAR"],
+    tags=["Update", "v1", "vtex"],
     render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
