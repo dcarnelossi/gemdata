@@ -3,18 +3,10 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.decorators import task
-from airflow.models.param import Param
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-
-# Lista de requisitos
-requirements = [
-    "openai==1.6.0",
-    "azure-core==1.29.6",
-    "azure-cosmos==4.5.1",
-    "azure-storage-blob==12.19.0",
-]
+from airflow.operators.empty import EmptyOperator
 
 # Configuração padrão do DAG
 default_args = {
@@ -36,7 +28,7 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def trigger_dag_crete_infra():
+    def get_integration_id(**context):
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -47,24 +39,54 @@ with DAG(
             limit 1;
             """
             integration_ids = hook.get_records(query)
-            integration_id = [integration[0] for integration in integration_ids]
+            if not integration_ids:
+                return None
+
+            integration_id = integration_ids[0][0]
+            return integration_id
 
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during get_integration_ids - {e}"
+                f"An unexpected error occurred during get_integration_id - {e}"
             )
             raise
-        
-        print(integration_id)
-        
-        TriggerDagRunOperator(
-            task_id=f"0-CreateInfra-{integration_id[0]}",
+
+    def choose_next_step(integration_id, **context):
+        if integration_id:
+            return "trigger_dag_crete_infra"
+        else:
+            return "no_integration_ids"
+
+    def trigger_dag_run(integration_id, **context):
+        return TriggerDagRunOperator(
+            task_id=f"0-CreateInfra-{integration_id}",
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
-                "PGSCHEMA": "{{integration_id[0]}}",
+                "PGSCHEMA": integration_id,
                 "ISDAILY": 0                
-                },  
-        )
+            },
+        ).execute(context=context)
 
-    start_create_infra = trigger_dag_crete_infra()
-    start_create_infra
+    integration_id = get_integration_id()
+
+    next_step = BranchPythonOperator(
+        task_id="check_integration_id",
+        python_callable=choose_next_step,
+        op_args=[integration_id],
+        provide_context=True,
+    )
+
+    trigger_dag = PythonOperator(
+        task_id="trigger_dag_crete_infra",
+        python_callable=trigger_dag_run,
+        op_args=[integration_id],
+        provide_context=True,
+    )
+
+    no_integration_ids = EmptyOperator(
+        task_id="no_integration_ids"
+    )
+
+    integration_id >> next_step
+    next_step >> trigger_dag
+    next_step >> no_integration_ids
