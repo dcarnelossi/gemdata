@@ -25,17 +25,7 @@ default_args = {
     "email_on_retry": False,
 }
 
-# Usando o decorator @dag para criar o objeto DAG
-with DAG(
-    "00-Start-CreateInfra2",
-    schedule_interval=None,
-    catchup=False,
-    default_args=default_args,
-    tags=["Start-CreateInfra", "v1", "teste"],
-) as dag:
-
-    @task(provide_context=True)
-    def trigger_dag_create_infra():
+def trigger_dag_create_infra():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -56,6 +46,17 @@ with DAG(
             )
             raise
         
+    
+
+# Usando o decorator @dag para criar o objeto DAG
+with DAG(
+    "00-Start-CreateInfra2",
+    schedule_interval=None,
+    catchup=False,
+    default_args=default_args,
+    tags=["Start-CreateInfra", "v1", "teste"],
+) as dag:
+
     
     # Crie a tarefa Python para disparar a DAG
     teste1=trigger_task = PythonOperator(
