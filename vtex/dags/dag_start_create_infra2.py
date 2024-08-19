@@ -49,7 +49,7 @@ with DAG(
             integration_ids = hook.get_records(query)
             integration_id = [integration[0] for integration in integration_ids]
             global global_integration
-            global_integration = integration_id[0]
+            global_integration = integration_id
             print(global_integration)
         except Exception as e:
             logging.exception(
