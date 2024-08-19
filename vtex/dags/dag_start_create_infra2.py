@@ -35,7 +35,7 @@ with DAG(
 ) as dag:
 
     @task(provide_context=True)
-    def trigger_dag_create_infra(**kwargs):
+    def trigger_dag_create_infra():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -61,7 +61,6 @@ with DAG(
     teste1=trigger_task = PythonOperator(
         task_id="trigger_import_dags",
         python_callable=trigger_dag_create_infra,
-        provide_context=True,
     )
         
     teste=TriggerDagRunOperator(
