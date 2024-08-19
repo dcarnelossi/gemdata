@@ -35,7 +35,6 @@ with DAG(
     render_template_as_native_obj=True,
 ) as dag:
 
-    @task
     def get_integration_ids():
         try:
             # Conecte-se ao PostgreSQL e execute o script
@@ -54,25 +53,18 @@ with DAG(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
             raise
-        
-    def trigger_dag_crete_infra(integration_id):
+    @task(provide_context=True)
+    def trigger_dag_crete_infra():
+        integration_id = get_integration_ids()
+        print(integration_id)
         TriggerDagRunOperator(
-        task_id=f"0-CreateInfra-{integration_id[0]}",
-        trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
-        conf={
-            "PGSCHEMA": integration_id,
-            "ISDAILY": 0
-                
-        },  # Se precisar passar informações adicionais para a DAG_B
-    )
+            task_id=f"0-CreateInfra-{integration_id[0]}",
+            trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
+            conf={
+                "PGSCHEMA": integration_id,
+                "ISDAILY": 0                
+                },  
+        )
 
-    # Configurando a dependência entre as tarefas
-
-    # Crie a tarefa Python para disparar a DAG
-    trigger_task = PythonOperator(
-        task_id="trigger_import_dags",
-        python_callable=trigger_dag_crete_infra,
-        op_args=[get_integration_ids()],
-    )
-
-    trigger_task
+    start_create_infra = trigger_dag_crete_infra()
+    start_create_infra
