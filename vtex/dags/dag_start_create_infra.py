@@ -35,7 +35,8 @@ with DAG(
     render_template_as_native_obj=True,
 ) as dag:
 
-    def get_integration_ids():
+    @task(provide_context=True)
+    def trigger_dag_crete_infra():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -46,19 +47,18 @@ with DAG(
             limit 1;
             """
             integration_ids = hook.get_records(query)
-            return [integration[0] for integration in integration_ids]
+            integration_id = [integration[0] for integration in integration_ids]
 
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
             raise
-    @task(provide_context=True)
-    def trigger_dag_crete_infra():
-        integration_id = get_integration_ids()
+        
         print(integration_id)
+        
         TriggerDagRunOperator(
-            task_id=f"0-CreateInfra-{integration_id[0]}",
+            task_id=f"0-CreateInfra-{integration_id}",
             trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
             conf={
                 "PGSCHEMA": integration_id,
