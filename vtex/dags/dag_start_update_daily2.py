@@ -61,7 +61,7 @@ def trigger_dag_run_task(integration_id):
         conf=conf
     )
 
-def create_trigger_tasks(integration_ids):
+def create_trigger(integration_ids):
     with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
         for i, integration_id in enumerate(integration_ids):
             PythonOperator(
@@ -79,32 +79,14 @@ with DAG(
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     render_template_as_native_obj=True,
-#    render_template_as_native_obj=True,
-    # params={
-    #     "PGSCHEMA": Param(
-    #         type="string",
-    #         title="PGSCHEMA:",
-    #         description="Enter the integration PGSCHEMA.",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=200,
-    #     ),
-    #     "ISDAILY": Param(
-    #         type="boolean",
-    #         title="ISDAILY:",
-    #         description="Enter com False (processo total) ou True (processo diario) .",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=10,
-    #     )
-    # },
+
 ) as dag:
 
     integration_ids = get_integration_ids()
     
     create_trigger_tasks = PythonOperator(
-        task_id="create_trigger_tasks",
-        python_callable=create_trigger_tasks,
+        task_id="create_trigger_tasks_a",
+        python_callable=create_trigger,
         op_args=[integration_ids],
     )
 
