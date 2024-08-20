@@ -61,14 +61,7 @@ def trigger_dag_run_task(integration_id):
         conf=conf
     )
 
-def create_trigger_tasks(integration_ids):
-    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id"):
-        for i, integration_id in enumerate(integration_ids):
-            PythonOperator(
-                task_id=f"trigger_dag_{i}",
-                python_callable=trigger_dag_run_task,
-                op_args=[integration_id],
-            )
+
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily2",
@@ -82,11 +75,20 @@ with DAG(
     
     integration_ids = get_integration_ids()
 
-    # Criação das tarefas dentro do TaskGroup
-    create_tasks = PythonOperator(
-        task_id="create_trigger_tasks",
-        python_callable=lambda ids: create_trigger_tasks(ids),
-        op_args=[integration_ids],
-    )
+    # Crie um TaskGroup para agrupar as tarefas
+    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
+        previous_task = None
 
-    integration_ids >> create_tasks
+        for i, integration_id in enumerate(integration_ids):
+            trigger_task = PythonOperator(
+                task_id=f"trigger_dag_{i}",
+                python_callable=trigger_dag_run_task,
+                op_args=[integration_id],
+            )
+            
+            if previous_task:
+                previous_task >> trigger_task
+            
+            previous_task = trigger_task
+
+    integration_ids >> trigger_dags_group
