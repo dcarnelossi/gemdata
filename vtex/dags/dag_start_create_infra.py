@@ -20,7 +20,7 @@ default_args = {
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "00-Start-CreateInfra",
-    schedule_interval=timedelta(minutes=1),  # Rodar a cada 1 minuto
+    schedule_interval=timedelta(minutes=10),  # Rodar a cada 10 minuto
     catchup=False,
     default_args=default_args,
     tags=["Start-CreateInfra", "v2", "Schedule"],
