@@ -24,6 +24,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
 }
+@task
 def get_integration_ids():
     try:
         hook = PostgresHook(postgres_conn_id="appgemdata-dev")
