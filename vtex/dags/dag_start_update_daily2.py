@@ -29,7 +29,7 @@ default_args = {
     "email_on_retry": False,
 }
 @task
-def get_customer_ids():
+def get_integration_ids():
     try:
         hook = PostgresHook(postgres_conn_id="appgemdata-dev")
         query = """
@@ -45,7 +45,13 @@ def get_customer_ids():
         )
         return []
 
-
+def trigger_dag_run_task(integration_id, **kwargs):
+    conf = {
+        "PGSCHEMA": integration_id,
+        "ISDAILY": True
+    }
+    # Aqui você dispararia a DAG externa
+    print(f"Triggering DAG with conf: {conf}")
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily2",
@@ -56,38 +62,22 @@ with DAG(
     render_template_as_native_obj=True,
 
 ) as dag:
+    integration_ids_task = get_integration_ids()
 
-  
-    @task
-    def generate_run_id(customer_id: str, run_id: str):
-        return f"{run_id}_{customer_id}"
+    previous_task = None
 
-    # Mapeia a tarefa generate_run_id para cada ID de cliente
-    run_ids = generate_run_id.expand(customer_id=get_customer_ids(), run_id="{{ run_id }}")
+    def create_task_for_integration_id(integration_id, index):
+        return PythonOperator(
+            task_id=f"trigger_dag_run_task_{index}",
+            python_callable=trigger_dag_run_task,
+            op_args=[integration_id],
+        )
 
-    # Dispara a DAG filha para cada run_id gerado
-    trigger_dag_filha = TriggerDagRunOperator.partial(
-        task_id='trigger_dag_filha',
-        trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
-        wait_for_completion=True  # Aguarda a conclusão da DAG filha
-    ).expand(
-        conf=run_ids.map(lambda run_id: {'run_id': run_id, 'customer_id': run_id.split('_')[-1]})
-    )
+    # Encadeia as tarefas para rodarem sequencialmente
+    for i, integration_id in enumerate(integration_ids_task.output):
+        current_task = create_task_for_integration_id(integration_id, i)
+        if previous_task:
+            previous_task >> current_task
+        previous_task = current_task
 
-    # Monitora a DAG bisneta usando ExternalTaskSensor
-    # Supondo que você já saiba o nome das tarefas na DAG bisneta para monitorar
-    from airflow.sensors.external_task import ExternalTaskSensor
-
-    wait_for_bisneta = ExternalTaskSensor.partial(
-        task_id='wait_for_dag_bisneta',
-        external_dag_id='dag_bisneta',
-        external_task_id=None,  # Ou especifique o task_id a ser monitorado
-        mode='poke',
-        timeout=600,
-        poke_interval=30,
-    ).expand(
-        external_task_run_id=run_ids  # Monitora especificamente o run_id gerado
-    )
-
-    # Definindo as dependências das tarefas
-    run_ids >> trigger_dag_filha >> wait_for_bisneta
+    integration_ids_task >> previous_task
