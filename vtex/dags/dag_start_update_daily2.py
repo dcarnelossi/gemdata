@@ -24,7 +24,14 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
 }
-
+dag = DAG(
+    '0-StartDaily2',
+    default_args=default_args,
+    schedule_interval=None,
+    catchup=False,
+    tags=["StartDaily", "v1", "trigger_dag_daily_update"],
+    render_template_as_native_obj=True,
+)
 
 @task
 def get_integration_ids():
@@ -64,14 +71,7 @@ def trigger_dag_run_task(integration_id):
     )
 
 # Usando o decorator @dag para criar o objeto DAG
-with DAG(
-    "0-StartDaily2",
-    schedule_interval=None,
-    catchup=False,
-    default_args=default_args,
-    tags=["StartDaily", "v1", "trigger_dag_daily_update"],
-    render_template_as_native_obj=True,
-) as dag:
+with dag:
 
     start = DummyOperator(task_id="start")
 
