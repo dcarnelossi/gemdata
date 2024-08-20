@@ -83,7 +83,7 @@ with dag:
 
     with TaskGroup("integration_tasks", prefix_group_id=False) as integration_tasks:
         trigger_task = PythonOperator.partial(
-            task_id="trigger_task_{integration_ids}",
+            task_id="trigger_task",
             python_callable=trigger_dag_run_task
         ).expand(op_args=[[integration_ids]])
 
