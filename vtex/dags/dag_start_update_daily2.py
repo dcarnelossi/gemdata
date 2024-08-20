@@ -5,6 +5,8 @@ from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.utils.dates import days_ago
+from airflow.api.common.experimental.trigger_dag import trigger_dag
+
 import logging
 from datetime import datetime
 
@@ -54,12 +56,14 @@ def get_integration_ids():
 
 def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
     trigger_dag(
-        dag_id=dag_id,
-        run_id=f"manual__{datetime.utcnow().isoformat()}",
-        conf=conf,
-        execution_date=execution_date,
-        replace_microseconds=replace_microseconds,
-    )
+            dag_id=dag_id,
+            run_id=f"manual__{datetime.utcnow().isoformat()}",
+            conf=conf,
+            execution_date=execution_date,
+            replace_microseconds=replace_microseconds,
+        )
+
+
 def trigger_dag_run_task(integration_id):
     conf = {
         "PGSCHEMA": integration_id,
