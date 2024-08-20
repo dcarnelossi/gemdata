@@ -24,37 +24,6 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
 }
-
-# Usando o decorator @dag para criar o objeto DAG
-with DAG(
-    "0-StartDaily2",
-    schedule_interval=None,
-    catchup=False,
-    default_args=default_args,
-    tags=["StartDaily", "v1", "trigger_dag_daily_update"],
-    render_template_as_native_obj=True,
-#    render_template_as_native_obj=True,
-    # params={
-    #     "PGSCHEMA": Param(
-    #         type="string",
-    #         title="PGSCHEMA:",
-    #         description="Enter the integration PGSCHEMA.",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=200,
-    #     ),
-    #     "ISDAILY": Param(
-    #         type="boolean",
-    #         title="ISDAILY:",
-    #         description="Enter com False (processo total) ou True (processo diario) .",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=10,
-    #     )
-    # },
-) as dag:
-
-@task
 def get_integration_ids():
     try:
         hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -101,7 +70,35 @@ def create_trigger_tasks(integration_ids):
             )
     return trigger_dags_group
 
-with DAG(dag_id="dag_start_update_daily2", start_date=datetime(2024, 8, 20), schedule_interval=None) as dag:
+# Usando o decorator @dag para criar o objeto DAG
+with DAG(
+    "0-StartDaily2",
+    schedule_interval=None,
+    catchup=False,
+    default_args=default_args,
+    tags=["StartDaily", "v1", "trigger_dag_daily_update"],
+    render_template_as_native_obj=True,
+#    render_template_as_native_obj=True,
+    # params={
+    #     "PGSCHEMA": Param(
+    #         type="string",
+    #         title="PGSCHEMA:",
+    #         description="Enter the integration PGSCHEMA.",
+    #         section="Important params",
+    #         min_length=1,
+    #         max_length=200,
+    #     ),
+    #     "ISDAILY": Param(
+    #         type="boolean",
+    #         title="ISDAILY:",
+    #         description="Enter com False (processo total) ou True (processo diario) .",
+    #         section="Important params",
+    #         min_length=1,
+    #         max_length=10,
+    #     )
+    # },
+) as dag:
+
     integration_ids = get_integration_ids()
     
     create_trigger_tasks = PythonOperator(
