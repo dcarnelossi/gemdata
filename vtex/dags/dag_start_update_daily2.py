@@ -93,12 +93,14 @@ with DAG(
                 dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
                 conf=conf
             )
+    integration_ids = get_integration_ids()
     with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
+        for i, integration_id in enumerate(integration_ids):
         # Crie a tarefa Python para disparar a DAG
-        trigger_task = PythonOperator(
-            task_id="trigger_import_dags",
-            python_callable=trigger_dag_run_task,
-            op_args=[get_integration_ids()],
-        )
+            trigger_task = PythonOperator(
+                task_id=f"trigger_import_dags{i}",
+                python_callable=trigger_dag_run_task,
+                op_args=[integration_id],
+            )
 
-    get_integration_ids() >> trigger_task
+    integration_ids >> trigger_dags_group
