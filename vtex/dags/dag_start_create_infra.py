@@ -40,9 +40,11 @@ with DAG(
             """
             integration_ids = hook.get_records(query)
             if not integration_ids:
+                print("Nenhuma integração para criar infraestrutura")
                 return None
 
             integration_id = integration_ids[0][0]
+            print(f"Iniciando criação de infraestrutura para integração: {integration_id}")
             return integration_id
 
         except Exception as e:
