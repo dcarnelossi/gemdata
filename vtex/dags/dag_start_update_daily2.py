@@ -45,14 +45,31 @@ def get_integration_ids():
         )
         return []
 
-def trigger_dag_run_task(integration_id, **kwargs):
+def trigger_dag_run_task(integration_id):
     conf = {
         "PGSCHEMA": integration_id,
         "ISDAILY": True
     }
     # Aqui você dispararia a DAG externa
     print(f"Triggering DAG with conf: {conf}")
-# Usando o decorator @dag para criar o objeto DAG
+
+def create_tasks_for_each_integration_id(integration_ids, dag):
+    previous_task = None
+
+    for i, integration_id in enumerate(integration_ids):
+        current_task = PythonOperator(
+            task_id=f"trigger_dag_run_task_{i}",
+            python_callable=trigger_dag_run_task,
+            op_args=[integration_id],
+            dag=dag
+        )
+        if previous_task:
+            previous_task >> current_task
+        previous_task = current_task
+
+    return previous_task
+
+
 with DAG(
     "0-StartDaily2",
     schedule_interval=None,
@@ -64,20 +81,13 @@ with DAG(
 ) as dag:
     integration_ids_task = get_integration_ids()
 
-    previous_task = None
-
-    def create_task_for_integration_id(integration_id, index):
-        return PythonOperator(
-            task_id=f"trigger_dag_run_task_{index}",
-            python_callable=trigger_dag_run_task,
-            op_args=[integration_id],
-        )
-
-    # Encadeia as tarefas para rodarem sequencialmente
-    for i, integration_id in enumerate(integration_ids_task.output):
-        current_task = create_task_for_integration_id(integration_id, i)
-        if previous_task:
-            previous_task >> current_task
-        previous_task = current_task
-
-    integration_ids_task >> previous_task
+    # Criar tarefas dinamicamente após obter os integration_ids
+    process_task = PythonOperator(
+        task_id="process_integration_ids",
+        python_callable=lambda **kwargs: create_tasks_for_each_integration_id(
+            integration_ids=kwargs['ti'].xcom_pull(task_ids='get_integration_ids'),
+            dag=dag
+        ),
+        provide_context=True,
+    )
+    integration_ids_task >> process_task
