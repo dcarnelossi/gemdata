@@ -74,21 +74,15 @@ with DAG(
 ) as dag:
 
     start = DummyOperator(task_id="start")
+
     integration_ids = get_integration_ids()
 
-    with TaskGroup("update_integration_tasks") as integration_tasks:
-        for i, integration_id in enumerate(integration_ids):
-            trigger_task = PythonOperator(
-                task_id=f"trigger_task_update_{i}",
-                python_callable=trigger_dag_run_task,
-                op_args=[integration_id],
-            )
-
-            if i == 0:
-                trigger_task
-            else:
-                integration_tasks.tasks[i - 1] >> trigger_task
+    with TaskGroup("integration_tasks", prefix_group_id=False) as integration_tasks:
+        trigger_task = PythonOperator.partial(
+            task_id="trigger_task",
+            python_callable=trigger_dag_run_task
+        ).expand(op_args=[[integration_ids]])
 
     end = DummyOperator(task_id="end")
 
-    start >> integration_tasks >> end   
+    start >> integration_tasks >> end
