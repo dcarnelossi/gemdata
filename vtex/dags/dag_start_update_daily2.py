@@ -68,7 +68,7 @@ def create_trigger(integration_ids, dag):
                 task_id=f"trigger_dag_{i}",
                 python_callable=trigger_dag_run_task,
                 op_args=[integration_id],
-                dag=dag,
+     
             )
     return trigger_dags_group
 
@@ -88,6 +88,8 @@ with DAG(
     create_trigger_tasks = PythonOperator(
         task_id="create_trigger_tasks",
         python_callable=create_trigger,
-        op_args=[integration_ids, dag],
-        dag=dag,
+        op_args=[integration_ids],
+
     )
+    
+    integration_ids >> create_trigger_tasks
