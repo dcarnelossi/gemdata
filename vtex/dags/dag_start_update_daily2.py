@@ -74,6 +74,7 @@ def trigger_dag_run_task(integration_id):
         conf=conf
     )
 
+
 with dag:
     start = DummyOperator(task_id="start")
 
@@ -83,7 +84,7 @@ with dag:
         trigger_task = PythonOperator.partial(
             task_id="trigger_task",
             python_callable=trigger_dag_run_task
-        ).expand(op_args=[integration_ids])
+        ).expand(op_args=[[integration_id] for integration_id in integration_ids])
 
     end = DummyOperator(task_id="end")
 
