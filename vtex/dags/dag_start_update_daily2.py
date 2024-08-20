@@ -1,12 +1,13 @@
-from airflow import DAG
-from airflow.decorators import task
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.utils.dates import days_ago
-from airflow.utils.trigger_rule import TriggerRule
-from airflow.providers.postgres.hooks.postgres import PostgresHook
-
 import logging
 from datetime import datetime
+
+from airflow import DAG
+from airflow.decorators import task
+from airflow.operators.python import PythonOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.api.common.experimental.trigger_dag import trigger_dag
+from airflow.utils.task_group import TaskGroup
+
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -24,9 +25,6 @@ default_args = {
     "email_on_retry": False,
 }
 
-
-# Define a DAG principal
-
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily2",
@@ -35,11 +33,29 @@ with DAG(
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     render_template_as_native_obj=True,
-
+#    render_template_as_native_obj=True,
+    # params={
+    #     "PGSCHEMA": Param(
+    #         type="string",
+    #         title="PGSCHEMA:",
+    #         description="Enter the integration PGSCHEMA.",
+    #         section="Important params",
+    #         min_length=1,
+    #         max_length=200,
+    #     ),
+    #     "ISDAILY": Param(
+    #         type="boolean",
+    #         title="ISDAILY:",
+    #         description="Enter com False (processo total) ou True (processo diario) .",
+    #         section="Important params",
+    #         min_length=1,
+    #         max_length=10,
+    #     )
+    # },
 ) as dag:
 
     @task
-    def get_customer_ids():
+    def get_integration_ids():
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -58,36 +74,31 @@ with DAG(
             return []
 
 
-    @task
-    def generate_run_id(customer_id: str, run_id: str):
-        return f"{run_id}_{customer_id}"
+    def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
+        trigger_dag(
+            dag_id=dag_id,
+            run_id=f"manual__{datetime.utcnow().isoformat()}",
+            conf=conf,
+            execution_date=execution_date,
+            replace_microseconds=replace_microseconds,
+        )
 
-    # Mapeia a tarefa generate_run_id para cada ID de cliente
-    run_ids = generate_run_id.expand(customer_id=get_customer_ids(), run_id="{{ run_id }}")
+    def trigger_dag_run_task(integration_ids):
+        for integration_id in integration_ids:
+            conf = {
+                "PGSCHEMA": integration_id,
+                "ISDAILY": True
+            }
+            trigger_dag_run(
+                dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+                conf=conf
+            )
+    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
+        # Crie a tarefa Python para disparar a DAG
+        trigger_task = PythonOperator(
+            task_id="trigger_import_dags",
+            python_callable=trigger_dag_run_task,
+            op_args=[get_integration_ids()],
+        )
 
-    # Dispara a DAG filha para cada run_id gerado
-    trigger_dag_filha = TriggerDagRunOperator.partial(
-        task_id='trigger_dag_filha',
-        trigger_dag_id='1-ImportVtex-Brands-Categories-Skus-Products',
-        wait_for_completion=True  # Aguarda a conclusão da DAG filha
-    ).expand(
-        conf=run_ids.map(lambda run_id: {'run_id': run_id, 'customer_id': run_id.split('_')[-1]})
-    )
-
-    # Monitora a DAG bisneta usando ExternalTaskSensor
-    # Supondo que você já saiba o nome das tarefas na DAG bisneta para monitorar
-    from airflow.sensors.external_task import ExternalTaskSensor
-
-    wait_for_bisneta = ExternalTaskSensor.partial(
-        task_id='wait_for_dag_bisneta',
-        external_dag_id='dag_bisneta',
-        external_task_id=None,  # Ou especifique o task_id a ser monitorado
-        mode='poke',
-        timeout=600,
-        poke_interval=30,
-    ).expand(
-        external_task_run_id=run_ids  # Monitora especificamente o run_id gerado
-    )
-
-    # Definindo as dependências das tarefas
-    run_ids >> trigger_dag_filha >> wait_for_bisneta
+    get_integration_ids() >> trigger_task
