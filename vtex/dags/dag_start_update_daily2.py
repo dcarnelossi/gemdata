@@ -61,13 +61,14 @@ def trigger_dag_run_task(integration_id):
         conf=conf
     )
 
-def create_trigger(integration_ids):
-    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
+def create_trigger(integration_ids, dag):
+    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id", dag=dag) as trigger_dags_group:
         for i, integration_id in enumerate(integration_ids):
             PythonOperator(
                 task_id=f"trigger_dag_{i}",
                 python_callable=trigger_dag_run_task,
                 op_args=[integration_id],
+                dag=dag,
             )
     return trigger_dags_group
 
@@ -83,11 +84,10 @@ with DAG(
 ) as dag:
 
     integration_ids = get_integration_ids()
-    
-    create_trigger_tasks = PythonOperator(
-        task_id="create_trigger_tasks_a",
-        python_callable=create_trigger,
-        op_args=[integration_ids],
-    )
 
-    integration_ids >> create_trigger_tasks
+    create_trigger_tasks = PythonOperator(
+        task_id="create_trigger_tasks",
+        python_callable=create_trigger,
+        op_args=[integration_ids, dag],
+        dag=dag,
+    )
