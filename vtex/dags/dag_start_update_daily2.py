@@ -61,6 +61,11 @@ def trigger_dag_run_task(integration_id):
         conf=conf
     )
 
+def process_integration_ids(**context):
+    integration_ids = context['ti'].xcom_pull(task_ids='get_integration_ids')
+    for i, integration_id in enumerate(integration_ids):
+        trigger_dag_run_task(integration_id)
+
 
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
@@ -72,23 +77,12 @@ with DAG(
     render_template_as_native_obj=True,
 
 ) as dag:
-    
     integration_ids = get_integration_ids()
 
-    # Crie um TaskGroup para agrupar as tarefas
-    with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
-        previous_task = None
+    process_task = PythonOperator(
+        task_id="process_integration_ids",
+        python_callable=process_integration_ids,
+        provide_context=True,
+    )
 
-        for i, integration_id in enumerate(integration_ids):
-            trigger_task = PythonOperator(
-                task_id=f"trigger_dag_{i}",
-                python_callable=trigger_dag_run_task,
-                op_args=[integration_id],
-            )
-            
-            if previous_task:
-                previous_task >> trigger_task
-            
-            previous_task = trigger_task
-
-    integration_ids >> trigger_dags_group
+    integration_ids >> process_task
