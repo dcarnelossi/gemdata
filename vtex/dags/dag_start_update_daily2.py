@@ -54,53 +54,60 @@ with DAG(
     # },
 ) as dag:
 
-    @task
-    def get_integration_ids():
-        try:
-            # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
-            query = """
-            select distinct id from public.integrations_integration
-            where is_active = true 
-            and infra_create_status = true limit 2
-            """
-            integration_ids = hook.get_records(query)
-            return [integration[0] for integration in integration_ids]
-
-        except Exception as e:
-            logging.exception(
-                f"An unexpected error occurred during get_integration_ids - {e}"
-            )
-            return []
-
-
-    def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
-        trigger_dag(
-            dag_id=dag_id,
-            run_id=f"manual__{datetime.utcnow().isoformat()}",
-            conf=conf,
-            execution_date=execution_date,
-            replace_microseconds=replace_microseconds,
+@task
+def get_integration_ids():
+    try:
+        hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+        query = """
+        select distinct id from public.integrations_integration
+        where is_active = true 
+        and infra_create_status = true limit 2
+        """
+        integration_ids = hook.get_records(query)
+        return [integration[0] for integration in integration_ids]
+    except Exception as e:
+        logging.exception(
+            f"An unexpected error occurred during get_integration_ids - {e}"
         )
+        return []
 
-    def trigger_dag_run_task(integration_ids):
-        for integration_id in integration_ids:
-            conf = {
-                "PGSCHEMA": integration_id,
-                "ISDAILY": True
-            }
-            trigger_dag_run(
-                dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-                conf=conf
-            )
-    integration_ids = get_integration_ids()
+def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
+    # Função auxiliar para disparar a DAG
+    trigger_dag(
+        dag_id=dag_id,
+        run_id=f"manual__{datetime.utcnow().isoformat()}",
+        conf=conf,
+        execution_date=execution_date,
+        replace_microseconds=replace_microseconds,
+    )
+
+def trigger_dag_run_task(integration_id):
+    conf = {
+        "PGSCHEMA": integration_id,
+        "ISDAILY": True
+    }
+    trigger_dag_run(
+        dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+        conf=conf
+    )
+
+def create_trigger_tasks(integration_ids):
     with TaskGroup("trigger_dags_group", tooltip="Trigger DAGs for each integration_id") as trigger_dags_group:
         for i, integration_id in enumerate(integration_ids):
-        # Crie a tarefa Python para disparar a DAG
-            trigger_task = PythonOperator(
-                task_id=f"trigger_import_dags{i}",
+            PythonOperator(
+                task_id=f"trigger_dag_{i}",
                 python_callable=trigger_dag_run_task,
                 op_args=[integration_id],
             )
+    return trigger_dags_group
 
-    integration_ids >> trigger_dags_group
+with DAG(dag_id="dag_start_update_daily2", start_date=datetime(2024, 8, 20), schedule_interval=None) as dag:
+    integration_ids = get_integration_ids()
+    
+    create_trigger_tasks = PythonOperator(
+        task_id="create_trigger_tasks",
+        python_callable=create_trigger_tasks,
+        op_args=[integration_ids],
+    )
+
+    integration_ids >> create_trigger_tasks
