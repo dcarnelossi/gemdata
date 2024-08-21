@@ -66,7 +66,7 @@ with DAG(
 	            	and 
 	            	( daily_run_date_ini::date < CURRENT_DATE or daily_run_date_ini is null))
             	or  isdaily_manual is true )	
- 		    limit 1
+ 		    limit 2
  		
 
             """
@@ -84,8 +84,8 @@ with DAG(
           
             hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
             print("aquii")
-            print([integration for integration in integration_ids])
-            return [integration for integration in integration_ids]
+            print([integration[0] for integration in integration_ids])
+            return [integration[0] for integration in integration_ids]
            
 
         except Exception as e:
