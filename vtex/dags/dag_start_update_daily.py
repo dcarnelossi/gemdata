@@ -1,11 +1,13 @@
 import logging
-from datetime import datetime
+from datetime import datetime,time
 
 from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.api.common.experimental.trigger_dag import trigger_dag
+from airflow.operators.dummy import DummyOperator
+from airflow.operators.time_sensor import TimeSensor
 
 # Lista de requisitos
 requirements = [
@@ -27,31 +29,21 @@ default_args = {
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily",
-    schedule_interval=None,
+    schedule_interval="*/10 0-5 * * *",
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
     render_template_as_native_obj=True,
-#    render_template_as_native_obj=True,
-    # params={
-    #     "PGSCHEMA": Param(
-    #         type="string",
-    #         title="PGSCHEMA:",
-    #         description="Enter the integration PGSCHEMA.",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=200,
-    #     ),
-    #     "ISDAILY": Param(
-    #         type="boolean",
-    #         title="ISDAILY:",
-    #         description="Enter com False (processo total) ou True (processo diario) .",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=10,
-    #     )
-    # },
+    description='Executa a DAG a cada 10 minutos entre 00:30 e 05:00',
+
+
 ) as dag:
+
+      # Sensor para esperar até 00:30
+    wait_until_00_30 = TimeSensor(
+        task_id='wait_until_00_30',
+        target_time=time(0, 30),
+    )
 
     @task
     def get_integration_ids():
@@ -112,4 +104,12 @@ with DAG(
         op_args=[get_integration_ids()],
     )
 
-    get_integration_ids() >> trigger_task
+    # Sensor para garantir que a DAG termine até as 05:00
+    wait_until_05_00 = TimeSensor(
+        task_id='wait_until_05_00',
+        target_time=time(5, 0),
+        mode='reschedule',
+    )
+    
+    # Definindo a sequência das tarefas
+    wait_until_00_30 >> trigger_task >> wait_until_05_00
