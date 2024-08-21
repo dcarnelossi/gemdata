@@ -99,6 +99,34 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             conn.close()
 
 
+# Função para extrair dados do PostgreSQL e salvá-los como JSON
+def daily_run_date_update(pg_schema):
+        #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        #isdaily = kwargs["params"]["ISDAILY"]
+       
+
+        try:
+            query = """
+            UPDATE public.integrations_integration
+            SET daily_run_date_end = %s
+            WHERE id = %s;
+            """
+            # Initialize the PostgresHook
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            # Execute the query with parameters
+            
+            hook2.run(query, parameters=(datetime.now(),pg_schema))
+         
+
+            
+        except Exception as e:
+            logging.exception(
+                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+            )
+            return e
+        raise    
+
+
 # Função para mover o arquivo JSON para o diretório no Blob Storage
 def upload_to_blob_directory(file_name,pg_schema):
     
@@ -159,6 +187,13 @@ with DAG(
             op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
             #provide_context=True
         )
+        log_update_corp = PythonOperator(
+            task_id=f'log_daily_rum_data_update_{chave}',
+            python_callable=daily_run_date_update,
+            op_args=["{{ params.PGSCHEMA }}"]
+            #provide_context=True
+        )
+
 
         # # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
         # upload_task = PythonOperator(
@@ -169,4 +204,4 @@ with DAG(
         # )
 
         # Definindo a ordem das tarefas no DAG
-        extract_task
+        extract_task >> log_update_corp
