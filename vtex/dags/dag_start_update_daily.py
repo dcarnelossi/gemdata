@@ -64,6 +64,18 @@ with DAG(
             and infra_create_status = true limit 2
             """
             integration_ids = hook.get_records(query)
+            
+            query = """
+            UPDATE public.integrations_integration
+            SET daily_run_date_ini = %s
+            WHERE id in (%s);
+            """
+            # Initialize the PostgresHook
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            # Execute the query with parameters
+            hook2.run(query, parameters=(datetime.now(), integration_ids))
+
+
             return [integration[0] for integration in integration_ids]
 
         except Exception as e:
