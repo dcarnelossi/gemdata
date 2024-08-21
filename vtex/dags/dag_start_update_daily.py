@@ -74,7 +74,7 @@ with DAG(
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             
-            for idintegration in integration_ids
+            for idintegration in integration_ids:
                 print( idintegration)
                 print("loop") 
             
