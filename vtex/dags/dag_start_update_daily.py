@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, time
+from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.decorators import task
@@ -32,7 +32,7 @@ default_args = {
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily",
-    schedule_interval="*/10 * * * *",
+    schedule_interval=timedelta(minutes=10),
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
