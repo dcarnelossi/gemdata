@@ -32,7 +32,7 @@ default_args = {
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "0-StartDaily",
-    schedule_interval="*/10 0-5 * * *",
+    schedule_interval="*/10 1-4 * * *",
     catchup=False,
     default_args=default_args,
     tags=["StartDaily", "v1", "trigger_dag_daily_update"],
@@ -42,11 +42,11 @@ with DAG(
 
 ) as dag:
 
-      # Sensor para esperar até 00:30
-    wait_until_00_30 = TimeSensor(
-        task_id='wait_until_00_30',
-        target_time=time(0, 30),
-    )
+    #   # Sensor para esperar até 00:30
+    # wait_until_00_30 = TimeSensor(
+    #     task_id='wait_until_00_30',
+    #     target_time=time(0, 30),
+    # )
 
     @task
     def get_integration_ids():
@@ -107,12 +107,13 @@ with DAG(
         op_args=[get_integration_ids()],
     )
 
-    # Sensor para garantir que a DAG termine até as 05:00
-    wait_until_05_00 = TimeSensor(
-        task_id='wait_until_05_00',
-        target_time=time(5, 0),
-        mode='reschedule',
-    )
+    # # Sensor para garantir que a DAG termine até as 05:00
+    # wait_until_05_00 = TimeSensor(
+    #     task_id='wait_until_05_00',
+    #     target_time=time(5, 0),
+    #     mode='reschedule',
+    # )
     
     # Definindo a sequência das tarefas
-    wait_until_00_30 >> trigger_task >> wait_until_05_00
+    # wait_until_00_30 >> trigger_task >> wait_until_05_00
+    trigger_task
