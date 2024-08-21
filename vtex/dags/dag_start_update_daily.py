@@ -81,10 +81,10 @@ with DAG(
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             
-            for i in range(2):
-                hook2.run(query, parameters=(datetime.now(),integration_ids[i] ))
+          
+            hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
             
-            return [integration_ids[i] for i in range(2) ]
+            return [integration_ids[0] for i in range(2) ]
            
 
         except Exception as e:
