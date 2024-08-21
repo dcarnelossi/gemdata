@@ -74,7 +74,7 @@ with DAG(
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             print(integration_ids[0])
-            hook2.run(query, parameters=(datetime.now(), integration_ids[0]))
+            hook2.run(query, parameters=(datetime.now(), [integration[0] for integration in integration_ids]))
 
 
             return [integration[0] for integration in integration_ids]
