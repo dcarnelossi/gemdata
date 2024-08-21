@@ -83,7 +83,8 @@ with DAG(
             
             for i in range(2):
                 hook2.run(query, parameters=(datetime.now(),integration_ids[i] ))
-                return integration_ids[i]
+            
+            return [integration_ids[i] for i in range(2) ]
            
 
         except Exception as e:
