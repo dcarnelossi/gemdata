@@ -68,21 +68,15 @@ with DAG(
             query = """
             UPDATE public.integrations_integration
             SET daily_run_date_ini = %s
-            WHERE id in %s;
+            WHERE id = %s;
             """
             # Initialize the PostgresHook
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             
             for idintegration in integration_ids:
-                print( idintegration)
-                print("loop") 
-            
-            print("teste:") 
-            print(list(integration_ids))
-            hook2.run(query, parameters=(datetime.now(),list(integration_ids)))
-
-
+                hook2.run(query, parameters=(datetime.now(),idintegration ))
+ 
             return [integration[0] for integration in integration_ids]
 
         except Exception as e:
