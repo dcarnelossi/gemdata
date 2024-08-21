@@ -108,7 +108,7 @@ def daily_run_date_update(pg_schema):
         try:
             query = """
             UPDATE public.integrations_integration
-            SET daily_run_date_end = %s
+            SET daily_run_date_end = %s,isdaily_manual = false  
             WHERE id = %s;
             """
             # Initialize the PostgresHook
