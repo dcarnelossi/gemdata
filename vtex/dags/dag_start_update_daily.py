@@ -84,10 +84,8 @@ with DAG(
           
             hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
             print("aquii")
-            print (integration_ids[0])
-            [ print (integration[0]) for integration in integration_ids]
-            print([integration[0] for integration in integration_ids])
-            return [integration[0] for integration in integration_ids]
+            print([integration for integration in integration_ids])
+            return [integration for integration in integration_ids]
            
 
         except Exception as e:
