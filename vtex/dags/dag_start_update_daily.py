@@ -59,9 +59,16 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
-            select distinct id from public.integrations_integration
+                   select id from public.integrations_integration
             where is_active = true 
-            and infra_create_status = true limit 2
+            and infra_create_status = true 
+            and ((( daily_run_date_end::date < CURRENT_DATE or daily_run_date_end is null)
+	            	and 
+	            	( daily_run_date_ini::date < CURRENT_DATE or daily_run_date_ini is null))
+            	or  isdaily_manual is true )	
+ 		    limit 2
+ 		
+
             """
             integration_ids = hook.get_records(query)
             
