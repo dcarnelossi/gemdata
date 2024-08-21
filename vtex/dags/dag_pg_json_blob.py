@@ -124,7 +124,7 @@ def daily_run_date_update(pg_schema):
                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
             )
             return e
-        raise    
+       
 
 
 # Função para mover o arquivo JSON para o diretório no Blob Storage
