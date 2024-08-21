@@ -66,7 +66,7 @@ with DAG(
 	            	and 
 	            	( daily_run_date_ini::date < CURRENT_DATE or daily_run_date_ini is null))
             	or  isdaily_manual is true )	
- 		    limit 2
+ 		    limit 1
  		
 
             """
@@ -81,10 +81,10 @@ with DAG(
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             
-            for idintegration in integration_ids:
-                hook2.run(query, parameters=(datetime.now(),idintegration ))
- 
-            return [integration[0] for integration in integration_ids]
+            for i in range(2):
+                hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
+                return integration_ids[0]
+           
 
         except Exception as e:
             logging.exception(
