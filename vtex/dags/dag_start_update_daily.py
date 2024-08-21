@@ -73,7 +73,7 @@ with DAG(
             # Initialize the PostgresHook
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
-            hook2.run(query, parameters=(datetime.now(), integration_ids))
+            hook2.run(query, parameters=(datetime.now(), integration_ids[0]))
 
 
             return [integration[0] for integration in integration_ids]
@@ -82,8 +82,8 @@ with DAG(
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
             )
-            return []
-
+            raise
+        
 
     def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
         trigger_dag(
