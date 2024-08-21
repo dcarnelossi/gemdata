@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime,time
+from datetime import datetime, time
 
 from airflow import DAG
 from airflow.decorators import task
@@ -7,8 +7,7 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.api.common.experimental.trigger_dag import trigger_dag
 from airflow.operators.dummy import DummyOperator
-from airflow.operators.time_sensor import TimeSensor
-
+from airflow.sensors.time_sensor import TimeSensor
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
