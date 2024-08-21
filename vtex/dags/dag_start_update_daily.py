@@ -78,8 +78,8 @@ with DAG(
                 print( idintegration)
                 print("loop") 
             
-            print(idintegration[0])
-            hook2.run(query, parameters=(datetime.now(),idintegration[0] ))
+            print(integration_ids[0])
+            hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
 
 
             return [integration[0] for integration in integration_ids]
