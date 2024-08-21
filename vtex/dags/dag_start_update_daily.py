@@ -74,9 +74,10 @@ with DAG(
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             # Execute the query with parameters
             
+            for idintegration in integration_ids
+                print( idintegration)
+                print("loop") 
             
-            idintegration= [integration[0] for integration in integration_ids]
-            print(idintegration)
             print(idintegration[0])
             hook2.run(query, parameters=(datetime.now(),idintegration[0] ))
 
