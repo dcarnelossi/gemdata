@@ -82,8 +82,8 @@ with DAG(
             # Execute the query with parameters
             
             for i in range(2):
-                hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
-                return integration_ids[0]
+                hook2.run(query, parameters=(datetime.now(),integration_ids[i] ))
+                return integration_ids[i]
            
 
         except Exception as e:
