@@ -83,7 +83,7 @@ with DAG(
             # Execute the query with parameters
             
           
-            hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
+            hook2.run(query, parameters=(datetime.now(),[integration[0] for integration in integration_ids] ))
 
             return [integration[0] for integration in integration_ids]
            
