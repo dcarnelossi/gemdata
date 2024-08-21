@@ -59,15 +59,14 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
-            
-            select id from public.integrations_integration
+                   select id from public.integrations_integration
             where is_active = true 
             and infra_create_status = true 
             and ((( daily_run_date_end::date < CURRENT_DATE or daily_run_date_end is null)
 	            	and 
 	            	( daily_run_date_ini::date < CURRENT_DATE or daily_run_date_ini is null))
             	or  isdaily_manual is true )
-           order by 1 	
+            order by 1	
  		    limit 2
  		
 
@@ -85,7 +84,10 @@ with DAG(
             
           
             hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
-    
+
+            return [integration[0] for integration in integration_ids]
+           
+
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during get_integration_ids - {e}"
