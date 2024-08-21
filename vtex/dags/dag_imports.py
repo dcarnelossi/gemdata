@@ -7,6 +7,7 @@ from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -72,6 +73,18 @@ with DAG(
         from modules import brand
 
         try:
+            query = """
+            UPDATE public.integrations_integration
+            SET daily_run_date_ini = %s
+            WHERE id = %s;
+            """
+            # Initialize the PostgresHook
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            # Execute the query with parameters
+            
+            hook2.run(query, parameters=(datetime.now(),integration_id))
+
+
             brand.get_brands_list_parallel(api_conection_info, data_conection_info)
 
             # Pushing data to XCom

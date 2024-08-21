@@ -73,16 +73,7 @@ with DAG(
             """
             integration_ids = hook.get_records(query)
             
-            query = """
-            UPDATE public.integrations_integration
-            SET daily_run_date_ini = %s
-            WHERE id = %s;
-            """
-            # Initialize the PostgresHook
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
-            # Execute the query with parameters
-            
-            hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
+           
 
             return [integration[0] for integration in integration_ids]
            
