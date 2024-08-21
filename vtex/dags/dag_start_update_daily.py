@@ -79,8 +79,8 @@ with DAG(
                 print("loop") 
             
             print("teste:") 
-            print(list(integration_ids[0]))
-            hook2.run(query, parameters=(datetime.now(),integration_ids[0] ))
+            print(list(integration_ids))
+            hook2.run(query, parameters=(datetime.now(),list(integration_ids)))
 
 
             return [integration[0] for integration in integration_ids]
