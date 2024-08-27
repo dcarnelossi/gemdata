@@ -11,9 +11,9 @@ def vtexsqlscriptscreatetabglobal(schema):
                 select 
                 date_trunc('hour',ol.creationdate) as creationdate ,
                 oi.orderid,
-                --coalesce(oi.sellersku,'999999') as idsku ,
+                coalesce(oi.sellersku,'999999') as idprod ,
                 coalesce(sku.namecomplete,'Não informado') as namesku,
-                --coalesce(pro.categoryid,'999999') as idcategory,
+                coalesce(pro.categoryid,'999999') as idcat,
                 coalesce(cat.name,'Não informado') as namecategory,
                 oi.tax,
                 oi.taxcode,

@@ -1,7 +1,7 @@
 
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
-    scripts ={ 'aba_faturamento_item1':f""" 
+    scripts ={ 'faturamento_ecommerce':f""" 
                                         DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
                                         SELECT generate_series as dategenerate FROM generate_series(
@@ -79,16 +79,16 @@ def vtexsqlscriptjson(schema):
                                         order by 1 
                                         """ 
                                         
-                ,'aba_faturamento_item2': f"""
+                ,'faturamento_categorias': f"""
                                             
           
                                             SET CLIENT_ENCODING = 'UTF8';
                                                                             
                                             select 
                                             cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                            cast('999' as integer) as idcategoria,
+                                            cast(idcat as integer) as idcategoria,
                                             ori.namecategory as nomecategoria,
-                                            cast('9999' as integer) as idsku,
+                                            cast(idprod as integer) as idsku,
                                             ori.namesku as nomesku ,
 
                                             cast(SUM(ori.sellingprice) as float)  as faturamento,
@@ -100,7 +100,7 @@ def vtexsqlscriptjson(schema):
                                             order by 1    
                                                
                                             """
-                ,'aba_faturamento_item3': f"""
+                ,'faturamento_canais': f"""
                                                 
                                         SET CLIENT_ENCODING = 'UTF8';
                                         
@@ -108,7 +108,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Mercado Livre' as nomecanal,
-                                       -- cast(ori.idsku as integer) as idsku,
+                                        cast(ori.idprod as integer) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*1.15 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -124,7 +124,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'OLX' as nomecanal,
-                                       -- cast(ori.idsku as integer) as idsku,
+                                          cast(ori.idprod as integer) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*1 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -140,7 +140,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Amazon' as nomecanal,
-                                       -- cast(ori.idsku as integer) as idsku,
+                                          cast(ori.idprod as integer) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*0.80 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -155,7 +155,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Google' as nomecanal,
-                                      --  cast(ori.idsku as integer) as idsku,
+                                         cast(ori.idprod as integer) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*0.6 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -171,7 +171,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Site proprio' as nomecanal,
-                                     --   cast(ori.idsku as integer) as idsku,
+                                        cast(ori.idprod as integer) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*0.20 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -182,7 +182,7 @@ def vtexsqlscriptjson(schema):
 
                                         group by 1,3
                                         """
-                ,'aba_faturamento_item4': f"""
+                ,'faturamento_regiao': f"""
                                                                         
                                             SET CLIENT_ENCODING = 'UTF8';
                                             
@@ -200,10 +200,7 @@ def vtexsqlscriptjson(schema):
 
                                             where 
                                             statusdescription  = 'Faturado'
-                                            and 
-                                            selectedaddresses_0_city not in ('11986771137'
-                                            ,'19346065702'
-                                            ,'19989507870')
+                                            
 
                                             group by 1,2,3
                                             order by 3
