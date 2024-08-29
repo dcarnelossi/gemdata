@@ -117,7 +117,7 @@ def vtexsqlscriptjson(schema):
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3
+                                        group by 1,3,4
 
                                         union all 
                                         select 
@@ -133,7 +133,7 @@ def vtexsqlscriptjson(schema):
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3
+                                        group by 1,3,4
 
                                         union all 
                                         select 
@@ -149,7 +149,7 @@ def vtexsqlscriptjson(schema):
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3
+                                        group by 1,3,4
                                         union all 
                                         select 
 
@@ -164,7 +164,7 @@ def vtexsqlscriptjson(schema):
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3
+                                        group by 1,3,4
 
                                         union all 
                                         select 
@@ -180,7 +180,7 @@ def vtexsqlscriptjson(schema):
                                         inner join  "{schema}".orders_items_ia  as ori on
                                         ord.orderid = ori.orderid
 
-                                        group by 1,3
+                                        group by 1,3,4
                                         """
                 ,'faturamento_regiao': f"""
                                                                         
