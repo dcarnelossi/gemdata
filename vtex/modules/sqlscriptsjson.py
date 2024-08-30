@@ -227,7 +227,7 @@ def vtexsqlscriptjson(schema):
 
 
 
-                                      from "a5be7ce1-ce65-46f8-a293-4efff72819ce".orders_items_ia ori
+                                      from "{schema}".orders_items_ia ori
                                       group by 
                                       1,2,3,4,5,6,7,8
                                       order by 1 
