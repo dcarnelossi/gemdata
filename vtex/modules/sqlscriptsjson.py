@@ -206,7 +206,32 @@ def vtexsqlscriptjson(schema):
                                             order by 3
 
 
-                                        """         
+                                        """   
+                ,'pedido_ecommerce': f""" 
+                                                                           
+                                      select 
+                                      cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
+                                      cast(idcat as integer) as idcategoria,
+                                      ori.namecategory as nomecategoria,
+                                      cast(idprod as integer) as idsku,
+                                      ori.namesku as nomesku ,
+                                      cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
+                                      trim(selectedaddresses_0_state) as estado,
+                                      INITCAP(translate(trim(selectedaddresses_0_city),  
+                                      'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
+                                      'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
+                                      )) as cidade,
+                                      cast(SUM(ori.revenue_without_shipping) as float)  as faturamento,
+                                      cast(SUM(ori.quantityorder) as integer)  as pedidos,
+                                      cast(SUM(ori.quantityitems) as integer)  as qtditem
+
+
+
+                                      from "a5be7ce1-ce65-46f8-a293-4efff72819ce".orders_items_ia ori
+                                      group by 
+                                      1,2,3,4,5,6,7,8
+                                      order by 1 
+                                      """                             
 
                                 
     
