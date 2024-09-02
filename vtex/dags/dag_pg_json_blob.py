@@ -1,5 +1,6 @@
 import json
 import os
+import orjson
 
 from airflow.decorators import task
 from airflow import DAG
@@ -54,9 +55,10 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             
             # Transformando os dados em uma lista de dicionários (JSON-like)
             data = [dict(zip(colnames, row)) for row in records]
-            print(data)
+           
             # Convertendo os dados para JSON string
-            json_data = json.dumps(data, indent=4)
+            #json_data = json.dumps(data, indent=4)
+            json_data = orjson.dumps(data, option=orjson.OPT_COMPACT)
             
             # Criando um diretório temporário para armazenar o arquivo JSON
            # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
