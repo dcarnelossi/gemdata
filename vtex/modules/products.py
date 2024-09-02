@@ -10,7 +10,7 @@ data_conection_info = None
 
 def get_categories_id_from_db():
     try:
-        query = """select distinct productid  from skus;"""
+        query = """select distinct cast(productid as int)  from skus;"""
         result = WriteJsonToPostgres(data_conection_info, query, "skus").query()
         if not result:
             logging.warning("No skus found in the database.")
@@ -50,6 +50,7 @@ def process_products():
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for category_id in categories_id:
+                print(category_id[0])
                 executor.map(process_product, category_id[0])
              #   else:
              #       logging.warning(f"No products found for category_id {category_id}.")
