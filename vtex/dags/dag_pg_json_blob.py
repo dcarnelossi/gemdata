@@ -177,7 +177,7 @@ with DAG(
 ) as dag:
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
-    import orjson
+    #import orjson
 
     sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
