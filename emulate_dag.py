@@ -179,10 +179,10 @@ def products(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     api_conection_info = get_api_conection_info(integration_id)
 
-    from gemdata.vtex.modules import products_gabiru
+    from gemdata.vtex.modules import products
 
     try:
-        products_gabiru.set_globals(api_conection_info, data_conection_info)
+        products.set_globals(api_conection_info, data_conection_info)
         return True
     except Exception as e:
         logging.exception(f"An unexpected error occurred during DAG - {e}")
