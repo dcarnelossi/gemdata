@@ -10,7 +10,7 @@ data_conection_info = None
 
 def get_categories_id_from_db():
     try:
-        query = """select distinct cast(productid as int)  from skus;"""
+        query = """select distinct cast(productid as int) as id  from skus;"""
         result = WriteJsonToPostgres(data_conection_info, query, "skus").query()
         if not result:
             logging.warning("No skus found in the database.")
