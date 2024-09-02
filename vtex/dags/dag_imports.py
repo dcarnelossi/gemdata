@@ -148,7 +148,7 @@ with DAG(
         data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
         api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-        from gemdata.vtex.modules import products
+        from modules import products
 
         try:
             products.set_globals(api_conection_info, data_conection_info)

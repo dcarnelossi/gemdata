@@ -10,7 +10,7 @@ from orders_items import write_orders_item_to_database
 from orders_list import *
 from orders_shipping import write_orders_shippingdata_to_database
 from orders_totals import write_orders_totals_to_database_colunar
-from gemdata.vtex.modules.products import process_products
+from products import process_products
 from sku import get_skus
 
 
