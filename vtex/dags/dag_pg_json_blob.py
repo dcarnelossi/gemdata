@@ -1,6 +1,5 @@
 import json
 import os
-import orjson
 
 from airflow.decorators import task
 from airflow import DAG
@@ -178,6 +177,7 @@ with DAG(
 ) as dag:
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
+    import orjson
 
     sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
