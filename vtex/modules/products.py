@@ -74,7 +74,7 @@ def process_products():
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for category_id in categories_id:
                 # category_id = category[0]
-                print(f"testando aqui  {category_id[0]}")
+                print(f"testando aqui  {category_id}")
                 products_in_category = get_products_by_category(category_id)
                 if products_in_category:
                     executor.map(process_product, products_in_category)
