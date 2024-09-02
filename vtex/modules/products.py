@@ -10,42 +10,17 @@ data_conection_info = None
 
 def get_categories_id_from_db():
     try:
-        query = """SELECT id FROM categories;"""
-        result = WriteJsonToPostgres(data_conection_info, query, "categories").query()
+        query = """select distinct productid  from skus;"""
+        result = WriteJsonToPostgres(data_conection_info, query, "skus").query()
         if not result:
-            logging.warning("No categories found in the database.")
+            logging.warning("No skus found in the database.")
         return result
     except Exception as e:
         logging.error(f"An error occurred in get_categories_id_from_db: {e}")
         raise  # Ensure the Airflow task fails on error
 
-def extract_product_ids(product_list):
-    try:
-        data_list = [item for sublist in product_list["data"].values() for item in sublist]
-        return data_list
-    except Exception as e:
-        logging.error(f"An error occurred in extract_product_ids: {e}")
-        raise  # Ensure the Airflow task fails on error
-    
-def get_products_by_category(category_id):
-    try:
-        query_params = {"categoryId": category_id}
-        print(f"dentro de categoria parametro api: {query_params}")
-        data = make_request(
-            api_conection_info["VTEX_Domain"],
-            "GET",
-            "api/catalog_system/pvt/products/GetProductAndSkuIds?",
-            params=query_params,
-            headers=api_conection_info["headers"],
-        )
-        return extract_product_ids(data)
-    except Exception as e:
-        logging.error(f"An error occurred in get_products_by_category for category_id {category_id}: {e}")
-        raise  # Ensure the Airflow task fails on error
-
 def get_product_by_id(product_id):
-    try:   
-        print(f"produto:{product_id}")
+    try:
         return make_request(
             api_conection_info["VTEX_Domain"],
             "GET",
@@ -69,21 +44,15 @@ def process_product(product_id):
 def process_products():
     try:
         categories_id = get_categories_id_from_db()
-        print(f"priemiro get: {categories_id}")
         if not categories_id:
             logging.warning("No categories to process.")
             return
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
             for category_id in categories_id:
-                # category_id = category[0]
-                print(f"testando aqui  {category_id}")
-                products_in_category = get_products_by_category(category_id)
-                print(f"testando aqui2: {products_in_category}")
-                if products_in_category:
-                    executor.map(process_product, products_in_category)
-                else:
-                    logging.warning(f"No products found for category_id {category_id}.")
+                executor.map(process_product, category_id[0])
+             #   else:
+             #       logging.warning(f"No products found for category_id {category_id}.")
 
     except Exception as e:
         logging.error(f"An error occurred in process_products: {e}")
