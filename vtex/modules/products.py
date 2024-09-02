@@ -44,7 +44,8 @@ def get_products_by_category(category_id):
         raise  # Ensure the Airflow task fails on error
 
 def get_product_by_id(product_id):
-    try:
+    try:   
+        print(f"produto:{product_id}")
         return make_request(
             api_conection_info["VTEX_Domain"],
             "GET",
