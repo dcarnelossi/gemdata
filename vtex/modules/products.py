@@ -44,7 +44,7 @@ def process_product(product_id):
 def process_products():
     try:
         categories_id = get_categories_id_from_db()
-        print(categories_id)
+        
         if not categories_id:
             logging.warning("No categories to process.")
             return
@@ -52,15 +52,13 @@ def process_products():
         with concurrent.futures.ThreadPoolExecutor() as executor:
             #for category_id in categories_id:
              #   print(category_id[0])
-              
-              # Supondo que a estrutura seja igual à variável `data`
-                tuple_ids = [item[0] for item in categories_id[0]]  # Extrai os valores das tuplas
-                # Combine as listas e remova duplicatas, se necessário
-               
-                executor.map(process_product, tuple_ids)
-             #   else:
-             #       logging.warning(f"No products found for category_id {category_id}.")
+                if categories_id:
+                    tuple_ids = [item[0] for item in categories_id[0]] 
+                    executor.map(process_product, tuple_ids)
+                else:
+                    logging.warning(f"No products found for category_id {category_id}.")
 
+        
     except Exception as e:
         logging.error(f"An error occurred in process_products: {e}")
         raise  # Ensure the Airflow task fails on error
