@@ -55,11 +55,9 @@ def process_products():
               
               # Supondo que a estrutura seja igual à variável `data`
                 tuple_ids = [item[0] for item in categories_id[0]]  # Extrai os valores das tuplas
-                dict_ids = [item['id'] for item in categories_id[1]]  # Extrai os valores dos dicionários
-
                 # Combine as listas e remova duplicatas, se necessário
-                combined_ids = list(set(tuple_ids + dict_ids))
-                executor.map(process_product, combined_ids)
+               
+                executor.map(process_product, tuple_ids)
              #   else:
              #       logging.warning(f"No products found for category_id {category_id}.")
 
