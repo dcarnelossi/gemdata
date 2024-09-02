@@ -61,6 +61,8 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             # Convertendo os dados para JSON string
             #json_data = json.dumps(data, indent=4)
             json_data = orjson.dumps(data)
+            # Convertendo bytes para string
+            json_str = json_data.decode('utf-8')
             
             # Criando um diretório temporário para armazenar o arquivo JSON
            # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
@@ -72,7 +74,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             
             # Salvando o JSON string em um arquivo temporário
             with open(output_filepath, 'w') as outfile:
-                outfile.write(json_data)
+                outfile.write(json_str)
 
             wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
             ###   Verifica se o arquivo já existe
