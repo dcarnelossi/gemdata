@@ -19,7 +19,7 @@ requirements = [
     "azure-core==1.29.6",
     "azure-cosmos==4.5.1",
     "azure-storage-blob==12.19.0",
-    "orjson==3.10.7",
+   
 ]
 
 # Configuração padrão do DAG
