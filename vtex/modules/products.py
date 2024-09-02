@@ -10,7 +10,7 @@ data_conection_info = None
 
 def get_categories_id_from_db():
     try:
-        query = """SELECT id, name FROM categories;"""
+        query = """SELECT id FROM categories;"""
         result = WriteJsonToPostgres(data_conection_info, query, "categories").query()
         if not result:
             logging.warning("No categories found in the database.")
