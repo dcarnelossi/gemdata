@@ -39,7 +39,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
        
-
+        import orjson
         try:
             
             
@@ -177,7 +177,7 @@ with DAG(
 ) as dag:
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
-    #import orjson
+    #
 
     sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
