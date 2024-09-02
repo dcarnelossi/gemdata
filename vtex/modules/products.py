@@ -44,14 +44,22 @@ def process_product(product_id):
 def process_products():
     try:
         categories_id = get_categories_id_from_db()
+        print(categories_id)
         if not categories_id:
             logging.warning("No categories to process.")
             return
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            for category_id in categories_id:
-                print(category_id[0])
-                executor.map(process_product, category_id[0])
+            #for category_id in categories_id:
+             #   print(category_id[0])
+              
+              # Supondo que a estrutura seja igual à variável `data`
+                tuple_ids = [item[0] for item in categories_id[0]]  # Extrai os valores das tuplas
+                dict_ids = [item['id'] for item in categories_id[1]]  # Extrai os valores dos dicionários
+
+                # Combine as listas e remova duplicatas, se necessário
+                combined_ids = list(set(tuple_ids + dict_ids))
+                executor.map(process_product, combined_ids)
              #   else:
              #       logging.warning(f"No products found for category_id {category_id}.")
 
