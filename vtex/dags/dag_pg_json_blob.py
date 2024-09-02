@@ -9,6 +9,8 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFilesystemToWasbOperator
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from airflow.models.param import Param
+from airflow.operators.bash_operator import BashOperator
+
 from datetime import datetime
 import logging
 
@@ -177,10 +179,14 @@ with DAG(
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
 
-
     sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
-        
+    
+    install_library = BashOperator(
+        task_id='install_library',
+        bash_command='pip install orjson',
+    )
+    
     
     for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
@@ -207,4 +213,4 @@ with DAG(
         # )
 
         # Definindo a ordem das tarefas no DAG
-        extract_task >> log_update_corp
+        install_library >> extract_task >> log_update_corp
