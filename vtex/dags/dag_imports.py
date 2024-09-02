@@ -148,10 +148,10 @@ with DAG(
         data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
         api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-        from modules import products
+        from gemdata.vtex.modules import products_gabiru
 
         try:
-            products.set_globals(api_conection_info, data_conection_info)
+            products_gabiru.set_globals(api_conection_info, data_conection_info)
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
