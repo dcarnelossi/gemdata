@@ -37,7 +37,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,ol.statusdescription
                 ,ol.origin
                 ,fg.isFreeShipping
-                ,value as revenue_orders
+                ,cast(od.value as float)/100  as revenue_orders
 
 
                 from "{schema}".orders_items oi 
