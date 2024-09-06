@@ -37,6 +37,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,ol.statusdescription
                 ,ol.origin
                 ,fg.isFreeShipping
+                ,value as revenue_orders
 
 
                 from "{schema}".orders_items oi 
@@ -61,12 +62,12 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                 left join ordersfretegratis fg 
                 on fg.orderid = oi.orderid
+
+                left join "{schema}".orders od 
+                on od.orderid = oi.orderid
                         
                 where 
                 ol.statusdescription  = 'Faturado';
-
-
-
 
 
                 DROP TABLE IF EXISTS qtditemorder;
