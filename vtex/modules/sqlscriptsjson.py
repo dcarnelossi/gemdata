@@ -215,7 +215,6 @@ def vtexsqlscriptjson(schema):
                                       ori.namecategory as nomecategoria,
                                       cast(idprod as integer) as idsku,
                                       ori.namesku as nomesku ,
-                                      cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
                                       trim(selectedaddresses_0_state) as estado,
                                       INITCAP(translate(trim(selectedaddresses_0_city),  
                                       'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
@@ -229,7 +228,7 @@ def vtexsqlscriptjson(schema):
 
                                       from "{schema}".orders_items_ia ori
                                       group by 
-                                      1,2,3,4,5,6,7,8
+                                      1,2,3,4,5,6,7
                                       order by 1 
                                       """                             
 
