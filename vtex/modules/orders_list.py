@@ -105,13 +105,13 @@ def validate_and_convert_dates(start_date, end_date):
         raise  # Ensure Airflow fails if date conversion fails
 
 
-def set_globals(api_info, data_conection, coorp_conection,isdailyinfo, **kwargs):
+def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info, data_conection_info, coorp_conection_info,isdaily
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
-    isdaily= isdailyinfo
-        
+    isdaily= kwargs["isdaily"]
+   
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
