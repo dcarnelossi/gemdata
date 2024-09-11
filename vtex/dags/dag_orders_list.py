@@ -76,8 +76,6 @@ with DAG(
         try:
             end_date = datetime.now()
 
-      
-         
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
             if not isdaily :
                 start_date = end_date - timedelta(days=730)
