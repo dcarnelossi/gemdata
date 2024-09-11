@@ -56,7 +56,7 @@ def vtexsqlscriptsorderslistupdate(schema):
             tmp.orderid IS NULL AND
             ora.creationdate >= (SELECT MIN(creationdate) FROM tmp_orders_list_daily_old);
 
-        truncate table "{schema}".orders_list_daily ;
+        --truncate table "{schema}".orders_list_daily ;
   
         delete from  "{schema}".orders
         where orderid in (select orderid from tmp_orders_list_daily_new);
