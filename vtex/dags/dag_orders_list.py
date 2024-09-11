@@ -76,6 +76,7 @@ with DAG(
         try:
             end_date = datetime.now()
 
+            print(f"aquiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii : {isdaily}")
          
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
             if not isdaily :
