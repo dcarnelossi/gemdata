@@ -75,7 +75,8 @@ with DAG(
         try:
             query = """
             UPDATE public.integrations_integration
-            SET daily_run_date_ini = %s
+            SET daily_run_date_ini = %s,
+            isdaily_manual = false
             WHERE id = %s;
             """
             # Initialize the PostgresHook
