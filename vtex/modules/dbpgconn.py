@@ -272,7 +272,7 @@ class WriteJsonToPostgres:
             if self.connection:
                 self.connection.close()
 
-    def upsert_data(self):
+    def upsert_data(self,isdatainsercao= None):
         try:
             # Use context manager to ensure cursor and connection are properly closed
             with self.connection.connect().cursor() as cursor:
@@ -337,7 +337,7 @@ class WriteJsonToPostgres:
                     INSERT INTO {self.tablename} ({', '.join(columns)})
                     VALUES %s
                     ON CONFLICT ({self.table_key}) DO UPDATE SET
-                    ({', '.join(columns)}) = %s, NOW()
+                    ({', '.join(columns)}) = %s,data_insercao = NOW()
                     RETURNING {self.table_key}
                 """
                
