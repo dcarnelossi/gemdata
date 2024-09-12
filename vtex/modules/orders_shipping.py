@@ -12,9 +12,19 @@ coorp_conection_info = None
 def write_orders_shippingdata_to_database(batch_size=600):
     try:
         while True:
-            query = f"""select o.orderid ,o.shippingdata  from orders o 
-	                    where o.orderid in (select orderid from orders_list ol where ol.is_change = true 
-                        ORDER BY orders.sequence
+            query = f"""                        
+                        WITH max_data_insercao AS (
+                            SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+                            FROM orders_shippingdata oi
+                            GROUP BY oi.orderid
+                        )
+                        SELECT  o.orderid ,o.shippingdata
+                        FROM orders o
+                        INNER JOIN orders_list ol ON ol.orderid = o.orderid
+                        LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+                        WHERE ol.is_change = TRUE
+                        AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+                        ORDER BY o.sequence
                         LIMIT {batch_size};"""
 
             result = WriteJsonToPostgres(
