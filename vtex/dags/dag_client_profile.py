@@ -69,7 +69,7 @@ with DAG(
 
              
             query = f"""
-            UPDATE {integration_id}.orders_list
+            UPDATE "{integration_id}".orders_list
             SET is_change = false
             where is_change = true;
             """
