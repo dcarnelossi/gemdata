@@ -12,9 +12,8 @@ coorp_conection_info = None
 def write_orders_shippingdata_to_database(batch_size=600):
     try:
         while True:
-            query = f"""SELECT orders.orderid, orders.shippingdata
-                        FROM orders
-                        WHERE orders.orderid NOT IN (SELECT orderid FROM orders_shippingdata WHERE orderid IS NOT NULL)
+            query = f"""select o.orderid ,o.shippingdata  from orders o 
+	                    where o.orderid in (select orderid from orders_list ol where ol.is_change = true 
                         ORDER BY orders.sequence
                         LIMIT {batch_size};"""
 

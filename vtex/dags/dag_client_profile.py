@@ -7,6 +7,7 @@ from airflow.decorators import task
 from airflow.models import Variable
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
@@ -66,6 +67,19 @@ with DAG(
                 api_conection_info, data_conection_info, coorp_conection_info
             )
 
+             
+            query = f"""
+            UPDATE {integration_id}.orders_list
+            SET is_change = false
+            where is_change = true;
+            """
+            # Initialize the PostgresHook
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+
+            # Execute the query with parameters
+            hook.run(query)
+
+
             # Pushing data to XCom
             kwargs["ti"].xcom_push(key="integration_id", value=integration_id)
             kwargs["ti"].xcom_push(
@@ -73,6 +87,7 @@ with DAG(
             )
             kwargs["ti"].xcom_push(key="data_conection_info", value=data_conection_info)
             kwargs["ti"].xcom_push(key="api_conection_info", value=api_conection_info)
+
 
             return True
         except Exception as e:

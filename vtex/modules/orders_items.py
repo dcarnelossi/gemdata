@@ -36,10 +36,9 @@ def create_orders_items_database(table_name):
 
 def write_orders_item_to_database(batch_size=400):
     try:
-        count_query = """SELECT count(*)
-                        FROM orders
-                        WHERE orders.orderid NOT IN
-                         (SELECT orderid FROM orders_items WHERE orderid IS NOT NULL)"""
+        count_query = """select COUNT(*) from orders o 
+	                    where o.orderid in 
+                        (select orderid from orders_list ol where ol.is_change = true )"""
         count_writer = WriteJsonToPostgres(data_conection_info, count_query, "orders_items")
         records = count_writer.query()
         
@@ -55,12 +54,11 @@ def write_orders_item_to_database(batch_size=400):
         for batch_num in range(total_batches):
             offset = batch_num * batch_size
             query = f"""
-            SELECT orders.orderid, orders.items
-            FROM orders
-            WHERE orders.orderid NOT IN
-            (SELECT orderid FROM orders_items WHERE orderid IS NOT NULL)
-            ORDER BY orders.sequence
-            LIMIT {batch_size};
+                select o.orderid ,o.items  from orders o 
+	            where o.orderid in 
+                (select orderid from orders_list ol where ol.is_change = true )
+	            order by o."sequence"
+                LIMIT {batch_size};
             """
             batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
             result = batch_writer.query()

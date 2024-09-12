@@ -11,10 +11,9 @@ coorp_conection_info = None
 
 def get_orders_ids_from_db():
     try:
-        query = """SELECT DISTINCT orders_list.orderid
-            FROM orders_list
-            LEFT JOIN orders ON orders_list.orderid = orders.orderid
-            WHERE orders.orderid IS NULL;"""
+        query = """   SELECT DISTINCT ora.orderid    
+                        FROM orders_list ora      
+                         WHERE  is_change = true    """
         result = WriteJsonToPostgres(data_conection_info, query, "orders_list")
         result = result.query()
         return result

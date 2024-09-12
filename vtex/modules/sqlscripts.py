@@ -268,6 +268,7 @@ def vtexsqlscripts(schema, user):
         readyforhandlingdate timestamp without time zone,
         deliverydates jsonb,
         data_insercao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        is_change BOOLEAN DEFAULT TRUE,
         CONSTRAINT constraint_orders_list_orderid UNIQUE (orderid)
 
     )

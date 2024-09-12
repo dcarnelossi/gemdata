@@ -12,9 +12,8 @@ def write_client_profile_to_database(batch_size=600):
     try:
         while True:
             # Query dinâmica
-            query = f"""SELECT DISTINCT orders.orderid, orders.clientprofiledata 
-                        FROM orders 
-                        WHERE NOT EXISTS (SELECT 1 FROM client_profile WHERE orders.orderid = client_profile.orderid )
+            query = f"""select o.orderid ,o.clientprofiledata  from orders o 
+	                    where o.orderid in (select orderid from orders_list ol where ol.is_change = true )
                         LIMIT {batch_size};"""
             result = WriteJsonToPostgres(
                 data_conection_info, query, "client_profile"

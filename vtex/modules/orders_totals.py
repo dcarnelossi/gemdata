@@ -12,8 +12,8 @@ def write_orders_totals_to_database_colunar(batch_size=600):
     try:
         while True:
             query = f"""
-            SELECT DISTINCT orders.orderid, orders.totals FROM orders WHERE NOT EXISTS
-            (SELECT 1 FROM orders_totals WHERE orders.orderid = orders_totals.orderid) 
+            select o.orderid ,o.totals  from orders o 
+	        where o.orderid in (select orderid from orders_list ol where ol.is_change = true )
             LIMIT {batch_size};"""
 
             result = WriteJsonToPostgres(

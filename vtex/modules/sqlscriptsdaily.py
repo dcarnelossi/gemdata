@@ -56,29 +56,6 @@ def vtexsqlscriptsorderslistupdate(schema):
             tmp.orderid IS NULL AND
             ora.creationdate >= (SELECT MIN(creationdate) FROM tmp_orders_list_daily_old);
 
-        --truncate table "{schema}".orders_list_daily ;
-  
-        delete from  "{schema}".orders
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
-        delete from  "{schema}".orders_list
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
-        delete from "{schema}".orders_items
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
-
-        delete from  "{schema}".orders_shippingdata
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
-
-        delete from "{schema}".orders_totals
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
-
-        delete from "{schema}".client_profile
-        where orderid in (select orderid from tmp_orders_list_daily_new);
-
         insert into "{schema}".orders_list (orderid
         ,creationdate
         ,clientname
@@ -119,7 +96,49 @@ def vtexsqlscriptsorderslistupdate(schema):
         ,data_insercao)
         select
         *
-        from tmp_orders_list_daily_new;
+        from tmp_orders_list_daily_new
+        ON CONFLICT (orderid)
+  		DO UPDATE SET 
+			creationdate	=	EXCLUDED.creationdate
+		,	clientname	=	EXCLUDED.clientname
+		,	items	=	EXCLUDED.items
+		,	totalvalue	=	EXCLUDED.totalvalue
+		,	paymentnames	=	EXCLUDED.paymentnames
+		,	status	=	EXCLUDED.status
+		,	statusdescription	=	EXCLUDED.statusdescription
+		,	marketplaceorderid	=	EXCLUDED.marketplaceorderid
+		,	"sequence"	=	EXCLUDED."sequence"
+		,	saleschannel	=	EXCLUDED.saleschannel
+		,	affiliateid	=	EXCLUDED.affiliateid
+		,	origin	=	EXCLUDED.origin
+		,	workflowinerrorstate	=	EXCLUDED.workflowinerrorstate
+		,	workflowinretry	=	EXCLUDED.workflowinretry
+		,	lastmessageunread	=	EXCLUDED.lastmessageunread
+		,	shippingestimateddate	=	EXCLUDED.shippingestimateddate
+		,	shippingestimateddatemax	=	EXCLUDED.shippingestimateddatemax
+		,	shippingestimateddatemin	=	EXCLUDED.shippingestimateddatemin
+		,	orderiscomplete	=	EXCLUDED.orderiscomplete
+		,	listid	=	EXCLUDED.listid
+		,	listtype	=	EXCLUDED.listtype
+		,	authorizeddate	=	EXCLUDED.authorizeddate
+		,	callcenteroperatorname	=	EXCLUDED.callcenteroperatorname
+		,	totalitems	=	EXCLUDED.totalitems
+		,	currencycode	=	EXCLUDED.currencycode
+		,	hostname	=	EXCLUDED.hostname
+		,	invoiceoutput	=	EXCLUDED.invoiceoutput
+		,	invoiceinput	=	EXCLUDED.invoiceinput
+		,	lastchange	=	EXCLUDED.lastchange
+		,	isalldelivered	=	EXCLUDED.isalldelivered
+		,	isanydelivered	=	EXCLUDED.isanydelivered
+		,	giftcardproviders	=	EXCLUDED.giftcardproviders
+		,	orderformid	=	EXCLUDED.orderformid
+		,	paymentapproveddate	=	EXCLUDED.paymentapproveddate
+		,	readyforhandlingdate	=	EXCLUDED.readyforhandlingdate
+		,	deliverydates	=	EXCLUDED.deliverydates
+		,	data_insercao	=	EXCLUDED.data_insercao
+        ,   is_change = TRUE    
+
+
 
 
     """
