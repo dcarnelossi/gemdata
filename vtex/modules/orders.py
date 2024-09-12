@@ -40,7 +40,7 @@ def write_orders_to_db(order_id):
             writer = WriteJsonToPostgres(
                 data_conection_info, order_json, "orders", "orderid"
             )
-            writer.upsert_data()
+            writer.upsert_data(isdatainsercao=1)
             logging.info("Created record for order ID: %s", order_id)
         except Exception as e:
             logging.error(f"Error creating record - {e}")

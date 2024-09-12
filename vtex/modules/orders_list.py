@@ -56,7 +56,7 @@ def process_page(query_params):
 
 def process_order(order):
     try:    
-        print(order)
+        
         #modificado gabiru :
         if not isdaily:
             writer = WriteJsonToPostgres(
@@ -67,7 +67,7 @@ def process_order(order):
                     data_conection_info, order, "orders_list_daily", "orderid"
                 )
 
-        writer.upsert_data()
+        writer.upsert_data(isdatainsercao=1)
         logging.info(f"Order {order['orderId']} upserted successfully.")
     except Exception as e:
         logging.error(f"Error inserting order {order['orderId']}: {e}")

@@ -291,7 +291,7 @@ class WriteJsonToPostgres:
                         INSERT INTO {self.tablename} ({', '.join(columns)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        ({', '.join(columns)}) = %s,data_insercao = now()
+                        ({', '.join(columns)}) = %s, data_insercao = now()
                         RETURNING {self.table_key}
                     """
                 else:

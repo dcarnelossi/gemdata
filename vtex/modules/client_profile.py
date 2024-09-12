@@ -52,7 +52,7 @@ def process_client_profile(result):
         writer = WriteJsonToPostgres(
             data_conection_info, client_profile, "client_profile", "orderid"
         )
-        writer.upsert_data()
+        writer.upsert_data(isdatainsercao=1)
         logging.info(f"Inserção de dados concluída para orderid - {order_id}")
 
         return True  # Indica que a execução foi bem-sucedida

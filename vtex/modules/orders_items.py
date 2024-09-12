@@ -98,7 +98,7 @@ def write_orders_item_to_database(batch_size=400):
 def insert_data_parallel(item):
     try:
         writer = WriteJsonToPostgres(data_conection_info, item, "orders_items", "uniqueid")
-        writer.upsert_data()
+        writer.upsert_data(isdatainsercao=1)
         logging.info(f"Data upserted successfully for orderid - {item['orderid']}")
     except Exception as e:
         logging.error(f"Error inserting data for orderid {item['orderid']}: {e}")
