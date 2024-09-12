@@ -56,7 +56,7 @@ def process_page(query_params):
 
 def process_order(order):
     try:    
-        print(f"aquiiiiiiiiiiiiiiiiiiii: {isdaily}")
+        print(order)
         #modificado gabiru :
         if not isdaily:
             writer = WriteJsonToPostgres(
