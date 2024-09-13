@@ -67,7 +67,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 on od.orderid = oi.orderid
                         
                 where 
-                ol.statusdescription  = 'Faturado';
+                ol.statusdescription  in  ('Faturado','Pronto para o manuseio');
 
 
                 DROP TABLE IF EXISTS qtditemorder;
@@ -124,7 +124,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 qt.orderid = o.orderid
 
                 where 
-                ol.statusdescription  = 'Faturado';
+                ol.statusdescription  in  ('Faturado','Pronto para o manuseio');
 
     """
     print(scripts)
