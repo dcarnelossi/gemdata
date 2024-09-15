@@ -37,7 +37,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,ol.statusdescription
                 ,ol.origin
                 ,fg.isFreeShipping
-                ,(cast(o.value as float)/100)-(cast(ot.shipping as float)/100) as revenue_orders_out_ship
+                ,(cast(od.value as float)/100)-(cast(ot.shipping as float)/100) as revenue_orders_out_ship
 
 
                 from "{schema}".orders_items oi 
@@ -65,6 +65,9 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                 left join "{schema}".orders od 
                 on od.orderid = oi.orderid
+
+                left join "{schema}".orders_totals ot on 
+                ot.orderid = oi.orderid
                         
                 where 
                 ol.statusdescription  in  ('Faturado','Pronto para o manuseio');
