@@ -1,5 +1,6 @@
 
 from vtex.modules.config import *
+import os
 
 from azure.storage.blob import BlobServiceClient
 import json
@@ -38,3 +39,31 @@ def save_json_to_blob_storage(file_dir,file_name,string_to_save):
         print(f'The blob {file_name} already exists in the container {container_name}. Use another file name.')
     except Exception as e:
         print(f'save_json_to_blob_storage - An unexpected error occurred: {e}')
+
+
+
+class execute_blob():
+
+    def __init__(self):
+        load_dotenv()
+        self.blob = os.getenv(f"BLOB_DATA")
+        self.connblob =  BlobServiceClient.from_connection_string(self.blob)
+
+    def insert_file(self,container,filename,file):
+        try:
+            blob_client =  self.connblob.get_blob_client(container=container, blob=filename)
+            blob_client.upload_blob(file, overwrite=True)
+            return True
+        except Exception:
+            return False
+    
+    def get_file(self,container,filename,file):
+        try:
+            blob_client = self.connblob.get_blob_client(container=container, blob=filename)
+            with open(file, "wb") as download_file:
+                download_file.write(blob_client.download_blob().readall())
+        except Exception as e:
+            return e
+        
+
+    
