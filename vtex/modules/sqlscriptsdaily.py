@@ -1,9 +1,9 @@
 def vtexsqlscriptsorderslistupdate(schema):
     scripts = f"""
-        DROP TABLE IF EXISTS tmp_orders_list_daily_old;
+        		DROP TABLE IF EXISTS tmp_orders_list_daily_old;
         CREATE TEMPORARY TABLE tmp_orders_list_daily_old AS
         SELECT
-            sequence_id, orderid, creationdate, lastchange
+            sequence_id, orderid, creationdate, lastchange,status
         FROM "{schema}".orders_list
         WHERE creationdate >= (CURRENT_DATE - INTERVAL '90 days');
 
@@ -51,7 +51,9 @@ def vtexsqlscriptsorderslistupdate(schema):
         FROM "{schema}".orders_list_daily ora
         LEFT JOIN tmp_orders_list_daily_old tmp ON
             tmp.orderid = ora.orderid AND
-            tmp.lastchange = ora.lastchange
+            tmp.lastchange = ora.lastchange and 
+            tmp.status= ora.status
+            
         WHERE
             tmp.orderid IS NULL AND
             ora.creationdate >= (SELECT MIN(creationdate) FROM tmp_orders_list_daily_old);
