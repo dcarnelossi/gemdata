@@ -74,7 +74,7 @@ with DAG(
         from modules import orders_list
 
         try:
-            end_date = datetime.now()
+            end_date = datetime.now() + timedelta(days=1)
 
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
             if not isdaily :
