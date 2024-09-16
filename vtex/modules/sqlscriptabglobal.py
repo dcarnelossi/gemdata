@@ -1,6 +1,6 @@
 def vtexsqlscriptscreatetabglobal(schema):
     scripts = f"""
-                DROP TABLE IF EXISTS ordersfretegratis;
+                 DROP TABLE IF EXISTS ordersfretegratis;
                 CREATE TEMPORARY TABLE ordersfretegratis as
                 select distinct  oi.orderid,case when cast(shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping  
                 from  "{schema}".orders_totals oi;  
@@ -12,9 +12,9 @@ def vtexsqlscriptscreatetabglobal(schema):
                 date_trunc('hour',ol.creationdate) as creationdate ,
                 oi.orderid,
                 coalesce(oi.sellersku,'999999') as idprod ,
-                coalesce(sku.namecomplete,'Não informado') as namesku,
+                LOWER(coalesce(sku.namecomplete,'Não informado')) as namesku,
                 coalesce(pro.categoryid,'999999') as idcat,
-                coalesce(cat.name,'Não informado') as namecategory,
+                LOWER(coalesce(cat.name,'Não informado')) as namecategory,
                 oi.tax,
                 oi.taxcode,
                 cast(1 as float) as quantityorder,
@@ -28,14 +28,14 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ((cast(oi.price as float)/100) - (cast(oi.sellingprice as float)/100))* cast(oi.quantity as float)  as totaldiscounts,
                 (cast(oi.sellingprice as float)/100)* cast(oi.quantity as float)  as revenue_without_shipping ,
                 oi.isgift
-                ,sd.selectedaddresses_0_city
-                ,sd.selectedaddresses_0_state
-                ,sd.selectedaddresses_0_country
+                ,LOWER(sd.selectedaddresses_0_city) as selectedaddresses_0_city
+                ,LOWER(sd.selectedaddresses_0_state) as selectedaddresses_0_state
+                ,LOWER(sd.selectedaddresses_0_country) as selectedaddresses_0_country
                 ,cp.userprofileid
-                ,ol.paymentnames
+                ,LOWER(ol.paymentnames) as paymentnames
                 --,oi.saleschannel as saleschannel
-                ,ol.statusdescription
-                ,ol.origin
+                ,LOWER(ol.statusdescription) as statusdescription
+                ,LOWER(ol.origin) as origin
                 ,fg.isFreeShipping
                 ,(cast(od.value as float)/100)-(cast(ot.shipping as float)/100) as revenue_orders_out_ship
 
@@ -70,7 +70,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ot.orderid = oi.orderid
                         
                 where 
-                ol.statusdescription  in  ('Faturado','Pronto para o manuseio');
+                LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
 
 
                 DROP TABLE IF EXISTS qtditemorder;
@@ -88,9 +88,9 @@ def vtexsqlscriptscreatetabglobal(schema):
                 select 
                 date_trunc('hour',ol.creationdate) as creationdate 
                 ,o.orderid
-                ,o.origin
-                ,O.saleschannel
-                ,o.statusdescription
+                ,LOWER(o.origin) as origin
+                ,LOWER(O.saleschannel) as saleschannel
+                ,LOWER(o.statusdescription) as statusdescription
                 ,cast(qt.quantityitems as float) as quantityitems
                 ,cast(1 as float) as quantityorder
                 ,cast(ot.items as float)/100 as itemsPriceDar 
@@ -99,10 +99,10 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,cast(ot.tax as float)/100 as tax
                 ,cast(o.value as float)/100  as revenue
                 ,(cast(o.value as float)/100)-(cast(ot.shipping as float)/100)   as revenue_without_shipping
-                ,ol.paymentnames
-                ,sd.selectedaddresses_0_city
-                ,sd.selectedaddresses_0_state
-                ,sd.selectedaddresses_0_country
+                ,LOWER(ol.paymentnames) as paymentnames
+                ,LOWER(sd.selectedaddresses_0_city) as selectedaddresses_0_city
+                ,LOWER(sd.selectedaddresses_0_state) as selectedaddresses_0_state
+                ,LOWER(sd.selectedaddresses_0_country) as selectedaddresses_0_country
                 ,cp.userprofileid
                 ,case when cast(ot.shipping as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(ot.shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping 
@@ -127,8 +127,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 qt.orderid = o.orderid
 
                 where 
-                ol.statusdescription  in  ('Faturado','Pronto para o manuseio');
-
+                LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
     """
     print(scripts)
     return scripts
