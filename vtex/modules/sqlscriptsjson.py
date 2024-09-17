@@ -21,9 +21,6 @@ def vtexsqlscriptjson(schema):
                                         cast(SUM(quantityorder) as float)  as pedidos
 
                                         from "{schema}".orders_ia ia 
-
-                                        where 
-                                        statusdescription  = 'Faturado'
                                         group by 1
 
                                         );
@@ -198,8 +195,7 @@ def vtexsqlscriptjson(schema):
 
                                             from "{schema}".orders_ia ia 
 
-                                            where 
-                                            statusdescription  = 'Faturado'
+                                  
                                             
 
                                             group by 1,2,3
