@@ -1,5 +1,6 @@
 def vtexsqlscriptscreatetabglobal(schema):
     scripts = f"""
+                
                  DROP TABLE IF EXISTS ordersfretegratis;
                 CREATE TEMPORARY TABLE ordersfretegratis as
                 select distinct  oi.orderid,case when cast(shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping  
@@ -9,7 +10,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 create TABLE "{schema}".orders_items_ia
                 as
                 select 
-                date_trunc('hour',ol.creationdate) as creationdate ,
+                 date_trunc('hour',ol.creationdate AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate ,
                 oi.orderid,
                 coalesce(oi.sellersku,'999999') as idprod ,
                 LOWER(coalesce(sku.namecomplete,'Não informado')) as namesku,
@@ -86,7 +87,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 create table "{schema}".orders_ia
                 as
                 select 
-                date_trunc('hour',ol.creationdate) as creationdate 
+                date_trunc('hour',ol.creationdate AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate  
                 ,o.orderid
                 ,LOWER(o.origin) as origin
                 ,LOWER(O.saleschannel) as saleschannel
@@ -128,6 +129,7 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
+
     """
     print(scripts)
     return scripts
