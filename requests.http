@@ -1,0 +1,6 @@
+curl --request get \
+	--url https://taace8.vtexcommercestable.com.br/api/oms/pvt/orders/1460730524339-01 \
+	--header 'Accept: application/json' \
+	--header 'Content-Type: application/json' \
+	--header 'X-VTEX-API-AppKey: vtexappkey-taace8-BKCIDR' \
+	--header 'X-VTEX-API-AppToken: NTXUGUHHJGRBGYLSILNBMINVNMQIMNNASRVVGTALLCLGUZXQBJRBESYXNDIWKQFFYBXEXWHQVOFRSUWBWOFVLJVTVHTODKMTWFMYHGIIKXADCPEBMNWGHGDBCAWPUJPO'
