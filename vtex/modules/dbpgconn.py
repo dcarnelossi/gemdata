@@ -5,6 +5,7 @@ from datetime import datetime
 # import openai
 import psycopg2
 from dotenv import load_dotenv
+import pandas as pd
 
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as patches
@@ -129,6 +130,7 @@ class WriteJsonToPostgres:
             # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
+
 
     # def generate_create_table(json_file_path, api_key, engine="text-davinci-003"):
     def generate_create_table(self):
@@ -394,6 +396,46 @@ class WriteJsonToPostgres:
                 self.connection.close()
 
 
+class execute_query_pg():
+# aqui é para executar qualquer update, create e etc .. 
+ 
+    def __init__(self, data,isbdclient):
+        self.connection = PostgresConnection(isbdclient)
+        self.data = data
+     
+    def query_dataframe(self):
+        
+        try:
+        
+            #cursor = self.connection.connect().cursor()
+            # cursor.execute(self.data)
+            # result = cursor.fetchall()
+            # return result
+
+            cursor = self.connection.connect().cursor()
+            cursor.execute(self.data)
+            # Obter os resultados com colunas nomeadas
+            rows = cursor.fetchall()
+            columns = [description[0] for description in cursor.description]
+            df = pd.DataFrame(rows, columns=columns)
+            
+        
+            return df
+    
+        except Exception as e:
+            # Em caso de falha, faça o rollback da transação e feche a conexão
+            self.connection.rollback()
+
+            # Caso o cursor já tenha sido criado, feche-o
+            if 'cursor' in locals():
+                cursor.close()
+        
+            return False  # Retorno em caso de falha
+
+        finally:
+            # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
+            if self.connection:
+                self.connection.close()
 # if __name__ == "__main__":
 #     with open(os.path.join(os.path.dirname(__file__), "client_profile_data.json"), "r") as f:
 #         data = json.load(f)
