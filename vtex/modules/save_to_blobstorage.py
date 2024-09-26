@@ -52,7 +52,8 @@ class execute_blob():
     def insert_file(self,container,filename,file):
         try:
             blob_client =  self.connblob.get_blob_client(container=container, blob=filename)
-            blob_client.upload_blob(file, overwrite=True)
+            with open(file, "rb") as data:
+                blob_client.upload_blob(data, overwrite=True)
             return True
         except Exception:
             return False
