@@ -377,17 +377,21 @@ def grafico_horizontal(nm_imagem,titulografico,texto,valores,porc,abreviacao,ist
 
 
 
-def grafico_mapa(nm_imagem,titulografico,dataframe,abreviacao):
+def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
 
 
     # # Caminho para a fonte 'Open Sans'
     # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
-
     # plt.rcParams['font.family'] = open_sans.get_family()
+    try:
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
+    except Exception as e:
+        print(f"Erro ao puxar o mapa{e}")
+            
 
     # Carregar os dados geográficos
-    mapa_br = gpd.read_file("mapa/BR_UF_2022.shp")
+    mapa_br = gpd.read_file(f"{diretorio}/BR_UF_2022.shp")
 
  
     # Combinar os dados geográficos com os dados de faturamento
@@ -945,7 +949,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
 
     grafico_abc(f"{diretorio}/grafico_abc_fatprodutoabc{celular}.png","Top 10 produtos mais vendidos - em R$",groupby_sku_df['namesku'],groupby_sku_df['atual'],groupby_sku_df['percacumulado'],abreviacao)
    
-    grafico_mapa(f"{diretorio}/grafico_mapa_mapa{celular}.png",'Top 5 faturamento por estado - em R$',  df_mapa,abreviacao)
+    grafico_mapa(diretorio,f"{diretorio}/grafico_mapa_mapa{celular}.png",'Top 5 faturamento por estado - em R$',  df_mapa,abreviacao)
 
   
     grafico_pizza(f"{diretorio}/grafico_pizza_frete{celular}.png","Representatividade por tipo de frete - em R$",groupby_frete_df['freeshipping'],groupby_frete_df['atual'],1,0)
@@ -1062,64 +1066,29 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.image("relatorio_mensal/grafico_h_ticketmedio"+celular+".png",x = 106, y = altura + 106 ,w=95 ) 
 
 
-    
-    # pdf.add_font('OpenSans', '', 'Fonte/Open_Sans/static/OpenSans-Regular.ttf')
-
-    # pdf.set_font('OpenSans', size=12)
-
-    # pdf.set_fill_color(255,255,255)  # Cor cinza
-    # pdf.set_draw_color(103,98,112)  # Cor cinza para a borda
-    
-    # pdf.set_xy(10, 210)
-    # # Adicionar texto com quebra automática e caixa colorida
-    # texto = "Analisando os gráficos, notamos que o faturamento em SP e RJ são os mais expressivos, podemos trabalhar Brasília e BH com alguma campanha de frete e impulsionando o pix nessas regiões assim melhoramos nossos custos com meios de pagamento e cresceremos em maiores regiões."
-    # largura = 190  # Largura da célula
-    # altura = 10    # Altura de cada linha da célula
-
-    # # Adicionar uma célula multilinha com bordas e fundo colorido
-    # pdf.multi_cell(largura, altura, texto, border=1, align='L', fill=True)
-    #  # Definir a cor de fundo para a caixa de texto
-
-
-
     pdf.output(f"{diretorio}/relatorio_mensal_{celular}.pdf")
     
-    
-    # os.remove("relatorio_mensal/cardcompradores"+celular+".png")
-    # os.remove("relatorio_mensal/cardfaturamento"+celular+".png")
-    # os.remove("relatorio_mensal/cardpedidos"+celular+".png")
-    # os.remove("relatorio_mensal/cardticketmedio"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_abc_fatprodutoabc"+celular+".png")
-    # #os.remove("relatorio_mensal/grafico_h_canal"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_h_fatcidade"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_h_precomedio"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_h_ticketmedio"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_h_tipopagmento"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_linha_faturamentopordia"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_mapa_mapa"+celular+".png")
-    # os.remove("relatorio_mensal/grafico_pizza_frete"+celular+".png")
-    # #os.remove("relatorio_mensal/grafico_pizza_sexo"+celular+".png")
-    # #os.remove("relatorio_mensal/titulo_titulo"+celular+".png")
-    # os.remove("relatorio_mensal/logo_"+celular+extensao)
-    
-    
+
 
 def get_logo(logo,celular, diretorio):
     print(logo)
     print(celular)
     print(diretorio)
     
-    # if(logo == ""):
-
-    extensao = '.png'
-    ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-    return extensao
-    # else:   
-    #     #print()
-    #     start_index = logo.rfind(".")
-    #     extensao = logo[start_index:] 
-    #     execute_blob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
-    #     return extensao 
+    if(logo == ""):
+        extensao = '.png'
+        ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
+        return extensao
+    else:   
+        try:
+            start_index = logo.rfind(".")
+            extensao = logo[start_index:] 
+            ExecuteBlob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
+            return extensao 
+        except Exception :
+            extensao = '.png'
+            ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
+            return extensao
 
 # extensao=get_logo("teams-pictures/df911539-d806-4fb6-81cf-25cb4a864c82.webp","11976006919")
 
@@ -1163,3 +1132,5 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**k
     # Remover o diretório após o uso
     shutil.rmtree(diretorio, ignore_errors=True)
     print(f"Diretório temporário {diretorio} removido.")
+
+
