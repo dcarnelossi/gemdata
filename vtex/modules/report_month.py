@@ -58,6 +58,7 @@ except ImportError:
 
 
 data_conection_info = None
+idintegration = None
 celular = None
 mes = None
 logo = None
@@ -671,7 +672,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
           
           """
     
-    df=execute_query_pg(consulta_order,1).query_dataframe()
+    df=WriteJsonToPostgres(data_conection_info,consulta_order).query_dataframe()
 
     
     dfatual = df[(df['dataprincipal'] >= data_inicio) & (df['dataprincipal'] <= data_fim)]
@@ -827,7 +828,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
             namecategory
         """
   
-    df_item=execute_query_pg(consulta_item,1).query_dataframe()
+    df_item=WriteJsonToPostgres(data_conection_info,consulta_item).query_dataframe()
     
   
     # Criando uma tabela pivot
@@ -900,7 +901,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
             
         """
 
-    df_mapa=execute_query_pg(consulta_mapa,1).query_dataframe()
+    df_mapa=WriteJsonToPostgres(data_conection_info,consulta_mapa).query_dataframe()
 
    
     milhao = 0
@@ -1141,7 +1142,9 @@ def criar_pasta_temp(celular):
 
 
 def set_globals(api_info,celphone,month,cami_logo,issendemail,**kwargs):
-    global  idintegration ,celular,mes,logo,isemail
+    global  data_conection_info,idintegration ,celular,mes,logo,isemail
+    data_conection_info = "integrations-data-dev"
+    
     idintegration = api_info
     celular= celphone
     mes= month

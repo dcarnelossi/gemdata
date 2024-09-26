@@ -395,18 +395,12 @@ class WriteJsonToPostgres:
             if self.connection:
                 self.connection.close()
 
-
-class execute_query_pg():
-# aqui é para executar qualquer update, create e etc .. 
- 
-    def __init__(self, data,isbdclient):
-        self.connection = PostgresConnection(isbdclient)
-        self.data = data
-     
+    # def __init__(self, connection_info, data, tablename=None, table_key=None):
+    #     self.connection = PostgresConnection(connection_info)
     def query_dataframe(self):
         
         try:
-        
+            logging.info(self.data)
             #cursor = self.connection.connect().cursor()
             # cursor.execute(self.data)
             # result = cursor.fetchall()
