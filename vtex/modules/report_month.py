@@ -387,6 +387,9 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
     try:
         ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
         ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.shx") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.cpg") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.dbf") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.prj") 
     except Exception as e:
         print(f"Erro ao puxar o mapa{e}")
 
