@@ -136,7 +136,7 @@ def grafico_card(nm_imagem,nm_card,vlatual_card,vlanterior_card,porc_card):
     ax.add_patch(bbox)
 
     # # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
 
     #plt.rcParams['font.family'] = open_sans.get_family()
@@ -209,7 +209,7 @@ def grafico_linha(nm_imagem,titulografico,datas,valores,abreviacao):
     ax.plot(dates, valores, marker='o', linestyle='-', color='#006DCC')
 
     # # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
 
     # plt.rcParams['font.family'] = open_sans.get_family()
@@ -302,7 +302,7 @@ def grafico_horizontal(nm_imagem,titulografico,texto,valores,porc,abreviacao,ist
     ax.barh(textoajustado, valores,color=cor,capstyle='round' )
 
     # # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
 
     # plt.rcParams['font.family'] = open_sans.get_family()
@@ -381,7 +381,7 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
 
 
     # # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
     # plt.rcParams['font.family'] = open_sans.get_family()
     try:
@@ -469,7 +469,7 @@ def grafico_abc(nm_imagem,titulografico,texto,valores,acumporc,abreviacao):
 
     
     # # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
 
     # plt.rcParams['font.family'] = open_sans.get_family()
@@ -567,7 +567,7 @@ def grafico_pizza(nm_imagem,titulografico,texto,valores,abreviacao,isgraficosexo
         
 
     # Caminho para a fonte 'Open Sans'
-    # font_path = 'Fonte/Open_Sans/static/OpenSans-Regular.ttf'
+    # font_path = 'Fonte/Open_Sans/static/Arial-Regular.ttf'
     # open_sans = FontProperties(fname=font_path)
 
     # plt.rcParams['font.family'] = open_sans.get_family()
@@ -1012,8 +1012,8 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     data_inicio_ant_formatado = str(data_inicio_ant).replace(' 00:00:00','').split('-')
     data_fim_ant_formatado = str(data_fim_ant).replace(' 00:00:00','').split('-')
 
-    # pdf.add_font('OpenSans', '', 'Fonte/Open_Sans/static/OpenSans-Regular.ttf')
-    pdf.set_font('OpenSans', size=18)
+    # pdf.add_font('Arial', '', 'Fonte/Open_Sans/static/Arial-Regular.ttf')
+    pdf.set_font('Arial', size=18)
  
     pdf.cell(0, 5, text="Relatório Mensal", align='C')
 
@@ -1021,7 +1021,7 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
 
     mesatualtexto = 'Mês '+ str(mes) + ': '+ data_inicio_formatado[2]+'/'+data_inicio_formatado[1]+'/'+data_inicio_formatado[0]+' até ' + data_fim_formatado[2]+'/'+data_fim_formatado[1]+'/'+data_fim_formatado[0]
     mescompativotexto = "Período comparativo: "+ data_inicio_ant_formatado[2]+'/'+data_inicio_ant_formatado[1]+'/'+data_inicio_ant_formatado[0]+' até ' + data_fim_ant_formatado[2]+'/'+data_fim_ant_formatado[1]+'/'+data_fim_ant_formatado[0]+ ' (mês anterior)'
-    pdf.set_font('OpenSans', size=8)
+    pdf.set_font('Arial', size=8)
     pdf.cell(0, 5, text=mesatualtexto, align='C')
     pdf.ln(4)
     pdf.cell(0, 5,text=mescompativotexto, align='C')
@@ -1051,10 +1051,10 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
      
     #pagina nova (segunda pagina )
     pdf.add_page()
-    pdf.set_font('OpenSans', size=18)
+    pdf.set_font('Arial', size=18)
     pdf.cell(0, 5, text="Relatório Mensal", align='C')
     pdf.ln(5)
-    pdf.set_font('OpenSans', size=8)
+    pdf.set_font('Arial', size=8)
     pdf.cell(0, 5, text=mesatualtexto, align='C')
     pdf.ln(4)
     pdf.cell(0, 5,text=mescompativotexto, align='C')
