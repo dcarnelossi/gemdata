@@ -386,10 +386,15 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
     # plt.rcParams['font.family'] = open_sans.get_family()
     try:
         ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.shx") 
     except Exception as e:
         print(f"Erro ao puxar o mapa{e}")
-            
 
+
+            
+    print(f"{diretorio}/BR_UF_2022.shp")
+    
+          
     # Carregar os dados geográficos
     mapa_br = gpd.read_file(f"{diretorio}/BR_UF_2022.shp")
 
