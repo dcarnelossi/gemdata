@@ -25,6 +25,7 @@ except ImportError:
 
 # Instalar matplotlib se não estiver instalado
 try:
+    install("fpdf2")
     from fpdf import FPDF
 except ImportError:
     print("matplotlib não está instalado. Instalando agora...")
