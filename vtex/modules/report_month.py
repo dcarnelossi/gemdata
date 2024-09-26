@@ -25,7 +25,6 @@ except ImportError:
 
 # Instalar matplotlib se não estiver instalado
 try:
-    install("fpdf2")
     from fpdf import FPDF
 except ImportError:
     print("matplotlib não está instalado. Instalando agora...")
@@ -1069,7 +1068,7 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.image(f"{diretorio}/grafico_h_precomedio{celular}.png",x = 9, y = altura + 106 ,w=95 ) 
     pdf.image(f"{diretorio}/grafico_h_ticketmedio{celular}.png",x = 106, y = altura + 106 ,w=95 ) 
 
-    current_datetime = datetime.now() 
+    current_datetime = datetime.datetime.now() 
     numeric_datetime = current_datetime.strftime('%Y%m%d%H%M')
     pdf.output(f"{diretorio}/relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf")
     
