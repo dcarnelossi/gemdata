@@ -968,19 +968,19 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
 
     # Definindo o intervalo de datas
 
-    data_inicio = datetime.datetime(ano, mes, 1)
+    data_inicio = datetime(ano, mes, 1)
 
 
     if mes == 12:
-        data_fim = datetime.datetime(ano + 1, 1, 1) - datetime.timedelta(days=1)
+        data_fim = datetime(ano + 1, 1, 1) - datetime.timedelta(days=1)
     else:
-        data_fim = datetime.datetime(ano, mes + 1, 1) - datetime.timedelta(days=1)
+        data_fim = datetime(ano, mes + 1, 1) - datetime.timedelta(days=1)
 
 
     data_fim_ant = data_inicio -pd.DateOffset(days=1)
     
     # Definindo o intervalo de datas
-    data_inicio_ant = datetime.datetime(data_fim_ant.year,data_fim_ant.month,1)
+    data_inicio_ant = datetime(data_fim_ant.year,data_fim_ant.month,1)
 
 
     criar_relatorio_mensal(mes,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant,diretorio)
