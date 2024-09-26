@@ -1085,14 +1085,10 @@ def get_logo(logo,celular, diretorio):
         ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
        
     else:   
-        try:
             start_index = logo.rfind(".")
             extensao = logo[start_index:] 
             ExecuteBlob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
-        except Exception as e:
-            extensao = '.png'
-            ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-
+       
     return extensao
 
 

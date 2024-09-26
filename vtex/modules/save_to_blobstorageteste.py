@@ -29,6 +29,8 @@ class ExecuteBlob:
             print(f"Arquivo {blob_name} baixado com sucesso para {download_path}")
         except Exception as e:
             print(f"Erro ao baixar o arquivo: {e}")
+            
+
 
     def upload_file(self, container_name, blob_name, file_path):
         """
