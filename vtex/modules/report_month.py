@@ -393,11 +393,12 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
 
             
     print(f"{diretorio}/BR_UF_2022.shp")
-    
+
           
     # Carregar os dados geográficos
     mapa_br = gpd.read_file(f"{diretorio}/BR_UF_2022.shp")
 
+    print(mapa_br)
  
     # Combinar os dados geográficos com os dados de faturamento
     mapa_br = mapa_br.set_index('SIGLA_UF').join(dataframe.set_index('selectedaddresses_0_state'))
