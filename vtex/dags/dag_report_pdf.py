@@ -7,7 +7,6 @@ from airflow.decorators import task
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models.param import Param
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualenvOperator
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -91,13 +90,12 @@ with DAG(
     },
 ) as dag:
 
-    def my_dag():
-        install_and_run = PythonVirtualenvOperator(
-        task_id="install_and_run",
-        python_callable=report_mensal,
-        requirements=["fpdf2", "matplotlib", "numpy", "pandas", "geopandas"],
-        system_site_packages=False
-        )
+  # Task para instalar as bibliotecas necessárias
+    install_libraries = BashOperator(
+        task_id='install_libraries',
+        bash_command='pip install fpdf matplotlib numpy pandas '
+    )
+
     @task(provide_context=True)
     def report_mensal(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
@@ -128,4 +126,4 @@ with DAG(
 
 
 
-    my_dag()
+    install_libraries >> report_mensal()
