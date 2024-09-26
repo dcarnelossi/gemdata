@@ -13,22 +13,46 @@ def install(package):
 # Instalar matplotlib se não estiver instalado
 try:
     import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
 except ImportError:
     print("matplotlib não está instalado. Instalando agora...")
     install("matplotlib")
     import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from fpdf import FPDF
+except ImportError:
+    print("matplotlib não está instalado. Instalando agora...")
+    install("fpdf2")
+    from fpdf import FPDF
 
 
-
-# #from fpdf import FPDF
-# import matplotlib.pyplot as plt
-# import matplotlib.patches as patches
-# import numpy as np
-# import geopandas as gpd
 # import pandas as pd
 
-# import uuid
-# import shutil
+import uuid
+import shutil
+
+# Instalar matplotlib se não estiver instalado
+try:
+    import numpy as np
+except ImportError:
+    print("matplotlib não está instalado. Instalando agora...")
+    install("numpy")
+    import numpy as np
+
+# Instalar matplotlib se não estiver instalado
+try:
+    import geopandas as gpd
+except ImportError:
+    print("matplotlib não está instalado. Instalando agora...")
+    install("geopandas")
+    import geopandas as gpd
+
+
+
+
 
 data_conection_info = None
 celular = None
