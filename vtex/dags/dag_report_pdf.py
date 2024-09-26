@@ -93,7 +93,7 @@ with DAG(
   # Task para instalar as bibliotecas necessárias
     install_libraries = BashOperator(
         task_id='install_libraries',
-        bash_command='pip install fpdf matplotlib numpy pandas '
+        bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
     )
 
     @task(provide_context=True)
