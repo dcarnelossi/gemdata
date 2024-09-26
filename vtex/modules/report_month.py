@@ -1069,10 +1069,11 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.image(f"{diretorio}/grafico_h_precomedio{celular}.png",x = 9, y = altura + 106 ,w=95 ) 
     pdf.image(f"{diretorio}/grafico_h_ticketmedio{celular}.png",x = 106, y = altura + 106 ,w=95 ) 
 
-
-    pdf.output(f"{diretorio}/relatorio_mensal_{celular}.pdf")
+    current_datetime = datetime.now() 
+    numeric_datetime = current_datetime.strftime('%Y%m%d%H%M')
+    pdf.output(f"{diretorio}/relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf")
     
-    diretoriopdf=f"{diretorio}/relatorio_mensal_{celular}.pdf"
+    diretoriopdf=f"{diretorio}/relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf"
 
     return diretoriopdf
     
@@ -1098,9 +1099,9 @@ def get_logo(logo,celular, diretorio):
 
 
 
-def salvar_pdf_blob(diretoriopdf):
+def salvar_pdf_blob(idintegration,diretoriopdf):
         try:
-            ExecuteBlob().upload_file("reportclient",f"{celular}",diretoriopdf) 
+            ExecuteBlob().upload_file("reportclient",f"{idintegration}",diretoriopdf) 
             print ("PDF gravado no blob com sucesso") 
         except Exception as e:
             print (f"erro ao gravar PDF mensal {e}") 
@@ -1138,8 +1139,9 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**k
     print(diretorio)
 
     extensao=get_logo(logo,celular,diretorio)
-    gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
-    
+    diretoriopdf=gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
+
+    salvar_pdf_blob(idintegration,celular,diretoriopdf)
     
     # Remover o diretório após o uso
     shutil.rmtree(diretorio, ignore_errors=True)
