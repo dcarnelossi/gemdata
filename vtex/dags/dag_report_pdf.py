@@ -90,14 +90,19 @@ with DAG(
     },
 ) as dag:
 
-  # Task para instalar as bibliotecas necessárias
-    install_libraries = BashOperator(
-        task_id='install_libraries',
-        bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
+    def my_dag():
+        install_and_run = PythonVirtualenvOperator(
+        task_id="install_and_run",
+        python_callable=run_report_mensal,
+        requirements=["fpdf2", "matplotlib", "numpy", "pandas", "geopandas"],
+        system_site_packages=False
     )
 
-    @task(provide_context=True)
+        install_and_run
+
+
     def report_mensal(**kwargs):
+
         team_id = kwargs["params"]["PGSCHEMA"]
         celphone = kwargs["params"]["CELULAR"]
         num_mes = kwargs["params"]["MES"]
@@ -124,6 +129,45 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise
 
+    example_dag = my_dag()
 
 
-    install_libraries >> report_mensal()
+
+
+#   # Task para instalar as bibliotecas necessárias
+#     install_libraries = BashOperator(
+#         task_id='install_libraries',
+#         bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
+#     )
+
+#     @task(provide_context=True)
+#     def report_mensal(**kwargs):
+#         team_id = kwargs["params"]["PGSCHEMA"]
+#         celphone = kwargs["params"]["CELULAR"]
+#         num_mes = kwargs["params"]["MES"]
+#         logo = kwargs["params"]["LOGO"]
+#         isemail = kwargs["params"]["SENDEMAIL"]
+
+
+
+
+#         from modules import report_month
+
+#         try:
+
+#             report_month.set_globals(
+#                team_id,
+#                celphone,
+#                num_mes,
+#                logo,
+#                isemail
+#             )
+         
+#             return True
+#         except Exception as e:
+#             logging.exception(f"An unexpected error occurred during DAG - {e}")
+#             raise
+
+
+
+#     install_libraries >> report_mensal()
