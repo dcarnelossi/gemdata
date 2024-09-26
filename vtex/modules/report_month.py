@@ -1068,13 +1068,14 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
 
     pdf.output(f"{diretorio}/relatorio_mensal_{celular}.pdf")
     
+    diretoriopdf=f"{diretorio}/relatorio_mensal_{celular}.pdf"
+
+    return diretoriopdf
+    
 
 
 def get_logo(logo,celular, diretorio):
-    print(logo)
-    print(celular)
-    print(diretorio)
-    
+
     if(logo == ""):
         extensao = '.png'
         ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
@@ -1090,9 +1091,16 @@ def get_logo(logo,celular, diretorio):
             ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
             return extensao
 
-# extensao=get_logo("teams-pictures/df911539-d806-4fb6-81cf-25cb4a864c82.webp","11976006919")
 
-# gerar_pdf(4,"11976006919", "2dd03eaf-cf56-4a5b-bc99-3a06b237ded8",extensao)
+
+
+def salvar_pdf_blob(diretoriopdf):
+        try:
+            ExecuteBlob().upload_file("reportclient",f"{celular}",diretoriopdf) 
+            print ("PDF gravado no blob com sucesso") 
+        except Exception as e:
+            print (f"erro ao gravar PDF mensal {e}") 
+
 
 def criar_pasta_temp(celular):
     #Gera um UUID para criar um diretório único
@@ -1127,7 +1135,7 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**k
 
     extensao=get_logo(logo,celular,diretorio)
     gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
-
+    
     
     # Remover o diretório após o uso
     shutil.rmtree(diretorio, ignore_errors=True)
