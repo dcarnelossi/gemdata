@@ -959,7 +959,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
 
 def gerar_pdf(mes,celular,integration,extensao,diretorio):
     
-    tempo=datetime.datetime.today()
+    tempo=datetime.today()
     if(tempo.month ==1):
         ano = tempo.year-1 #datetime.now()
     else:
