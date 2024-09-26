@@ -47,20 +47,3 @@ class ExecuteBlob:
         except Exception as e:
             print(f"Erro ao enviar o arquivo: {e}")
 
-# Exemplo de uso das funções de download e upload
-if __name__ == "__main__":
-    blob_handler = ExecuteBlob()
-
-    # Baixar um arquivo do Blob Storage
-    blob_handler.get_file(
-        container_name="appgemdata",
-        blob_name="teams-pictures/Logo_GD_preto.png",
-        download_path="/path/para/salvar/logo.png"
-    )
-
-    # Enviar um arquivo para o Blob Storage
-    blob_handler.upload_file(
-        container_name="appgemdata",
-        blob_name="uploads/novo_arquivo.png",
-        file_path="/path/para/o/seu/arquivo/local/arquivo_para_upload.png"
-    )
