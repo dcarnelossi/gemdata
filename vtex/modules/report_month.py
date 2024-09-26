@@ -1083,19 +1083,17 @@ def get_logo(logo,celular, diretorio):
     if(logo == ""):
         extensao = '.png'
         ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-        return extensao
+       
     else:   
         try:
             start_index = logo.rfind(".")
             extensao = logo[start_index:] 
             ExecuteBlob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
-            return extensao 
-        except Exception :
+        except Exception as e:
             extensao = '.png'
             ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-            return extensao
 
-
+    return extensao
 
 
 def salvar_pdf_blob(idintegration,diretoriopdf):
