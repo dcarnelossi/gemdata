@@ -66,7 +66,7 @@ with DAG(
             min_length=1,
             max_length=200,
             default=None,  # Define como None por padrão
-            optional=False,  # Permite que o parâmetro seja opcional
+            optional=True,  # Permite que o parâmetro seja opcional
         ),"MES": Param(
             type="string",
             title="MES:",
