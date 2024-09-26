@@ -10,6 +10,8 @@ import numpy as np
 import geopandas as gpd
 import pandas as pd
 
+import uuid
+import shutil
 
 data_conection_info = None
 celular = None
@@ -136,7 +138,7 @@ def grafico_card(nm_imagem,nm_card,vlatual_card,vlanterior_card,porc_card):
     
 
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/card'+nm_imagem+'.png', dpi=100,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=100,bbox_inches='tight', pad_inches=0)
     plt.close()
     #plt.show()
 
@@ -232,7 +234,7 @@ def grafico_linha(nm_imagem,titulografico,datas,valores,abreviacao):
    
 
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/grafico_linha_'+nm_imagem+'.png', dpi=300,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
     plt.close()
    # plt.show()
 
@@ -323,7 +325,7 @@ def grafico_horizontal(nm_imagem,titulografico,texto,valores,porc,abreviacao,ist
         fig.subplots_adjust(top=0.8,left=0.35,right= 0.70,bottom=0)
 
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/grafico_h_'+nm_imagem+'.png', dpi=300)#,bbox_inches='tight', pad_inches=0
+    plt.savefig(nm_imagem, dpi=300)#,bbox_inches='tight', pad_inches=0
     #plt.show()
     plt.close()
 
@@ -404,7 +406,7 @@ def grafico_mapa(nm_imagem,titulografico,dataframe,abreviacao):
     fig.subplots_adjust(top=0.8 )
     # title.set_position((-0.35, 1)) 
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/grafico_mapa_'+nm_imagem+'.png', dpi=300,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
     #plt.show()
     plt.close()
 
@@ -497,7 +499,7 @@ def grafico_abc(nm_imagem,titulografico,texto,valores,acumporc,abreviacao):
     # Exibindo o gráfico
     #plt.tight_layout()
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/grafico_abc_'+nm_imagem+'.png', dpi=300,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
     plt.close()
    # plt.show()
 
@@ -559,14 +561,14 @@ def grafico_pizza(nm_imagem,titulografico,texto,valores,abreviacao,isgraficosexo
     # Exibindo o gráfico
     #plt.tight_layout()
     # Salvar a imagem
-    plt.savefig('relatorio_mensal/grafico_pizza_'+nm_imagem+'.png', dpi=300,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
 #    plt.show()
     plt.close()
 
 
 
 
-def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant): 
+def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant,diretorio): 
    
    
     consulta_order=f"""
@@ -876,42 +878,43 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
     else:
         abreviacao =0  
 
-            
+     
 
-    grafico_card('faturamento'+celular,'Faturamento', formatar_numerocasas_br(vl_faturamento_atual,0,1),formatar_numerocasas_br(vl_faturamento_anterior,0,1),formatar_numerocasas_br(var_faturamento,1,0))
-    grafico_card('ticketmedio'+celular,'Ticket Médio',formatar_numerocasas_br(vl_tickemedio_atual,0,1),formatar_numerocasas_br(vl_tickemedio_anterior,0,1),formatar_numerocasas_br(var_tickemedio,1,0))
-    grafico_card('pedidos'+celular,'Pedidos',formatar_numerocasas_br (vl_pedidos_atual,0,0),formatar_numerocasas_br(vl_pedidos_anterior,0,0),formatar_numerocasas_br(var_pedidos,1,0))
-    grafico_card('compradores'+celular,'Compradores',formatar_numerocasas_br (qtd_compradores_unicos_atual,0,0),formatar_numerocasas_br(qtd_compradores_unicos_anterior,0,0),formatar_numerocasas_br(var_compradores_unicos,1,0))
+           
+
+    grafico_card(f"{diretorio}/cardfaturamento{celular}.png",'Faturamento', formatar_numerocasas_br(vl_faturamento_atual,0,1),formatar_numerocasas_br(vl_faturamento_anterior,0,1),formatar_numerocasas_br(var_faturamento,1,0))
+    grafico_card(f"{diretorio}/cardticketmedio{celular}.png",'Ticket Médio',formatar_numerocasas_br(vl_tickemedio_atual,0,1),formatar_numerocasas_br(vl_tickemedio_anterior,0,1),formatar_numerocasas_br(var_tickemedio,1,0))
+    grafico_card(f"{diretorio}/cardpedidos{celular}.png",'Pedidos',formatar_numerocasas_br (vl_pedidos_atual,0,0),formatar_numerocasas_br(vl_pedidos_anterior,0,0),formatar_numerocasas_br(var_pedidos,1,0))
+    grafico_card(f"{diretorio}/cardcompradores{celular}.png",'Compradores',formatar_numerocasas_br (qtd_compradores_unicos_atual,0,0),formatar_numerocasas_br(qtd_compradores_unicos_anterior,0,0),formatar_numerocasas_br(var_compradores_unicos,1,0))
     
-    grafico_linha("faturamentopordia"+celular,"Faturamento por dia - em R$",groupby_fat_df['dataprincipal'],groupby_fat_df['faturamentodia'],abreviacao)
+    grafico_linha(f"{diretorio}/grafico_linha_faturamentopordia{celular}.png","Faturamento por dia - em R$",groupby_fat_df['dataprincipal'],groupby_fat_df['faturamentodia'],abreviacao)
 
     #grafico_horizontal("canal"+celular,"Top 10 faturamentos por canais - em R$",groupby_canal_df['saleschannel'],groupby_canal_df['atual'],groupby_canal_df['varfaturamento'],abreviacao)
   
-  
-    grafico_horizontal("precomedio"+celular,"Preço médio por produto - em R$",groupby_sku_preco_df['namesku'],groupby_sku_preco_df['atual'],groupby_sku_preco_df['varfaturamento'],abreviacao,2)
-  
-    grafico_horizontal("ticketmedio"+celular,"Ticket médio por produto - em R$",groupby_sku_ticket_df['namesku'],groupby_sku_ticket_df['atual'],groupby_sku_ticket_df['varfaturamento'],abreviacao,3)
 
-    grafico_horizontal("tipopagmento"+celular,"Formas de pagamento mais utilizadas - em R$",groupby_pagamento_df['paymentnames'],groupby_pagamento_df['atual'],groupby_pagamento_df['varfaturamento'],abreviacao,1)
+    grafico_horizontal(f"{diretorio}/grafico_h_precomedio{celular}.png","Preço médio por produto - em R$",groupby_sku_preco_df['namesku'],groupby_sku_preco_df['atual'],groupby_sku_preco_df['varfaturamento'],abreviacao,2)
   
-    grafico_abc("fatprodutoabc"+celular,"Top 10 produtos mais vendidos - em R$",groupby_sku_df['namesku'],groupby_sku_df['atual'],groupby_sku_df['percacumulado'],abreviacao)
+    grafico_horizontal(f"{diretorio}/grafico_h_ticketmedio{celular}.png","Ticket médio por produto - em R$",groupby_sku_ticket_df['namesku'],groupby_sku_ticket_df['atual'],groupby_sku_ticket_df['varfaturamento'],abreviacao,3)
+
+    grafico_horizontal(f"{diretorio}/grafico_h_tipopagmento{celular}.png","Formas de pagamento mais utilizadas - em R$",groupby_pagamento_df['paymentnames'],groupby_pagamento_df['atual'],groupby_pagamento_df['varfaturamento'],abreviacao,1)
+
+    grafico_abc(f"{diretorio}/grafico_abc_fatprodutoabc{celular}.png","Top 10 produtos mais vendidos - em R$",groupby_sku_df['namesku'],groupby_sku_df['atual'],groupby_sku_df['percacumulado'],abreviacao)
    
-    grafico_mapa('mapa'+celular,'Top 5 faturamento por estado - em R$',  df_mapa,abreviacao)
+    grafico_mapa(f"{diretorio}/grafico_mapa_mapa{celular}.png",'Top 5 faturamento por estado - em R$',  df_mapa,abreviacao)
 
-    
-    grafico_pizza("frete"+celular,"Representatividade por tipo de frete - em R$",groupby_frete_df['freeshipping'],groupby_frete_df['atual'],1,0)
-    
+  
+    grafico_pizza(f"{diretorio}/grafico_pizza_frete{celular}.png","Representatividade por tipo de frete - em R$",groupby_frete_df['freeshipping'],groupby_frete_df['atual'],1,0)
         
     #grafico_pizza("sexo"+celular,"Faturamento por sexo - em R$",groupby_sexo_df['sexo'],groupby_sexo_df['atual'],1,1)
 
-    grafico_horizontal("fatcidade"+celular,"Top 10 faturamento por cidade - em R$",groupby_cidade_df['selectedaddresses_0_city'],groupby_cidade_df['atual'],groupby_cidade_df['varfaturamento'],abreviacao,1)
+    grafico_horizontal(f"{diretorio}/grafico_h_fatcidade{celular}.png","Top 10 faturamento por cidade - em R$",groupby_cidade_df['selectedaddresses_0_city'],groupby_cidade_df['atual'],groupby_cidade_df['varfaturamento'],abreviacao,1)
  
 
 
 
 
 
-def gerar_pdf(mes,celular,integration,extensao):
+def gerar_pdf(mes,celular,integration,extensao,diretorio):
     
     tempo=datetime.datetime.today()
     if(tempo.month ==1):
@@ -937,7 +940,7 @@ def gerar_pdf(mes,celular,integration,extensao):
     data_inicio_ant = datetime.datetime(data_fim_ant.year,data_fim_ant.month,1)
 
 
-    criar_relatorio_mensal(mes,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant)
+    criar_relatorio_mensal(mes,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant,diretorio)
 
 
 
@@ -1034,44 +1037,57 @@ def gerar_pdf(mes,celular,integration,extensao):
 
 
 
-    pdf.output("relatorio_mensal/relatorio_mensal_"+celular+".pdf")
+    pdf.output(f"{diretorio}/relatorio_mensal_{celular}.pdf")
     
-    os.remove("relatorio_mensal/cardcompradores"+celular+".png")
-    os.remove("relatorio_mensal/cardfaturamento"+celular+".png")
-    os.remove("relatorio_mensal/cardpedidos"+celular+".png")
-    os.remove("relatorio_mensal/cardticketmedio"+celular+".png")
-    os.remove("relatorio_mensal/grafico_abc_fatprodutoabc"+celular+".png")
-    #os.remove("relatorio_mensal/grafico_h_canal"+celular+".png")
-    os.remove("relatorio_mensal/grafico_h_fatcidade"+celular+".png")
-    os.remove("relatorio_mensal/grafico_h_precomedio"+celular+".png")
-    os.remove("relatorio_mensal/grafico_h_ticketmedio"+celular+".png")
-    os.remove("relatorio_mensal/grafico_h_tipopagmento"+celular+".png")
-    os.remove("relatorio_mensal/grafico_linha_faturamentopordia"+celular+".png")
-    os.remove("relatorio_mensal/grafico_mapa_mapa"+celular+".png")
-    os.remove("relatorio_mensal/grafico_pizza_frete"+celular+".png")
-    #os.remove("relatorio_mensal/grafico_pizza_sexo"+celular+".png")
-    #os.remove("relatorio_mensal/titulo_titulo"+celular+".png")
-    os.remove("relatorio_mensal/logo_"+celular+extensao)
+    
+    # os.remove("relatorio_mensal/cardcompradores"+celular+".png")
+    # os.remove("relatorio_mensal/cardfaturamento"+celular+".png")
+    # os.remove("relatorio_mensal/cardpedidos"+celular+".png")
+    # os.remove("relatorio_mensal/cardticketmedio"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_abc_fatprodutoabc"+celular+".png")
+    # #os.remove("relatorio_mensal/grafico_h_canal"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_h_fatcidade"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_h_precomedio"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_h_ticketmedio"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_h_tipopagmento"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_linha_faturamentopordia"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_mapa_mapa"+celular+".png")
+    # os.remove("relatorio_mensal/grafico_pizza_frete"+celular+".png")
+    # #os.remove("relatorio_mensal/grafico_pizza_sexo"+celular+".png")
+    # #os.remove("relatorio_mensal/titulo_titulo"+celular+".png")
+    # os.remove("relatorio_mensal/logo_"+celular+extensao)
     
     
 
-def get_logo(logo,celular):
+def get_logo(logo,celular, diretorio):
  
     if(logo == ""):
         extensao = '.png'
-        execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png","./relatorio_mensal/logo_"+celular+extensao) 
+        execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
         return extensao
     else:   
         #print()
         start_index = logo.rfind(".")
         extensao = logo[start_index:] 
-        execute_blob().get_file("appgemdata",logo,"./relatorio_mensal/logo_"+celular+ extensao) 
+        execute_blob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
         return extensao 
 
 # extensao=get_logo("teams-pictures/df911539-d806-4fb6-81cf-25cb4a864c82.webp","11976006919")
 
 # gerar_pdf(4,"11976006919", "2dd03eaf-cf56-4a5b-bc99-3a06b237ded8",extensao)
 
+def criar_pasta_temp(celular):
+    #Gera um UUID para criar um diretório único
+    unique_id = uuid.uuid4().hex
+    temp_dir = f"/opt/airflow/temp/{unique_id}_{celular}"
+
+    # Cria o diretório
+    os.makedirs(temp_dir, exist_ok=True)
+
+    return temp_dir
+
+    # Exemplo de caminho para salvar arquivos dentro do diretório temporário
+    #temp_file_path = os.path.join(temp_dir, 'imagem.png')
 
 
 
@@ -1083,14 +1099,16 @@ def set_globals(api_info,celphone,month,cami_logo,issendemail,**kwargs):
     mes= month
     logo= cami_logo
     isemail= issendemail
-   
-
-
     if not all([idintegration,celular,mes]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
 
-    extensao=get_logo(logo,celular)
-    gerar_pdf(int(mes), celular,idintegration,extensao)
+    diretorio=criar_pasta_temp(celular)
 
+    extensao=get_logo(logo,celular,diretorio)
+    gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
 
+    
+    # Remover o diretório após o uso
+    shutil.rmtree(diretorio, ignore_errors=True)
+    print(f"Diretório temporário {diretorio} removido.")
