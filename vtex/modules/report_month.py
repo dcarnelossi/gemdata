@@ -6,6 +6,8 @@ from modules.save_to_blobstorageteste import *
 import subprocess
 import sys
 
+import os
+
 # Função para instalar um pacote via pip
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
