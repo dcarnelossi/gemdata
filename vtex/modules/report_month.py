@@ -1,7 +1,7 @@
 
 from modules.dbpgconn import *
 
-from modules.save_to_blobstorage import *
+from modules.save_to_blobstorageteste import *
 
 import subprocess
 import sys
