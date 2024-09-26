@@ -1,7 +1,7 @@
 
-from dbpgconn import *
+from modules.dbpgconn import *
 
-from save_to_blobstorage import *
+from modules.save_to_blobstorage import *
 
 from fpdf import FPDF
 import matplotlib.pyplot as plt

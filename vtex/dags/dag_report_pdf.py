@@ -62,7 +62,7 @@ with DAG(
         )
         ,"LOGO": Param(
             type="string",
-            title="logo:",
+            title="Caminho logo:",
             description="Enter com caminho do logo (opcional)",
             section="Important params",
             min_length=1,
@@ -71,7 +71,7 @@ with DAG(
             optional=True,  # Permite que o parâmetro seja opcional
         ),"MES": Param(
             type="string",
-            title="PGSCHEMA:",
+            title="MES:",
             description="Enter the integration PGSCHEMA.",
             section="Important params",
             min_length=1,
