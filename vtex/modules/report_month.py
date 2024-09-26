@@ -1110,7 +1110,7 @@ def get_logo(logo,celular, diretorio):
     # if(logo == ""):
 
     extensao = '.png'
-    execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
+    ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
     return extensao
     # else:   
     #     #print()
