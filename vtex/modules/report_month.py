@@ -3,7 +3,7 @@ from modules.dbpgconn import *
 
 from modules.save_to_blobstorage import *
 
-#from fpdf import FPDF
+from fpdf import FPDF
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
