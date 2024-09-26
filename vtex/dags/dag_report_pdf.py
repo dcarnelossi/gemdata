@@ -91,64 +91,41 @@ with DAG(
     },
 ) as dag:
 
-    def my_dag():
-        install_and_run = PythonVirtualenvOperator(
-        task_id="install_and_run",
-        python_callable=report_mensal,
-        requirements=["fpdf2", "matplotlib", "numpy", "pandas", "geopandas"],
-        system_site_packages=False
-    )
-
-        install_and_run
-
-
-    def report_mensal(**kwargs):
-        from fpdf import FPDF
-        import matplotlib.pyplot as plt
-        import matplotlib.patches as patches
-        import numpy as np
-        import geopandas as gpd
-        import pandas as pd
-
-        import uuid
-        import shutil    
-
-    example_dag = my_dag()
-
 #   # Task para instalar as bibliotecas necessárias
 #     install_libraries = BashOperator(
 #         task_id='install_libraries',
 #         bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
 #     )
 
-#     @task(provide_context=True)
-#     def report_mensal(**kwargs):
-#         team_id = kwargs["params"]["PGSCHEMA"]
-#         celphone = kwargs["params"]["CELULAR"]
-#         num_mes = kwargs["params"]["MES"]
-#         logo = kwargs["params"]["LOGO"]
-#         isemail = kwargs["params"]["SENDEMAIL"]
+    @task(provide_context=True)
+    def report_mensal(**kwargs):
+        team_id = kwargs["params"]["PGSCHEMA"]
+        celphone = kwargs["params"]["CELULAR"]
+        num_mes = kwargs["params"]["MES"]
+        logo = kwargs["params"]["LOGO"]
+        isemail = kwargs["params"]["SENDEMAIL"]
 
 
 
 
-#         from modules import report_month
+        from modules import report_month
 
-#         try:
+        try:
 
-#             report_month.set_globals(
-#                team_id,
-#                celphone,
-#                num_mes,
-#                logo,
-#                isemail
-#             )
+            report_month.set_globals(
+               team_id,
+               celphone,
+               num_mes,
+               logo,
+               isemail
+            )
          
-#             return True
-#         except Exception as e:
-#             logging.exception(f"An unexpected error occurred during DAG - {e}")
-#             raise
+            return True
+        except Exception as e:
+            logging.exception(f"An unexpected error occurred during DAG - {e}")
+            raise
 
 
 
-#     install_libraries >> report_mensal()
+    # install_libraries >> 
+    report_mensal()

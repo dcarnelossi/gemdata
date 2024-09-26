@@ -3,15 +3,32 @@ from modules.dbpgconn import *
 
 from modules.save_to_blobstorage import *
 
-#from fpdf import FPDF
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import numpy as np
-import geopandas as gpd
-import pandas as pd
+import subprocess
+import sys
 
-import uuid
-import shutil
+# Função para instalar um pacote via pip
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Instalar matplotlib se não estiver instalado
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    print("matplotlib não está instalado. Instalando agora...")
+    install("matplotlib")
+    import matplotlib.pyplot as plt
+
+
+
+# #from fpdf import FPDF
+# import matplotlib.pyplot as plt
+# import matplotlib.patches as patches
+# import numpy as np
+# import geopandas as gpd
+# import pandas as pd
+
+# import uuid
+# import shutil
 
 data_conection_info = None
 celular = None
