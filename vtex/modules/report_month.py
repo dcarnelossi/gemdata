@@ -1138,7 +1138,7 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**k
     extensao=get_logo(logo,celular,diretorio)
     diretoriopdf=gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
 
-    salvar_pdf_blob(idintegration,celular,diretoriopdf)
+    salvar_pdf_blob(idintegration,diretoriopdf)
     
     # Remover o diretório após o uso
     shutil.rmtree(diretorio, ignore_errors=True)
