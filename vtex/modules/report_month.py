@@ -1105,17 +1105,17 @@ def get_logo(logo,celular, diretorio):
     print(celular)
     print(diretorio)
     
-    if(logo == ""):
+    # if(logo == ""):
 
-        extensao = '.png'
-        execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-        return extensao
-    else:   
-        #print()
-        start_index = logo.rfind(".")
-        extensao = logo[start_index:] 
-        execute_blob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
-        return extensao 
+    extensao = '.png'
+    execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
+    return extensao
+    # else:   
+    #     #print()
+    #     start_index = logo.rfind(".")
+    #     extensao = logo[start_index:] 
+    #     execute_blob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
+    #     return extensao 
 
 # extensao=get_logo("teams-pictures/df911539-d806-4fb6-81cf-25cb4a864c82.webp","11976006919")
 
