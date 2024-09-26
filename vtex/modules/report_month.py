@@ -1145,7 +1145,8 @@ def set_globals(api_info,celphone,month,cami_logo,issendemail,**kwargs):
         raise ValueError("All global connection information must be provided.")
 
     diretorio=criar_pasta_temp(celular)
-
+    print(diretorio)
+    
     extensao=get_logo(logo,celular,diretorio)
     gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
 
