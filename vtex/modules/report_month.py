@@ -387,22 +387,15 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
     try:
         ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
         ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.shx") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.cpg") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.dbf") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.prj") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.cpg",f"{diretorio}/BR_UF_2022.cpg") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.dbf",f"{diretorio}/BR_UF_2022.dbf") 
+        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.prj",f"{diretorio}/BR_UF_2022.prj") 
     except Exception as e:
         print(f"Erro ao puxar o mapa{e}")
-
-
-            
-    print(f"{diretorio}/BR_UF_2022.shp")
-
           
     # Carregar os dados geográficos
     mapa_br = gpd.read_file(f"{diretorio}/BR_UF_2022.shp")
 
-    print(mapa_br)
- 
     # Combinar os dados geográficos com os dados de faturamento
     mapa_br = mapa_br.set_index('SIGLA_UF').join(dataframe.set_index('selectedaddresses_0_state'))
     mapa_br['faturamento']=mapa_br['faturamento'].fillna(0)
