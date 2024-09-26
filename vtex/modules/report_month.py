@@ -1026,6 +1026,7 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.ln(4)
     pdf.cell(0, 5,text=mescompativotexto, align='C')
     
+    
     #colocando logo do lado esquerdo
     pdf.image("relatorio_mensal/logo_"+celular+extensao, x = 15, y = 15 , w = 20)
 
