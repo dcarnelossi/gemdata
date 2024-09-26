@@ -1013,16 +1013,16 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     data_fim_ant_formatado = str(data_fim_ant).replace(' 00:00:00','').split('-')
 
     # pdf.add_font('OpenSans', '', 'Fonte/Open_Sans/static/OpenSans-Regular.ttf')
-    # pdf.set_font('OpenSans', size=18)
+    pdf.set_font('OpenSans', size=18)
  
-    pdf.cell(0, 5, text="Relatório Mensal", align='C', size=18)
+    pdf.cell(0, 5, text="Relatório Mensal", align='C')
 
     pdf.ln(5)
 
     mesatualtexto = 'Mês '+ str(mes) + ': '+ data_inicio_formatado[2]+'/'+data_inicio_formatado[1]+'/'+data_inicio_formatado[0]+' até ' + data_fim_formatado[2]+'/'+data_fim_formatado[1]+'/'+data_fim_formatado[0]
     mescompativotexto = "Período comparativo: "+ data_inicio_ant_formatado[2]+'/'+data_inicio_ant_formatado[1]+'/'+data_inicio_ant_formatado[0]+' até ' + data_fim_ant_formatado[2]+'/'+data_fim_ant_formatado[1]+'/'+data_fim_ant_formatado[0]+ ' (mês anterior)'
-    #pdf.set_font('OpenSans', size=8)
-    pdf.cell(0, 5, text=mesatualtexto, align='C', size=8)
+    pdf.set_font('OpenSans', size=8)
+    pdf.cell(0, 5, text=mesatualtexto, align='C')
     pdf.ln(4)
     pdf.cell(0, 5,text=mescompativotexto, align='C')
     
@@ -1051,8 +1051,8 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
      
     #pagina nova (segunda pagina )
     pdf.add_page()
-    #pdf.set_font('OpenSans', size=18)
-    pdf.cell(0, 5, text="Relatório Mensal", align='C',size=18)
+    pdf.set_font('OpenSans', size=18)
+    pdf.cell(0, 5, text="Relatório Mensal", align='C')
     pdf.ln(5)
     pdf.set_font('OpenSans', size=8)
     pdf.cell(0, 5, text=mesatualtexto, align='C')
