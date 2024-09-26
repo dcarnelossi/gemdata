@@ -1101,8 +1101,12 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     
 
 def get_logo(logo,celular, diretorio):
- 
+    print(logo)
+    print(celular)
+    print(diretorio)
+    
     if(logo == ""):
+
         extensao = '.png'
         execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
         return extensao
@@ -1146,7 +1150,7 @@ def set_globals(api_info,celphone,month,cami_logo,issendemail,**kwargs):
 
     diretorio=criar_pasta_temp(celular)
     print(diretorio)
-    
+
     extensao=get_logo(logo,celular,diretorio)
     gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
 
