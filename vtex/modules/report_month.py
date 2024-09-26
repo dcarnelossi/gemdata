@@ -1141,10 +1141,9 @@ def criar_pasta_temp(celular):
 
 
 
-def set_globals(api_info,celphone,month,cami_logo,issendemail,**kwargs):
+def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**kwargs):
     global  data_conection_info,idintegration ,celular,mes,logo,isemail
-    data_conection_info = "integrations-data-dev"
-    
+    data_conection_info = data_conection
     idintegration = api_info
     celular= celphone
     mes= month

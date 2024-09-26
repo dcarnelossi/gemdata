@@ -10,11 +10,8 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonVirtualenvOperator
 
 from modules.dags_common_functions import (
-    get_coorp_conection_info,
     get_data_conection_info,
-    integrationInfo,
-    get_api_conection_info,
-    get_import_last_rum_date,
+
 )
 
 # Lista de requisitos
@@ -105,7 +102,7 @@ with DAG(
         logo = kwargs["params"]["LOGO"]
         isemail = kwargs["params"]["SENDEMAIL"]
 
-
+        data_conection_info = get_data_conection_info(team_id)
 
 
         from modules import report_month
@@ -113,6 +110,7 @@ with DAG(
         try:
 
             report_month.set_globals(
+               data_conection_info,
                team_id,
                celphone,
                num_mes,
