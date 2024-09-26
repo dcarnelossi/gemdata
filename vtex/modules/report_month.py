@@ -1028,27 +1028,27 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     
 
     #colocando logo do lado esquerdo
-    pdf.image("relatorio_mensal/logo_"+celular+extensao, x = 15, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
 
     #colocando logo do lado direito
-    pdf.image("relatorio_mensal/logo_"+celular+extensao, x = 180, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
 
     # # cards
-    pdf.image("relatorio_mensal/cardfaturamento"+celular+".png", x = 10, y = altura + 10, w = 47)
-    pdf.image("relatorio_mensal/cardpedidos"+celular+".png", x = 58, y =altura +  10, w = 47)
-    pdf.image("relatorio_mensal/cardticketmedio"+celular+".png", x = 106, y = altura + 10, w = 47)
-    pdf.image("relatorio_mensal/cardcompradores"+celular+".png", x = 154, y = altura + 10, w = 47)
+    pdf.image(f"{diretorio}/cardfaturamento{celular}.png", x = 10, y = altura + 10, w = 47)
+    pdf.image(f"{diretorio}/cardpedidos{celular}.png", x = 58, y =altura +  10, w = 47)
+    pdf.image(f"{diretorio}/cardticketmedio{celular}.png", x = 106, y = altura + 10, w = 47)
+    pdf.image(f"{diretorio}/cardcompradores{celular}.png", x = 154, y = altura + 10, w = 47)
     
     #grafico de linha faixa inteira (parte a1 e a2 ) 
-    pdf.image("relatorio_mensal/grafico_linha_faturamentopordia"+celular+".png", x = 10, y =altura + 32, w = 190,h=90 )   
+    pdf.image(f"{diretorio}/grafico_linha_faturamentopordia{celular}.png", x = 10, y =altura + 32, w = 190,h=90 )   
     #grafico de pizza (parte b1)
-    pdf.image("relatorio_mensal/grafico_pizza_frete"+celular+".png",  x = 10, y = altura +126 ,w=95,h = 72  ) 
+    pdf.image(f"{diretorio}/grafico_pizza_frete{celular}.png",  x = 10, y = altura +126 ,w=95,h = 72  ) 
     #grafico de tipo de pagamento (parte b2)
-    pdf.image("relatorio_mensal/grafico_h_tipopagmento"+celular+".png", x = 106, y =altura + 125.5 ,w=95 ,h = 73) 
+    pdf.image(f"{diretorio}/grafico_h_tipopagmento{celular}.png", x = 106, y =altura + 125.5 ,w=95 ,h = 73) 
     #grafico de mapa (parte c1)
-    pdf.image("relatorio_mensal/grafico_mapa_mapa"+celular+".png", x = 10, y = altura +202 ,w=95,h = 72 ) 
+    pdf.image(f"{diretorio}/grafico_mapa_mapa{celular}.png", x = 10, y = altura +202 ,w=95,h = 72 ) 
     #grafico de faturamento por cidade (parte c2) 
-    pdf.image("relatorio_mensal/grafico_h_fatcidade"+celular+".png", x = 106, y =altura +201.5 ,w=95,h = 73 ) 
+    pdf.image(f"{diretorio}/grafico_h_fatcidade{celular}.png", x = 106, y =altura +201.5 ,w=95,h = 73 ) 
      
     #pagina nova (segunda pagina )
     pdf.add_page()
@@ -1060,13 +1060,13 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.ln(4)
     pdf.cell(0, 5,txt=mescompativotexto, align='C')
     #colocando logo do lado esquerdo
-    pdf.image("relatorio_mensal/logo_"+celular+extensao, x = 15, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
     #colocando logo do lado direito
-    pdf.image("relatorio_mensal/logo_"+celular+extensao, x = 180, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
 
-    pdf.image("relatorio_mensal/grafico_abc_fatprodutoabc"+celular+".png",x = 10,  y = altura + 12 ,w = 190 ,h=90) 
-    pdf.image("relatorio_mensal/grafico_h_precomedio"+celular+".png",x = 9, y = altura + 106 ,w=95 ) 
-    pdf.image("relatorio_mensal/grafico_h_ticketmedio"+celular+".png",x = 106, y = altura + 106 ,w=95 ) 
+    pdf.image(f"{diretorio}/grafico_abc_fatprodutoabc{celular}.png",x = 10,  y = altura + 12 ,w = 190 ,h=90) 
+    pdf.image(f"{diretorio}/grafico_h_precomedio{celular}.png",x = 9, y = altura + 106 ,w=95 ) 
+    pdf.image(f"{diretorio}/grafico_h_ticketmedio{celular}.png",x = 106, y = altura + 106 ,w=95 ) 
 
 
     pdf.output(f"{diretorio}/relatorio_mensal_{celular}.pdf")
