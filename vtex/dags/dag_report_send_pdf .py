@@ -52,7 +52,7 @@ with DAG(
         )
        ,"SENDEMAIL": Param(
             type="boolean",
-            title="ISDAILY:",
+            title="SEND EMAIL:",
             description="Enter com False (processo whatsapp) ou True (processo email) .",
             section="Important params",
             min_length=1,
@@ -71,7 +71,9 @@ with DAG(
 
     },
 ) as dag:
-
+    team_id = ["params"]["PGSCHEMA"]
+    isemail = ["params"]["SENDEMAIL"] 
+    caminho_pdf = ["params"]["FILEPDF"]
                 # team_id = kwargs["params"]["PGSCHEMA"]
         # caminho_pdf = kwargs["params"]["FILEPDF"]
         # isemail = kwargs["params"]["SENDEMAIL"] 
@@ -84,8 +86,8 @@ with DAG(
 
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
-        team_id = kwargs["params"]["PGSCHEMA"]
-        caminho_pdf = kwargs["params"]["FILEPDF"]
+        
+        
         from modules import save_to_blob
         diretorio = f"/opt/airflow/temp/{caminho_pdf}"
         save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
@@ -93,7 +95,6 @@ with DAG(
 
 
     def report_baixar_email(**kwargs):
-        team_id = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -124,9 +125,9 @@ with DAG(
             ii.is_active = true 
                 """
         
-            resultado_logo = hook.get_records(query)
+            resultado_emails = hook.get_records(query)
       
-            print(resultado_logo)
+            print(resultado_emails)
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
 
