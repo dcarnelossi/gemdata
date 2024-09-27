@@ -72,18 +72,63 @@ with DAG(
     },
 ) as dag:
 
+                # team_id = kwargs["params"]["PGSCHEMA"]
+        # caminho_pdf = kwargs["params"]["FILEPDF"]
+        # isemail = kwargs["params"]["SENDEMAIL"] 
+        # print(team_id)
+        # print(caminho_pdf)
+        # print(isemail)
+
+        # if not isemail:
+        #     print("Aqui enviar para whats")
+
     @task(provide_context=True)
-    def report_pdf(**kwargs):
-     
-            team_id = kwargs["params"]["PGSCHEMA"]
-            tiporela = kwargs["params"]["FILEPDF"]
-            isemail = kwargs["params"]["SENDEMAIL"] 
-            print(team_id)
-            print(tiporela)
-            print(isemail)
-
-                 
-    report_pdf()
+    def report_baixar_pdf(**kwargs):
+        team_id = kwargs["params"]["PGSCHEMA"]
+        caminho_pdf = kwargs["params"]["FILEPDF"]
+        from modules import save_to_blob
+        diretorio = f"/opt/airflow/temp/{caminho_pdf}"
+        save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
+        return diretorio
 
 
+    def report_baixar_email(**kwargs):
+        team_id = kwargs["params"]["PGSCHEMA"]
+        try:
+            # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            query = f"""
+ 
+            select distinct 
+            
+            us.username
+           
+            from integrations_integration ii 
+
+            inner join public.teams_team te on 
+            te.ID = ii.team_id
+
+            inner join  public.teams_membership ms on 
+            ms.team_id=  te.id
+            
+            inner join public.users_customuser us on 
+            us.id = ms.user_id 
+
+            where 
+            ii .id = '{team_id}'
+            and 
+            us.is_active is true
+            and 
+            ii.infra_create_status =  true 
+            and 
+            ii.is_active = true 
+                """
+        
+            resultado_logo = hook.get_records(query)
+      
+            print(resultado_logo)
+        except Exception as e:
+            logging.exception(f"deu erro ao achar o caminho do logo - {e}")
+
+    report_baixar_email()    
     
