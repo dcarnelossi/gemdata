@@ -161,10 +161,10 @@ with DAG(
     
 
     @task(provide_context=True)
-    def decide_process(ti,**kwargs):
+    def decide_process(ti,ta,**kwargs):
         tiporelatorio= kwargs["params"]["TYPREREPORT"]
         listaemail_recebido = ti.xcom_pull(task_ids='report_baixar_email')
-        filepdf_recebido = ti.xcom_pull(task_ids='report_baixar_pdf')
+        filepdf_recebido = ta.xcom_pull(task_ids='report_baixar_pdf')
 
         if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
@@ -180,6 +180,7 @@ with DAG(
             print("aaaaaaaaaaaaaa")
        
     decidir=decide_enviar_email()   
+    print(decidir)
     if decidir:
         listemail=report_baixar_email()
         filepdf=report_baixar_pdf()
