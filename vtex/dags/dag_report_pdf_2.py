@@ -133,8 +133,8 @@ with DAG(
             
 
         print(caminho_logo)
-        
 
+        
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
