@@ -58,6 +58,7 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=10,
+            default=False,  # Valor padrão selecionado
         ),
         "FILEPDF": Param(
             type="string",
@@ -66,6 +67,7 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=200,
+            default=None,  # Valor padrão selecionado
                        
         )   ,"TYPREREPORT": Param(
             type="string",
