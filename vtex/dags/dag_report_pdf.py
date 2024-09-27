@@ -192,26 +192,19 @@ with DAG(
         return caminho_pdf
 
     
-   
+    cam_pdf = report_pdf()
 
-    @task(provide_context=True)   
-    def trigger_dag_report_send_pdf (caminho_pdf):
-        TriggerDagRunOperator(
+    #@task(provide_context=True)   
+    trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
         trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
         conf={
                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
                 "SENDEMAIL": "{{ params.SENDEMAIL }}",
-                "FILEPDF": caminho_pdf
+                "FILEPDF": cam_pdf
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
-    executar = report_pdf()
-    tigger =trigger_dag_report_send_pdf(executar)
-
-    executar >> tigger
-
-
-    
+    trigger_dag_report_send_pdf
 
 
