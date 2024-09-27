@@ -716,7 +716,7 @@ def gerar_pdf(semana,celular,integration,extensao,diretorio):
    
 
 
-    criar_relatorio_semanal(semana,celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant,diretorio)
+    criar_relatorio_semanal(celular,integration,data_inicio,data_fim,data_inicio_ant,data_fim_ant,diretorio)
 
 
     pdf = FPDF(format='A4')
