@@ -189,28 +189,34 @@ with DAG(
         else:
             print("Opção de relatório desconhecida.")
      
+        # Retornando as variáveis para serem usadas pelo TriggerDagRunOperator
+        return team_id, isemail, caminho_pdf
 
-        trigger_send_pdf(team_id,isemail,caminho_pdf)
-
+       
 
 
     
-    
-    @task(provide_context=True)
-    def trigger_send_pdf(PGSCHEMA,SENDEMAIL,caminho_pdf,**kwargs):
-        TriggerDagRunOperator(
-            task_id=f"trigger_dag_send_pdf",
+    # Definindo o operador TriggerDagRunOperator
+    def trigger_dag(task_instance, **kwargs):
+        # Pegando os valores retornados pela função report_pdf
+        PGSCHEMA, SENDEMAIL, FILEPDF = task_instance.xcom_pull(task_ids='report_pdf')
+
+        # Configurando o TriggerDagRunOperator
+        return TriggerDagRunOperator(
+            task_id="trigger_dag_send_pdf",
             trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
             conf={
                 "PGSCHEMA": PGSCHEMA,
-                "SENDEMAIL":SENDEMAIL ,
-                "FILEPDF": caminho_pdf
-
-            },  # Se precisar passar informações adicionais para a DAG_B
+                "SENDEMAIL": SENDEMAIL,
+                "FILEPDF": FILEPDF
+            }
         ).execute(context=kwargs)
-        # Configurando a dependência entre as tasks
 
     
-    report_pdf()
+    # Encadeando as tasks
+    report = report_pdf()
+    trigger = trigger_dag(report)
+
+    report >> trigger
 
 
