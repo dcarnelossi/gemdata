@@ -142,7 +142,7 @@ with DAG(
         # Operador para enviar o e-mail
         return  EmailOperator(
             task_id='send_email',
-            to= destinatario,  # Defina o destinatário
+            to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
             subject= assunto,
             html_content=corpo_email,
             files=[anexo],  # Esta lista será preenchida condicionalmente
