@@ -55,7 +55,7 @@ with DAG(
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
             enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
-            default=None,  # Valor padrão selecionado
+     #       default=None,  # Valor padrão selecionado
         )
         ,"CELULAR": Param(
             type="string",
