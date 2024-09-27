@@ -1128,6 +1128,8 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,caminho_pdf,**k
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
 
+    print("aquiiiiiiiiii")
+    print(logo[0])    
     diretorio=criar_pasta_temp(celular)
     print(diretorio)
 
