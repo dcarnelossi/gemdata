@@ -67,22 +67,18 @@ with DAG(
             default="5511999999999",  # Define como None por padrão
           
         )
-        # ,"DATAINI": Param(
-        #     type="date",
-        #     title="Data inicio:",
-        #     description="Enter the start date  (ex:2024-10-01).",
-        #     section="Important params",
-        #     min_length=10,
-        #     max_length=10,
-        #  )
-        # ,"DATAFIM": Param(
-        #     type="date",
-        #     title="Data fim:",
-        #     description="Enter the end date (ex:2024-10-01).",
-        #     section="Important params",
-        #     min_length=10,
-        #     max_length=10,
-        #  )
+        ,"DATAINI": Param(
+            type="date",
+            title="Data inicio:",
+            description="Enter the start date  (ex:2024-10-01).",
+            section="Important params",
+         )
+        ,"DATAFIM": Param(
+            type="date",
+            title="Data fim:",
+            description="Enter the end date (ex:2024-10-01).",
+            section="Important params",
+         )
         ,"SENDEMAIL": Param(
             type="boolean",
             title="ISDAILY:",
@@ -107,8 +103,8 @@ with DAG(
             team_id = kwargs["params"]["PGSCHEMA"]
             tiporela = kwargs["params"]["TYPREREPORT"]
             celphone = kwargs["params"]["CELULAR"]
-            # data_ini = kwargs["params"]["DATAINI"]
-            # data_fim = kwargs["params"]["DATAFIM"]
+            data_ini = kwargs["params"]["DATAINI"]
+            data_fim = kwargs["params"]["DATAFIM"]
             isemail = kwargs["params"]["SENDEMAIL"]
 
             data_conection_info = get_data_conection_info(team_id)
@@ -122,7 +118,7 @@ with DAG(
                 inner join public.teams_team te on 
                 te.ID = ii.team_id
                 where 
-                ii.id = "{team_id}"
+                ii.id = '{team_id}'
                 and 
                 ii.infra_create_status =  true 
                 and 
