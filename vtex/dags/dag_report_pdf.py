@@ -194,7 +194,8 @@ with DAG(
 
     
     cam_pdf = report_pdf()
-
+    
+   
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
@@ -202,7 +203,8 @@ with DAG(
         conf={
                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
                 "SENDEMAIL": "{{ params.SENDEMAIL }}",
-                "FILEPDF": cam_pdf
+                "FILEPDF": cam_pdf,
+                "TYPREREPORT": "{{ params.TYPREREPORT }}"
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
