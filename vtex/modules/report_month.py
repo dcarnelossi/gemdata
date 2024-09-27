@@ -62,7 +62,7 @@ idintegration = None
 celular = None
 mes = None
 logo = None
-isemail = None
+
 
 
 def formatar_numerocasas_br(valor,casas,ismoeda):
@@ -972,19 +972,13 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
         ano = tempo.year-1 #datetime.now()
     else:
         ano = tempo.year
-        
 
     # Definindo o intervalo de datas
-
     data_inicio = datetime.datetime(ano, mes, 1)
-
-
     if mes == 12:
         data_fim = datetime.datetime(ano + 1, 1, 1) - datetime.timedelta(days=1)
     else:
         data_fim = datetime.datetime(ano, mes + 1, 1) - datetime.timedelta(days=1)
-
-
     data_fim_ant = data_inicio -pd.DateOffset(days=1)
     
     # Definindo o intervalo de datas
@@ -1069,7 +1063,7 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.image(f"{diretorio}/grafico_h_ticketmedio{celular}.png",x = 106, y = altura + 106 ,w=95 ) 
 
     current_datetime = datetime.datetime.now() 
-    numeric_datetime = current_datetime.strftime('%Y%m%d%H%M')
+    numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
     pdf.output(f"{diretorio}/relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf")
     
     filename=f"relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf"
@@ -1116,14 +1110,14 @@ def criar_pasta_temp(celular):
 
 
 
-def set_globals(data_conection,api_info,celphone,month,cami_logo,issendemail,**kwargs):
-    global  data_conection_info,idintegration ,celular,mes,logo,isemail
+def set_globals(data_conection,api_info,celphone,month,cami_logo,**kwargs):
+    global  data_conection_info,idintegration ,celular,mes,logo
     data_conection_info = data_conection
     idintegration = api_info
     celular= celphone
     mes= month
     logo= cami_logo
-    isemail= issendemail
+
     if not all([idintegration,celular,mes]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
