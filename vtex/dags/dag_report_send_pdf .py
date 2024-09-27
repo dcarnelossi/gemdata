@@ -145,7 +145,7 @@ with DAG(
     def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
         try:
             # Operador para enviar o e-mail
-            EmailOperator(
+          return  EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
                 subject= assunto,
@@ -172,12 +172,12 @@ with DAG(
 
         if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
-                report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
-                
+                enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
+                return enviar_email
         elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
-                report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
-                    
+                enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
+                return enviar_email   
         elif  tiporelatorio== '3_relatorio_personalizado':   
                     print("ok")
         else:
@@ -189,6 +189,7 @@ with DAG(
         t1=report_baixar_email()
         t2=report_baixar_pdf()
         t3=dispara_email()
+        
         t1 >> t2 >> t3
     else:
         print("entrou para what")
