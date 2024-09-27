@@ -3,18 +3,8 @@ import logging
 from datetime import datetime
 
 from airflow import DAG
-from airflow.decorators import task
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.models.param import Param
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualenvOperator
-from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.email import EmailOperator
 
-from modules.dags_common_functions import (
-    get_data_conection_info,
-
-)
 
 # Lista de requisitos
 requirements = [
@@ -40,9 +30,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["vtex", "v1", "report"],
-    render_template_as_native_obj=True,
-    params={
-    },
+    params={},
 ) as dag:
     
 
