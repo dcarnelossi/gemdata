@@ -132,7 +132,8 @@ with DAG(
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
             
 
-  
+        print(caminho_logo)
+        
 
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
