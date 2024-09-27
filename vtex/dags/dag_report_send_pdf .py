@@ -67,16 +67,14 @@ with DAG(
             min_length=1,
             max_length=200,
                        
-        ) ,"TYPREREPORT": Param(
+        )   ,"TYPREREPORT": Param(
             type="string",
             title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-            min_length=1,
-            max_length=50,
+            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
      #       default=None,  # Valor padrão selecionado
         )
-        
 
     },
 ) as dag:
