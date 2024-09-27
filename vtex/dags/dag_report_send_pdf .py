@@ -157,7 +157,7 @@ with DAG(
     # def executar_report(**kwargs):
     enviaremail=dag.params["SENDEMAIL"]
 
-    print(enviaremail)
+   
     if enviaremail:
         listemail=report_baixar_email()
         filepdf=report_baixar_pdf()
@@ -172,6 +172,8 @@ with DAG(
         elif  tiporelatorio== '3_relatorio_personalizado':   
                 print("ok")
     else:
+        print("aaaaaaaaaaaaaa")
+        print(enviaremail)
         report_baixar_email()
 
 
