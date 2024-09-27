@@ -116,8 +116,14 @@ with DAG(
                 """
         
             resultado_emails = hook.get_records(query)
-      
-            print(resultado_emails)
+            # Extrair os e-mails e transformar em uma lista de strings
+            emails_list = [email[0] for email in resultado_emails]
+            # Juntar os e-mails em uma única string separada por vírgulas
+            emails_string = "', '".join(emails_list)
+            # Adicionar aspas simples no início e no fim da string
+            emails_string = f"'{emails_string}'"
+                
+            print(emails_string)
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
 
