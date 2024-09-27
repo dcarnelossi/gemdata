@@ -90,7 +90,9 @@ with DAG(
         from modules import save_to_blob
         diretorio = f"/opt/airflow/temp/{caminho_pdf}"
         save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
-        return diretorio
+
+        kwargs['ti'].xcom_push(key='lista_diretorio', value=diretorio)
+        #return diretorio
 
     @task(provide_context=True)
     def report_baixar_email(**kwargs):
@@ -132,8 +134,10 @@ with DAG(
             emails_string = "', '".join(emails_list)
             # Adicionar aspas simples no início e no fim da string
             emails_string = f"'{emails_string}'"
-                
-            return emails_string
+            
+            kwargs['ti'].xcom_push(key='lista_string', value=emails_string)
+
+            
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
     
@@ -161,10 +165,10 @@ with DAG(
     
 
     @task(provide_context=True)
-    def decide_process(ti,ta,**kwargs):
+    def decide_process(**kwargs):
         tiporelatorio= kwargs["params"]["TYPREREPORT"]
-        listaemail_recebido = ti.xcom_pull(task_ids='report_baixar_email')
-        filepdf_recebido = ta.xcom_pull(task_ids='report_baixar_pdf')
+        listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
+        filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
 
         if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
@@ -182,9 +186,10 @@ with DAG(
     decidir=decide_enviar_email()   
     print(decidir)
     if decidir:
-        listemail=report_baixar_email()
-        filepdf=report_baixar_pdf()
-        decide_process(listemail,filepdf)
+        t1=report_baixar_email()
+        t2=report_baixar_pdf()
+        t3=decide_process()
+        t1 >> t2 >> t3
     else:
         print("entrou para what")
     
