@@ -157,6 +157,7 @@ with DAG(
     # def executar_report(**kwargs):
    
 
+    @task(provide_context=True)
     def decide_process(**kwargs):
         enviaremail=  kwargs["params"]["SENDEMAIL"]
         if enviaremail:
