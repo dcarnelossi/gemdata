@@ -198,7 +198,7 @@ with DAG(
     
     @task(provide_context=True)
     def trigger_send_pdf(PGSCHEMA,SENDEMAIL,caminho_pdf,**kwargs):
-        return  TriggerDagRunOperator(
+        TriggerDagRunOperator(
             task_id=f"trigger_dag_send_pdf",
             trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
             conf={
@@ -210,6 +210,7 @@ with DAG(
         ).execute(context=kwargs)
         # Configurando a dependência entre as tasks
 
-    report=report_pdf()
+    
+    report_pdf()
 
 
