@@ -1074,9 +1074,6 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio,caminho_pdf_blob):
 
 
 def get_logo(logo,celular, diretorio):
-    print(logo)
-    print(celular)
-    print(diretorio)
 
 
     if(logo == ""):
@@ -1121,15 +1118,13 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,caminho_pdf,**k
     idintegration = api_info
     celular= celphone
     mes= month
-    logo= cami_logo,
+    logo= cami_logo
     caminho_pdf_blob = caminho_pdf
 
     if not all([idintegration,celular,mes]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
-
-    print("aquiiiiiiiiii")
-    print(logo[0])    
+ 
     diretorio=criar_pasta_temp(celular)
     print(diretorio)
 

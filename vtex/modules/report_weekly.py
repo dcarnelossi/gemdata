@@ -821,7 +821,7 @@ def set_globals(data_conection,api_info,celphone,weekly,cami_logo,caminho_pdf,**
     idintegration = api_info
     celular= celphone
     semana= weekly
-    logo= cami_logo,
+    logo= cami_logo
     caminho_pdf_blob = caminho_pdf
 
     if not all([idintegration,celular,semana]):

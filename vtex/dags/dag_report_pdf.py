@@ -102,7 +102,6 @@ with DAG(
             data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
             isemail = kwargs["params"]["SENDEMAIL"] 
             caminho_pdf =""
-            caminho_logo= ""
             print(team_id)
             print(tiporela)
             print(celphone)
