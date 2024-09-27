@@ -71,23 +71,12 @@ with DAG(
 
     },
 ) as dag:
-    team_id = params.get("PGSCHEMA")
-    isemail = params.get("SENDEMAIL") 
-    caminho_pdf = params.get("FILEPDF") 
-                # team_id = kwargs["params"]["PGSCHEMA"]
-        # caminho_pdf = kwargs["params"]["FILEPDF"]
-        # isemail = kwargs["params"]["SENDEMAIL"] 
-        # print(team_id)
-        # print(caminho_pdf)
-        # print(isemail)
 
-        # if not isemail:
-        #     print("Aqui enviar para whats")
 
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
-        
-        
+        team_id = kwargs["params"]["PGSCHEMA"]
+        caminho_pdf = kwargs["params"]["FILEPDF"]
         from modules import save_to_blob
         diretorio = f"/opt/airflow/temp/{caminho_pdf}"
         save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
@@ -95,6 +84,7 @@ with DAG(
 
 
     def report_baixar_email(**kwargs):
+        team_id2 = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -116,7 +106,7 @@ with DAG(
             us.id = ms.user_id 
 
             where 
-            ii .id = '{team_id}'
+            ii .id = '{team_id2}'
             and 
             us.is_active is true
             and 
