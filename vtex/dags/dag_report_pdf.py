@@ -92,19 +92,16 @@ with DAG(
     },
 ) as dag:
 
-
-
     @task(provide_context=True)
     def report_pdf(**kwargs):
         try:
-
             team_id = kwargs["params"]["PGSCHEMA"]
             tiporela = kwargs["params"]["TYPREREPORT"]
             celphone = kwargs["params"]["CELULAR"]
             data_ini = datetime.strptime(kwargs["params"]["DATAINI"],"%Y-%m-%d")
             data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
             isemail = kwargs["params"]["SENDEMAIL"] 
-
+            caminho_pdf =""
             print(team_id)
             print(tiporela)
             print(celphone)
@@ -112,6 +109,8 @@ with DAG(
             print(data_fim)
             print(isemail)
 
+            current_datetime = datetime.now() 
+            numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
 
             data_conection_info = get_data_conection_info(team_id)
         except Exception as e:
@@ -145,6 +144,8 @@ with DAG(
             from modules import report_month
             mes = data_ini.month 
             print(mes)   
+
+            caminho_pdf= f"relatorio_mensal_{mes}_{celphone}_{numeric_datetime}"
             try:
                 print("Processando o Relatório mensal...")
                 report_month.set_globals(
@@ -152,22 +153,19 @@ with DAG(
                 team_id,
                 celphone,
                 mes,
-                caminho_logo
+                caminho_logo,
+                caminho_pdf 
                 )
                 print("Relatório mensal processado...")
-                return True
             except Exception as e:
                 logging.exception(f"Erro ao processar o relatorio mensal - {e}")
                 raise
-
-
-            
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
             from modules import report_weekly
             semana = data_ini.strftime("%W")+1
             print(semana)
-
+            caminho_pdf= f"relatorio_semanal_{semana}_{celphone}_{numeric_datetime}"
             try:
                 print("Processando o Relatório  semanal...")
                 report_weekly.set_globals(
@@ -175,32 +173,41 @@ with DAG(
                 team_id,
                 celphone,
                 semana,
-                caminho_logo
+                caminho_logo,
+                caminho_pdf
                 )
                 print("Relatório semanal processado...")
-                return True
+           
             except Exception as e:
                 logging.exception(f"Erro ao processar o relatorio semanal - {e}")
                 raise
-            
-            
+                  
         elif tiporela == "3_relatorio_personalizado":
             print("Processando o Relatório Diário...")
             # Coloque a lógica do relatório diário aqui
-                
+             
         else:
             print("Opção de relatório desconhecida.")
+     
 
-           
-    trigger_dag_orders_items = TriggerDagRunOperator(
-        task_id="trigger_dag_orders_items",
-        trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
-        conf={
-            "PGSCHEMA": "{{ params.PGSCHEMA }}"
-        },  # Se precisar passar informações adicionais para a DAG_B
-    )
-    # Configurando a dependência entre as tasks
+        trigger_send_pdf(team_id,isemail,caminho_pdf)
 
-    # install_libraries >> 
-    report = report_pdf()
-    report>> trigger_dag_orders_items
+
+
+    
+    
+    @task(provide_context=True)
+    def trigger_send_pdf(PGSCHEMA,SENDEMAIL,caminho_pdf,**kwargs):
+        TriggerDagRunOperator(
+            task_id=f"trigger_dag_send_pdf",
+            trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
+            conf={
+                "PGSCHEMA": PGSCHEMA,
+                "SENDEMAIL":SENDEMAIL ,
+                "FILEPDF": caminho_pdf
+
+            },  # Se precisar passar informações adicionais para a DAG_B
+        )
+        # Configurando a dependência entre as tasks
+
+    report_pdf()

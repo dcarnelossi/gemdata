@@ -57,6 +57,7 @@ idintegration = None
 celular = None
 semana = None
 logo = None
+caminho_pdf_blob = None
 
 
 
@@ -814,13 +815,14 @@ def criar_pasta_temp(celular):
 
 
 
-def set_globals(data_conection,api_info,celphone,weekly,cami_logo,**kwargs):
-    global  data_conection_info,idintegration ,celular,semana,logo
+def set_globals(data_conection,api_info,celphone,weekly,cami_logo,caminho_pdf,**kwargs):
+    global  data_conection_info,idintegration ,celular,semana,logo,caminho_pdf_blob
     data_conection_info = data_conection
     idintegration = api_info
     celular= celphone
     semana= weekly
-    logo= cami_logo
+    logo= cami_logo,
+    caminho_pdf_blob = caminho_pdf
 
     if not all([idintegration,celular,semana]):
         logging.error("Global connection information is incomplete.")
@@ -830,7 +832,7 @@ def set_globals(data_conection,api_info,celphone,weekly,cami_logo,**kwargs):
     print(diretorio)
 
     extensao=get_logo(logo,celular,diretorio)
-    filename=gerar_pdf(int(semana), celular,idintegration,extensao,diretorio)
+    filename=gerar_pdf(int(semana), celular,idintegration,extensao,diretorio,caminho_pdf_blob)
 
     salvar_pdf_blob(idintegration,diretorio,filename)
     

@@ -62,6 +62,7 @@ idintegration = None
 celular = None
 mes = None
 logo = None
+caminho_pdf_blob = None
 
 
 
@@ -965,7 +966,7 @@ def criar_relatorio_mensal (mes,celular,integration,data_inicio,data_fim,data_in
 
 
 
-def gerar_pdf(mes,celular,integration,extensao,diretorio):
+def gerar_pdf(mes,celular,integration,extensao,diretorio,caminho_pdf_blob):
     
     tempo=datetime.datetime.today()
     if(tempo.month ==1):
@@ -1062,12 +1063,12 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio):
     pdf.image(f"{diretorio}/grafico_h_precomedio{celular}.png",x = 9, y = altura + 106 ,w=95 ) 
     pdf.image(f"{diretorio}/grafico_h_ticketmedio{celular}.png",x = 106, y = altura + 106 ,w=95 ) 
 
-    current_datetime = datetime.datetime.now() 
-    numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
-    pdf.output(f"{diretorio}/relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf")
+    # current_datetime = datetime.datetime.now() 
+    # numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
     
-    filename=f"relatorio_mensal_{celular}_{mes}_{numeric_datetime}.pdf"
-
+    filename= f"{caminho_pdf_blob}.pdf"
+    pdf.output(f"{diretorio}/{filename}")
+    
     return filename
     
 
@@ -1110,13 +1111,14 @@ def criar_pasta_temp(celular):
 
 
 
-def set_globals(data_conection,api_info,celphone,month,cami_logo,**kwargs):
-    global  data_conection_info,idintegration ,celular,mes,logo
+def set_globals(data_conection,api_info,celphone,month,cami_logo,caminho_pdf,**kwargs):
+    global  data_conection_info,idintegration ,celular,mes,logo,caminho_pdf_blob
     data_conection_info = data_conection
     idintegration = api_info
     celular= celphone
     mes= month
-    logo= cami_logo
+    logo= cami_logo,
+    caminho_pdf_blob = caminho_pdf
 
     if not all([idintegration,celular,mes]):
         logging.error("Global connection information is incomplete.")
@@ -1126,7 +1128,7 @@ def set_globals(data_conection,api_info,celphone,month,cami_logo,**kwargs):
     print(diretorio)
 
     extensao=get_logo(logo,celular,diretorio)
-    filename=gerar_pdf(int(mes), celular,idintegration,extensao,diretorio)
+    filename=gerar_pdf(int(mes), celular,idintegration,extensao,diretorio,caminho_pdf_blob)
 
     salvar_pdf_blob(idintegration,diretorio,filename)
     
