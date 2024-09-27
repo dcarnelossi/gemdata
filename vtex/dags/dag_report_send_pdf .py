@@ -74,14 +74,15 @@ with DAG(
             title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-          
+            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],
             default=None,  # Valor padrão selecionado
         )
 
     },
 ) as dag:
+    
 
-
+        
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
@@ -148,28 +149,28 @@ with DAG(
             files=[anexo],  # Esta lista será preenchida condicionalmente
         )
     
+    @task(provide_context=True)
+    def executar_report():
+        enviaremail=dag.params["SENDEMAIL"] 
+        print(enviaremail)
+        if enviaremail:
+            listemail=report_baixar_email()
+            filepdf=report_baixar_pdf()
+            tiporelatorio=dag.params["TYPREREPORT"] 
+            if tiporelatorio== '1_relatorio_mensal':
+                print("ok")
+                send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf)
+                send_email_task 
+            elif  tiporelatorio== '2_relatorio_semanal':  
+                print("ok")
+                send_email_task =report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)
+                send_email_task
+            elif  tiporelatorio== '3_relatorio_personalizado':   
+                print("ok")
+        else:
+            print("whatsapp")
 
-    enviaremail=dag.params["SENDEMAIL"] 
-    print(enviaremail)
-    if enviaremail:
-        listemail=report_baixar_email()
-        filepdf=report_baixar_pdf()
-        tiporelatorio=dag.params["TYPREREPORT"] 
-        if tiporelatorio== '1_relatorio_mensal':
-            print("ok")
-            send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf)
-            send_email_task 
-
-        elif  tiporelatorio== '2_relatorio_semanal':  
-            print("ok")
-            send_email_task =report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)
-            send_email_task
-        elif  tiporelatorio== '3_relatorio_personalizado':   
-            print("ok")
-    else:
-        print("whatsapp")
-
-    report_baixar_email()
+    executar_report()
 
       
 #relatorio_mensal_8_5511999999999_20240927192246.pdf
