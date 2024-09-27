@@ -131,9 +131,9 @@ with DAG(
             # Extrair os e-mails e transformar em uma lista de strings
             emails_list = [email[0] for email in resultado_emails]
             # Juntar os e-mails em uma única string separada por vírgulas
-            emails_string = "', '".join(emails_list)
+            emails_string = ", ".join(emails_list)
             # Adicionar aspas simples no início e no fim da string
-            emails_string = f"'{emails_string}'"
+            #emails_string = f"'{emails_string}'"
             
             kwargs['ti'].xcom_push(key='lista_string', value=emails_string)
 
