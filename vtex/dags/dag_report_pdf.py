@@ -81,7 +81,7 @@ with DAG(
          )
         ,"SENDEMAIL": Param(
             type="boolean",
-            title="ISDAILY:",
+            title="SEND EMAIL:",
             description="Enter com False (processo whatsapp) ou True (processo email) .",
             section="Important params",
             min_length=1,
@@ -154,7 +154,7 @@ with DAG(
                 team_id,
                 celphone,
                 mes,
-                caminho_logo[0],
+                caminho_logo,
                 caminho_pdf 
                 )
                 print("Relatório mensal processado...")
@@ -174,7 +174,7 @@ with DAG(
                 team_id,
                 celphone,
                 semana,
-                caminho_logo[0],
+                caminho_logo,
                 caminho_pdf
                 )
                 print("Relatório semanal processado...")
