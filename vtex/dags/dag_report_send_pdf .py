@@ -156,7 +156,7 @@ with DAG(
         if enviaremail:
             listemail=report_baixar_email()
             filepdf=report_baixar_pdf()
-            tiporelatorio=dag.params["TYPREREPORT"] 
+            tiporelatorio=kwargs["params"]["TYPREREPORT"]
             if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
                 send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf)
