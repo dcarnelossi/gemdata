@@ -95,7 +95,7 @@ with DAG(
 
 
     @task(provide_context=True)
-    def report_mensal(**kwargs):
+    def report_pdf(**kwargs):
         try:
 
             team_id = kwargs["params"]["PGSCHEMA"]
@@ -131,8 +131,7 @@ with DAG(
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
             
-                
-
+    
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
@@ -149,14 +148,29 @@ with DAG(
                 print("Relatório mensal processado...")
                 return True
             except Exception as e:
-                logging.exception(f"An unexpected error occurred during DAG - {e}")
+                logging.exception(f"Erro ao processar o relatorio mensal - {e}")
                 raise
 
 
             
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
-            print("Processando o Relatório Diário...")
+            from modules import report_weekly
+            semana = data_ini.strftime("%U")    
+            try:
+                print("Processando o Relatório  semanal...")
+                report_weekly.set_globals(
+                data_conection_info,
+                team_id,
+                celphone,
+                semana,
+                caminho_logo
+                )
+                print("Relatório semanal processado...")
+                return True
+            except Exception as e:
+                logging.exception(f"Erro ao processar o relatorio semanal - {e}")
+                raise
             
             
         elif tiporela == "3_relatorio_personalizado":
@@ -170,4 +184,4 @@ with DAG(
 
 
     # install_libraries >> 
-    report_mensal()
+    report_pdf()
