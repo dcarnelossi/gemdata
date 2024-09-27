@@ -9,6 +9,7 @@ from airflow.models.param import Param
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonVirtualenvOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.operators.email import EmailOperator
 
 from modules.dags_common_functions import (
     get_data_conection_info,
@@ -66,6 +67,14 @@ with DAG(
             min_length=1,
             max_length=200,
                        
+        ) ,"TYPREREPORT": Param(
+            type="string",
+            title="Tipo de relatorio:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=50,
+     #       default=None,  # Valor padrão selecionado
         )
         
 
@@ -123,9 +132,42 @@ with DAG(
             # Adicionar aspas simples no início e no fim da string
             emails_string = f"'{emails_string}'"
                 
-            print(emails_string)
+            return emails_string
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
-
-    report_baixar_email()    
     
+    @task(provide_context=True)
+    def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
+
+        # Operador para enviar o e-mail
+        return  EmailOperator(
+            task_id='send_email',
+            to= destinatario,  # Defina o destinatário
+            subject= assunto,
+            html_content=corpo_email,
+            files=[anexo],  # Esta lista será preenchida condicionalmente
+        )
+    
+    enviaremail=dag.params["SENDEMAIL"] 
+
+    if enviaremail:
+        listemail=report_baixar_email()
+        filepdf=report_baixar_pdf()
+        tiporelatorio=dag.params["TYPREREPORT"] 
+        if tiporelatorio== '1_relatorio_mensal':
+            print("ok")
+            send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf)
+            send_email_task 
+
+        elif  tiporelatorio== '2_relatorio_semanal':  
+            print("ok")
+            send_email_task =report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)
+            send_email_task
+        elif  tiporelatorio== '3_relatorio_personalizado':   
+            print("ok")
+    else:
+        print("whatsapp")
+
+
+      
+        
