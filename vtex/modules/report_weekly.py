@@ -677,7 +677,7 @@ def criar_relatorio_semanal (celular,integration,data_inicio,data_fim,data_inici
 
             
 
-    grafico_card(f"{diretorio}/cardfaturamento{celular}.png", formatar_numerocasas_br(vl_faturamento_atual,0,1),formatar_numerocasas_br(vl_faturamento_anterior,0,1),formatar_numerocasas_br(var_faturamento,1,0))
+    grafico_card(f"{diretorio}/cardfaturamento{celular}.png",'Faturamento', formatar_numerocasas_br(vl_faturamento_atual,0,1),formatar_numerocasas_br(vl_faturamento_anterior,0,1),formatar_numerocasas_br(var_faturamento,1,0))
     grafico_card(f"{diretorio}/cardticketmedio{celular}.png",'Ticket Médio',formatar_numerocasas_br(vl_tickemedio_atual,0,1),formatar_numerocasas_br(vl_tickemedio_anterior,0,1),formatar_numerocasas_br(var_tickemedio,1,0))
     grafico_card(f"{diretorio}/cardpedidos{celular}.png",'Pedidos','Pedidos',formatar_numerocasas_br (vl_pedidos_atual,0,0),formatar_numerocasas_br(vl_pedidos_anterior,0,0),formatar_numerocasas_br(var_pedidos,1,0))
     grafico_card(f"{diretorio}/cardcompradores{celular}.png",'Compradores',formatar_numerocasas_br (qtd_compradores_unicos_atual,0,0),formatar_numerocasas_br(qtd_compradores_unicos_anterior,0,0),formatar_numerocasas_br(var_compradores_unicos,1,0))
