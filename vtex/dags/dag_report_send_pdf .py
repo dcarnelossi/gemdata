@@ -156,6 +156,7 @@ with DAG(
     # @task(provide_context=True)
     # def executar_report(**kwargs):
     enviaremail=dag.params["SENDEMAIL"]
+
     print(enviaremail)
     if enviaremail:
         listemail=report_baixar_email()
@@ -170,8 +171,9 @@ with DAG(
             report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)       
         elif  tiporelatorio== '3_relatorio_personalizado':   
                 print("ok")
-        else:
-            print("whatsapp")
+    else:
+        report_baixar_email()
+
 
     
 
