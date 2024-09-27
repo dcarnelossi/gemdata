@@ -141,7 +141,7 @@ with DAG(
     def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
         try:
             # Operador para enviar o e-mail
-            EmailOperator(
+          return  EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
                 subject= assunto,
@@ -150,6 +150,7 @@ with DAG(
             )
         except Exception as e:
             logging.exception(f"deu erro ao enviar email - {e}")
+            return False 
 
 
     @task(provide_context=True)
@@ -162,7 +163,8 @@ with DAG(
             tiporelatorio=kwargs["params"]["TYPREREPORT"]
             if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
-                report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf) 
+                send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf) 
+                listemail >> filepdf >> send_email_task
             elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
                 report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)
