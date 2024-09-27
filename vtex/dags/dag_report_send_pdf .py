@@ -71,9 +71,9 @@ with DAG(
 
     },
 ) as dag:
-    team_id = ["params"]["PGSCHEMA"]
-    isemail = ["params"]["SENDEMAIL"] 
-    caminho_pdf = ["params"]["FILEPDF"]
+    team_id = params.get("PGSCHEMA")
+    isemail = params.get("SENDEMAIL") 
+    caminho_pdf = params.get("FILEPDF") 
                 # team_id = kwargs["params"]["PGSCHEMA"]
         # caminho_pdf = kwargs["params"]["FILEPDF"]
         # isemail = kwargs["params"]["SENDEMAIL"] 
