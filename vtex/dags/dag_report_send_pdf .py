@@ -74,7 +74,7 @@ with DAG(
             title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
+          
             default=None,  # Valor padrão selecionado
         )
 
@@ -148,6 +148,7 @@ with DAG(
             files=[anexo],  # Esta lista será preenchida condicionalmente
         )
     
+
     enviaremail=dag.params["SENDEMAIL"] 
     print(enviaremail)
     if enviaremail:
@@ -168,6 +169,7 @@ with DAG(
     else:
         print("whatsapp")
 
+    report_baixar_email()
 
       
 #relatorio_mensal_8_5511999999999_20240927192246.pdf
