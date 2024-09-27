@@ -103,7 +103,15 @@ with DAG(
             celphone = kwargs["params"]["CELULAR"]
             data_ini = datetime.strptime(kwargs["params"]["DATAINI"],"%Y-%m-%d")
             data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
-            isemail = kwargs["params"]["SENDEMAIL"]
+            isemail = kwargs["params"]["SENDEMAIL"] 
+
+            print(team_id)
+            print(tiporela)
+            print(celphone)
+            print(data_ini)
+            print(data_fim)
+            print(isemail)
+
 
             data_conection_info = get_data_conection_info(team_id)
         except Exception as e:
@@ -135,7 +143,8 @@ with DAG(
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
-            mes = data_ini.month    
+            mes = data_ini.month 
+            print(mes)   
             try:
                 print("Processando o Relatório mensal...")
                 report_month.set_globals(
@@ -156,7 +165,9 @@ with DAG(
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
             from modules import report_weekly
-            semana = data_ini.strftime("%U")    
+            semana = data_ini.strftime("%W")
+            print(semana)
+
             try:
                 print("Processando o Relatório  semanal...")
                 report_weekly.set_globals(
