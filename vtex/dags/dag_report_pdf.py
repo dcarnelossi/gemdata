@@ -102,6 +102,7 @@ with DAG(
             data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
             isemail = kwargs["params"]["SENDEMAIL"] 
             caminho_pdf =""
+            caminho_logo= ""
             print(team_id)
             print(tiporela)
             print(celphone)
@@ -134,11 +135,11 @@ with DAG(
                 """
         
             resultado_logo = hook.get_records(query)
+      
             caminho_logo = resultado_logo[0][0] 
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
             
-        print(caminho_logo)
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
@@ -153,7 +154,7 @@ with DAG(
                 team_id,
                 celphone,
                 mes,
-                caminho_logo,
+                caminho_logo[0],
                 caminho_pdf 
                 )
                 print("Relatório mensal processado...")
@@ -173,7 +174,7 @@ with DAG(
                 team_id,
                 celphone,
                 semana,
-                caminho_logo,
+                caminho_logo[0],
                 caminho_pdf
                 )
                 print("Relatório semanal processado...")
