@@ -82,7 +82,7 @@ with DAG(
         save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
         return diretorio
 
-
+    @task(provide_context=True)
     def report_baixar_email(**kwargs):
         team_id2 = kwargs["params"]["PGSCHEMA"]
         try:
