@@ -68,13 +68,13 @@ with DAG(
           
         )
         ,"DATAINI": Param(
-            type="date",
+            type="string",
             title="Data inicio:",
             description="Enter the start date  (ex:2024-10-01).",
             section="Important params",
          )
         ,"DATAFIM": Param(
-            type="date",
+            type="string",
             title="Data fim:",
             description="Enter the end date (ex:2024-10-01).",
             section="Important params",
@@ -98,17 +98,18 @@ with DAG(
     def report_mensal(**kwargs):
         try:
 
-                 
-            
             team_id = kwargs["params"]["PGSCHEMA"]
             tiporela = kwargs["params"]["TYPREREPORT"]
             celphone = kwargs["params"]["CELULAR"]
-            data_ini = kwargs["params"]["DATAINI"]
-            data_fim = kwargs["params"]["DATAFIM"]
+            data_ini = datetime.strptime(kwargs["params"]["DATAINI"],"%Y-%m-%d")
+            data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
             isemail = kwargs["params"]["SENDEMAIL"]
 
             data_conection_info = get_data_conection_info(team_id)
-
+        except Exception as e:
+            logging.exception(f"erro nos paramentos - {e}")
+        
+        try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
@@ -136,7 +137,7 @@ with DAG(
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
-            mes =1 #data_ini.month    
+            mes = data_ini.month    
             try:
                 print("Processando o Relatório mensal...")
                 report_month.set_globals(
