@@ -145,7 +145,7 @@ with DAG(
     def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
         try:
             # Operador para enviar o e-mail
-          return  EmailOperator(
+            EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
                 subject= assunto,
@@ -154,7 +154,7 @@ with DAG(
             )
         except Exception as e:
             logging.exception(f"deu erro ao enviar email - {e}")
-            return False 
+            
 
 
     # @task(provide_context=True)
@@ -165,19 +165,19 @@ with DAG(
     
 
     @task(provide_context=True)
-    def decide_process(**kwargs):
+    def dispara_email(**kwargs):
         tiporelatorio= kwargs["params"]["TYPREREPORT"]
         listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
         filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
 
         if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
-                send_email_task =report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
-                send_email_task
+                report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
+                
         elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
-                send_email_task =report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
-                send_email_task    
+                report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
+                    
         elif  tiporelatorio== '3_relatorio_personalizado':   
                     print("ok")
         else:
@@ -188,7 +188,7 @@ with DAG(
     if decidir:
         t1=report_baixar_email()
         t2=report_baixar_pdf()
-        t3=decide_process()
+        t3=dispara_email()
         t1 >> t2 >> t3
     else:
         print("entrou para what")
