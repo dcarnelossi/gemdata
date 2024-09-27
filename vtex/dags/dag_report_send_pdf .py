@@ -149,7 +149,7 @@ with DAG(
         )
     
     enviaremail=dag.params["SENDEMAIL"] 
-
+    print(enviaremail)
     if enviaremail:
         listemail=report_baixar_email()
         filepdf=report_baixar_pdf()
@@ -170,4 +170,5 @@ with DAG(
 
 
       
-        
+#relatorio_mensal_8_5511999999999_20240927192246.pdf
+#         
