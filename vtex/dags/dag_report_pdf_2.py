@@ -165,7 +165,7 @@ with DAG(
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
             from modules import report_weekly
-            semana = data_ini.strftime("%W")
+            semana = data_ini.strftime("%U")
             print(semana)
 
             try:
