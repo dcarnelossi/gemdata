@@ -154,7 +154,7 @@ with DAG(
             )
         except Exception as e:
             logging.exception(f"deu erro ao enviar email - {e}")
-            
+            raise
 
 
     # @task(provide_context=True)
