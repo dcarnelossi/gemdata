@@ -1074,6 +1074,10 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio,caminho_pdf_blob):
 
 
 def get_logo(logo,celular, diretorio):
+    print(logo)
+    print(celular)
+    print(diretorio)
+
 
     if(logo == ""):
         extensao = '.png'
