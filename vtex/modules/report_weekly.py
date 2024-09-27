@@ -690,10 +690,6 @@ def criar_relatorio_semanal (celular,integration,data_inicio,data_fim,data_inici
 
 
 
-
-
-
-
 def gerar_pdf(semana,celular,integration,extensao,diretorio):
 
           
