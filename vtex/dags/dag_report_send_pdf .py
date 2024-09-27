@@ -141,20 +141,29 @@ with DAG(
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
     
-    @task(provide_context=True)
-    def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
-        try:
-            # Operador para enviar o e-mail
-          return  EmailOperator(
+    # @task(provide_context=True)
+    # def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
+    #     try:
+    #         # Operador para enviar o e-mail
+    #       return  EmailOperator(
+    #             task_id='send_email',
+    #             to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
+    #             subject= assunto,
+    #             html_content=corpo_email,
+    #             files=[anexo],  # Esta lista será preenchida condicionalmente
+    #         )
+    #     except Exception as e:
+    #         logging.exception(f"deu erro ao enviar email - {e}")
+    #         raise
+
+
+    enviar_email=EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
-                subject= assunto,
-                html_content=corpo_email,
-                files=[anexo],  # Esta lista será preenchida condicionalmente
+                subject= "assunto",
+                html_content="corpo_email",
+                files=[],  # Esta lista será preenchida condicionalmente
             )
-        except Exception as e:
-            logging.exception(f"deu erro ao enviar email - {e}")
-            raise
 
 
     # @task(provide_context=True)
@@ -175,12 +184,12 @@ with DAG(
         print(filepdf_recebido)    
         if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
-                enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
-                return enviar_email
+              #  enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
+              #  return enviar_email
         elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
-                enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
-                return enviar_email   
+               # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
+               # return enviar_email   
         elif  tiporelatorio== '3_relatorio_personalizado':   
                     print("ok")
         else:
@@ -193,7 +202,7 @@ with DAG(
         t2=report_baixar_pdf()
         t3=dispara_email()
         
-        t1 >> t2 >> t3
+        t1 >> t2 >> t3 >> enviar_email
     else:
         print("entrou para what")
     
