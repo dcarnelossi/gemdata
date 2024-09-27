@@ -8,6 +8,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models.param import Param
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonVirtualenvOperator
+from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from modules.dags_common_functions import (
     get_data_conection_info,
@@ -33,7 +34,7 @@ default_args = {
 
 
 with DAG(
-    "b1-report-pdf",
+    "b1-report-create-pdf",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -47,38 +48,41 @@ with DAG(
             min_length=1,
             max_length=200,
                        
-        ),
-        "CELULAR": Param(
+        )
+        ,"TYPREREPORT": Param(
+            type="string",
+            title="Tipo de relatorio:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
+     #       default=None,  # Valor padrão selecionado
+        )
+        ,"CELULAR": Param(
             type="string",
             title="CELULAR:",
             description="Enter the celphone.",
             section="Important params",
             min_length=1,
-            max_length=200,
-            # default=None,  # Define como None por padrão
-            # optional=True,  # Permite que o parâmetro seja opcional
+            max_length=13,
+            default="5511999999999",  # Define como None por padrão
+          
         )
-        ,"LOGO": Param(
+        ,"DATAINI": Param(
             type="string",
-            title="Caminho logo:",
-            description="Enter com caminho do logo (opcional)",
+            title="Data inicio:",
+            description="Enter the start date  (ex:2024-10-01).",
             section="Important params",
-            min_length=1,
-            max_length=200,
-            default=None,  # Define como None por padrão
-            optional=True,  # Permite que o parâmetro seja opcional
-        ),"MES": Param(
+         )
+        ,"DATAFIM": Param(
             type="string",
-            title="MES:",
-            description="Enter the integration PGSCHEMA.",
+            title="Data fim:",
+            description="Enter the end date (ex:2024-10-01).",
             section="Important params",
-            min_length=1,
-            max_length=2,
          )
         ,"SENDEMAIL": Param(
             type="boolean",
             title="ISDAILY:",
-            description="Enter com False (processo total) ou True (processo diario) .",
+            description="Enter com False (processo whatsapp) ou True (processo email) .",
             section="Important params",
             min_length=1,
             max_length=10,
@@ -88,42 +92,115 @@ with DAG(
     },
 ) as dag:
 
-#   # Task para instalar as bibliotecas necessárias
-#     install_libraries = BashOperator(
-#         task_id='install_libraries',
-#         bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
-#     )
+
 
     @task(provide_context=True)
-    def report_mensal(**kwargs):
-        team_id = kwargs["params"]["PGSCHEMA"]
-        celphone = kwargs["params"]["CELULAR"]
-        num_mes = kwargs["params"]["MES"]
-        logo = kwargs["params"]["LOGO"]
-        isemail = kwargs["params"]["SENDEMAIL"]
-
-        data_conection_info = get_data_conection_info(team_id)
-
-
-        from modules import report_month
-
+    def report_pdf(**kwargs):
         try:
 
-            report_month.set_globals(
-               data_conection_info,
-               team_id,
-               celphone,
-               num_mes,
-               logo,
-               isemail
-            )
-         
-            return True
+            team_id = kwargs["params"]["PGSCHEMA"]
+            tiporela = kwargs["params"]["TYPREREPORT"]
+            celphone = kwargs["params"]["CELULAR"]
+            data_ini = datetime.strptime(kwargs["params"]["DATAINI"],"%Y-%m-%d")
+            data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
+            isemail = kwargs["params"]["SENDEMAIL"] 
+
+            print(team_id)
+            print(tiporela)
+            print(celphone)
+            print(data_ini)
+            print(data_fim)
+            print(isemail)
+
+
+            data_conection_info = get_data_conection_info(team_id)
         except Exception as e:
-            logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise
+            logging.exception(f"erro nos paramentos - {e}")
+        
+        try:
+            # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            query = f"""
+                select distinct 
+                te.logo as team_logo
+                from integrations_integration ii 
+                inner join public.teams_team te on 
+                te.ID = ii.team_id
+                where 
+                ii.id = '{team_id}'
+                and 
+                ii.infra_create_status =  true 
+                and 
+                ii.is_active = true 
+                """
+        
+            resultado_logo = hook.get_records(query)
+            caminho_logo = resultado_logo[0][0] 
+        except Exception as e:
+            logging.exception(f"deu erro ao achar o caminho do logo - {e}")
+            
+    
+        # Lógica condicional com base na escolha do usuário
+        if tiporela == "1_relatorio_mensal":
+            from modules import report_month
+            mes = data_ini.month 
+            print(mes)   
+            try:
+                print("Processando o Relatório mensal...")
+                report_month.set_globals(
+                data_conection_info,
+                team_id,
+                celphone,
+                mes,
+                caminho_logo
+                )
+                print("Relatório mensal processado...")
+                return True
+            except Exception as e:
+                logging.exception(f"Erro ao processar o relatorio mensal - {e}")
+                raise
 
 
+            
+            # Coloque a lógica do relatório semanal aqui
+        elif tiporela == "2_relatorio_semanal":
+            from modules import report_weekly
+            semana = data_ini.strftime("%W")+1
+            print(semana)
+
+            try:
+                print("Processando o Relatório  semanal...")
+                report_weekly.set_globals(
+                data_conection_info,
+                team_id,
+                celphone,
+                semana,
+                caminho_logo
+                )
+                print("Relatório semanal processado...")
+                return True
+            except Exception as e:
+                logging.exception(f"Erro ao processar o relatorio semanal - {e}")
+                raise
+            
+            
+        elif tiporela == "3_relatorio_personalizado":
+            print("Processando o Relatório Diário...")
+            # Coloque a lógica do relatório diário aqui
+                
+        else:
+            print("Opção de relatório desconhecida.")
+
+           
+    trigger_dag_orders_items = TriggerDagRunOperator(
+        task_id="trigger_dag_orders_items",
+        trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
+    # Configurando a dependência entre as tasks
 
     # install_libraries >> 
-    report_mensal()
+    report = report_pdf()
+    report>> trigger_dag_orders_items
