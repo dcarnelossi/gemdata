@@ -155,28 +155,61 @@ with DAG(
 
     # @task(provide_context=True)
     # def executar_report(**kwargs):
-   
+    def decide_enviar_email (**kwargs):
+        enviaremail=  kwargs["params"]["SENDEMAIL"]
+        return enviaremail
+    
 
     @task(provide_context=True)
-    def decide_process(**kwargs):
-        enviaremail=  kwargs["params"]["SENDEMAIL"]
-        if enviaremail:
-            listemail=report_baixar_email()
-            filepdf=report_baixar_pdf()
-            tiporelatorio= kwargs["params"]["TYPREREPORT"]
-            if tiporelatorio== '1_relatorio_mensal':
+    def decide_process(ti,**kwargs):
+        tiporelatorio= kwargs["params"]["TYPREREPORT"]
+        listaemail_recebido = ti.xcom_pull(task_ids='report_baixar_email')
+        filepdf_recebido = ti.xcom_pull(task_ids='report_baixar_pdf')
+
+        if tiporelatorio== '1_relatorio_mensal':
                 print("ok")
-                send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf) 
-                listemail >> filepdf >> send_email_task
-            elif  tiporelatorio== '2_relatorio_semanal':  
+                send_email_task =report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
+                send_email_task
+        elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
-                report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)       
-            elif  tiporelatorio== '3_relatorio_personalizado':   
+                send_email_task =report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
+                send_email_task    
+        elif  tiporelatorio== '3_relatorio_personalizado':   
                     print("ok")
         else:
             print("aaaaaaaaaaaaaa")
        
-    decide_process()
+    decidir=decide_enviar_email()   
+    if decidir:
+        listemail=report_baixar_email()
+        filepdf=report_baixar_pdf()
+        decide_process(listemail,filepdf)
+    else:
+        print("entrou para what")
+    
+
+    # @task(provide_context=True)
+    # def decide_process(**kwargs):
+    #     enviaremail=  kwargs["params"]["SENDEMAIL"]
+    #     if enviaremail:
+    #         listemail=report_baixar_email()
+    #         filepdf=report_baixar_pdf()
+    #         tiporelatorio= kwargs["params"]["TYPREREPORT"]
+    #         if tiporelatorio== '1_relatorio_mensal':
+    #             print("ok")
+    #             send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf) 
+    #             send_email_task
+    #         elif  tiporelatorio== '2_relatorio_semanal':  
+    #             print("ok")
+    #             send_email_task =report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)       
+    #             send_email_task
+            
+    #         elif  tiporelatorio== '3_relatorio_personalizado':   
+    #                 print("ok")
+    #     else:
+    #         print("aaaaaaaaaaaaaa")
+       
+    # decide_process()
 
     
 
