@@ -51,7 +51,7 @@ with DAG(
         )
         ,"TYPREREPORT": Param(
             type="string",
-            title="ISDAILY:",
+            title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
             enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
@@ -65,24 +65,24 @@ with DAG(
             min_length=1,
             max_length=13,
             default="5511999999999",  # Define como None por padrão
-            optional=True,  # Permite que o parâmetro seja opcional
+          
         )
-        ,"DATAINI": Param(
-            type="date",
-            title="Data inicio:",
-            description="Enter the start date  (ex:2024-10-01).",
-            section="Important params",
-            min_length=10,
-            max_length=10,
-         )
-        ,"DATAFIM": Param(
-            type="date",
-            title="Data fim:",
-            description="Enter the end date (ex:2024-10-01).",
-            section="Important params",
-            min_length=10,
-            max_length=10,
-         )
+        # ,"DATAINI": Param(
+        #     type="date",
+        #     title="Data inicio:",
+        #     description="Enter the start date  (ex:2024-10-01).",
+        #     section="Important params",
+        #     min_length=10,
+        #     max_length=10,
+        #  )
+        # ,"DATAFIM": Param(
+        #     type="date",
+        #     title="Data fim:",
+        #     description="Enter the end date (ex:2024-10-01).",
+        #     section="Important params",
+        #     min_length=10,
+        #     max_length=10,
+        #  )
         ,"SENDEMAIL": Param(
             type="boolean",
             title="ISDAILY:",
@@ -96,26 +96,23 @@ with DAG(
     },
 ) as dag:
 
-#   # Task para instalar as bibliotecas necessárias
-#     install_libraries = BashOperator(
-#         task_id='install_libraries',
-#         bash_command='pip install fpdf2 matplotlib numpy pandas geopandas'
-#     )
+
 
     @task(provide_context=True)
     def report_mensal(**kwargs):
-        
-        
-        team_id = kwargs["params"]["PGSCHEMA"]
-        tiporela = kwargs["params"]["TYPREREPORT"]
-        celphone = kwargs["params"]["CELULAR"]
-        data_ini = kwargs["params"]["DATAINI"]
-        data_fim = kwargs["params"]["DATAFIM"]
-        isemail = kwargs["params"]["SENDEMAIL"]
-
-        data_conection_info = get_data_conection_info(team_id)
-
         try:
+
+                 
+            
+            team_id = kwargs["params"]["PGSCHEMA"]
+            tiporela = kwargs["params"]["TYPREREPORT"]
+            celphone = kwargs["params"]["CELULAR"]
+            # data_ini = kwargs["params"]["DATAINI"]
+            # data_fim = kwargs["params"]["DATAFIM"]
+            isemail = kwargs["params"]["SENDEMAIL"]
+
+            data_conection_info = get_data_conection_info(team_id)
+
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
@@ -136,14 +133,14 @@ with DAG(
           
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
-            raise
+            
 
   
 
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
-            mes =data_ini.month    
+            mes =1 #data_ini.month    
             try:
                 print("Processando o Relatório mensal...")
                 report_month.set_globals(
@@ -163,24 +160,7 @@ with DAG(
             
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
-            
-            from modules import report_month
-            mes =data_ini.month    
-            try:
-                print("Processando o Relatório mensal...")
-                report_month.set_globals(
-                data_conection_info,
-                team_id,
-                celphone,
-                mes,
-                caminho_logo
-                )
-                print("Relatório mensal processado...")
-                return True
-            except Exception as e:
-                logging.exception(f"An unexpected error occurred during DAG - {e}")
-                raise
-            
+            print("Processando o Relatório Diário...")
             
             
         elif tiporela == "3_relatorio_personalizado":
