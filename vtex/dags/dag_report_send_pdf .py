@@ -150,8 +150,8 @@ with DAG(
         )
     
     @task(provide_context=True)
-    def executar_report():
-        enviaremail=dag.params["SENDEMAIL"] 
+    def executar_report(**kwargs):
+        enviaremail=kwargs["params"]["PGSCHEMA"]
         print(enviaremail)
         if enviaremail:
             listemail=report_baixar_email()
