@@ -168,16 +168,11 @@ with DAG(
     @task(provide_context=True)
     def dispara_email(**kwargs):
         tiporelatorio= kwargs["params"]["TYPREREPORT"]
-        listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
-        filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
-
-        print(tiporelatorio)    
-        print(listaemail_recebido)    
-        print(filepdf_recebido)    
+        # listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
+        # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
+ 
         if tiporelatorio== '1_relatorio_mensal':
-                print("ok")
-              #  enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf_recebido) 
-              #  return enviar_email
+           re              
         elif  tiporelatorio== '2_relatorio_semanal':  
                 print("ok")
                # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
@@ -193,6 +188,11 @@ with DAG(
         t1=report_baixar_email()
         t2=report_baixar_pdf()
         t3=dispara_email()
+        
+        print("aaaaaa")
+        print(t1)
+        
+        print(t2)
 
         enviar_email=EmailOperator(
                 task_id='send_email',
