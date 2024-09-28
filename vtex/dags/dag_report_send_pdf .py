@@ -142,10 +142,10 @@ with DAG(
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
     
+    # # @task(provide_context=True)
     # @task(provide_context=True)
-    @task(provide_context=True)
-    def decide_enviar_email (**kwargs):
-        return  kwargs["params"]["SENDEMAIL"]
+    # def decide_enviar_email (**kwargs):
+    #     return  kwargs["params"]["SENDEMAIL"]
     
 
     @task(provide_context=True)
@@ -207,8 +207,8 @@ with DAG(
 
 
     # Definindo o fluxo de execução
-    decide_enviar_email() >>  verificar_envio()
-   
+    # decide_enviar_email() >>  verificar_envio()
+    verificar_envio()
        
     # decidir=decide_enviar_email()   
  
