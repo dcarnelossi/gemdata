@@ -165,6 +165,11 @@ with DAG(
         else:
             print("aaaaaaaaaaaaaa")
             return 'sem relatorio','sem relatório'
+    @task(provide_context=True)
+    def print_mostrar(**kwargs):
+        print(t1)
+        print(t2)
+        print(t3)
         
        
     decidir=decide_enviar_email()   
@@ -180,6 +185,7 @@ with DAG(
         print(t2)
 
         print(t3)
+        a=print_mostrar(t1,t2,t3)
         
         enviar_email=EmailOperator(
                 task_id='send_email',
@@ -190,7 +196,7 @@ with DAG(
             )
 
         
-        t1 >> t2 >> t3 >> enviar_email
+        t1 >> t2 >> t3 >> a >> enviar_email
     else:
         print("entrou para what")
     
