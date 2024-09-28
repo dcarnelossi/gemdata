@@ -142,23 +142,6 @@ with DAG(
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
     
     # @task(provide_context=True)
-    # def report_send_email_pdf(destinatario,assunto,corpo_email,anexo):
-    #     try:
-    #         # Operador para enviar o e-mail
-    #       return  EmailOperator(
-    #             task_id='send_email',
-    #             to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
-    #             subject= assunto,
-    #             html_content=corpo_email,
-    #             files=[anexo],  # Esta lista será preenchida condicionalmente
-    #         )
-    #     except Exception as e:
-    #         logging.exception(f"deu erro ao enviar email - {e}")
-    #         raise
-
-
-
-    # @task(provide_context=True)
     @task(provide_context=True)
     def decide_enviar_email (**kwargs):
         enviaremail=  kwargs["params"]["SENDEMAIL"]
@@ -172,15 +155,17 @@ with DAG(
         # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
  
         if tiporelatorio== '1_relatorio_mensal':
-           re              
+            return "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"              
         elif  tiporelatorio== '2_relatorio_semanal':  
-                print("ok")
+            return "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
                # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
                # return enviar_email   
         elif  tiporelatorio== '3_relatorio_personalizado':   
-                    print("ok")
+            return  "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
         else:
             print("aaaaaaaaaaaaaa")
+            return 'sem relatorio','sem relatório'
+        
        
     decidir=decide_enviar_email()   
     print(decidir)
@@ -194,6 +179,8 @@ with DAG(
         
         print(t2)
 
+        print(t3)
+        
         enviar_email=EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
