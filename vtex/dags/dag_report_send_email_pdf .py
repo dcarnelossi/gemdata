@@ -4,12 +4,14 @@ from datetime import datetime
 
 from airflow import DAG
 from airflow.decorators import task
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models.param import Param
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualenvOperator
+from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.email import EmailOperator
+from airflow.hooks.base import BaseHook
+from smtplib import SMTP
+from email.mime.text import MIMEText
+
 
 from modules.dags_common_functions import (
     get_data_conection_info,
@@ -32,6 +34,27 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
 }
+
+
+def send_email_via_connection(**kwargs):
+    # Recupera a conexão SMTP cadastrada no Airflow
+    connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
+
+    # Define o conteúdo do e-mail
+    msg = MIMEText('<p>Este é um teste de envio de email pelo Airflow.</p>', 'html')
+    msg['Subject'] = 'Teste de Email no Airflow'
+    msg['From'] = connection.login
+    msg['To'] = 'gabriel.pereira.sousa@email.com'
+
+    # Envia o e-mail usando as configurações da conexão
+    try:
+        with SMTP(host=connection.host, port=connection.port) as server:
+            server.starttls() if connection.extra_dejson.get('starttls', True) else None
+            server.login(connection.login, connection.password)
+            server.sendmail(msg['From'], [msg['To']], msg.as_string())
+            print("E-mail enviado com sucesso!")
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
 
 
 with DAG(
@@ -158,17 +181,17 @@ with DAG(
         listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
         filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
         assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
-
-        # Configurando o EmailOperator
-        email = EmailOperator(
-            task_id='envia_email',
-            to="gabriel.pereira.sousa@gmail.com", #listaemail_recebido
-            subject=assunto,
-            html_content=corpoemail,
-            files=[filepdf_recebido],
-            smtp_conn_id='report_email',  # Use o ID da conexão configurada
-        )
-        email
+        send_email_via_connection()
+        # # Configurando o EmailOperator
+        # email = EmailOperator(
+        #     task_id='envia_email',
+        #     to="gabriel.pereira.sousa@gmail.com", #listaemail_recebido
+        #     subject=assunto,
+        #     html_content=corpoemail,
+        #     files=[filepdf_recebido],
+        #     smtp_conn_id='report_email',  # Use o ID da conexão configurada
+        # )
+        # email
 
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
