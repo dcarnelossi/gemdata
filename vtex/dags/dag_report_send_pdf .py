@@ -91,7 +91,8 @@ with DAG(
         diretorio = f"/opt/airflow/temp/{caminho_pdf}"
         save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
 
-        kwargs['ti'].xcom_push(key='lista_diretorio', value=diretorio)
+        return   diretorio
+        #kwargs['ti'].xcom_push(key='lista_diretorio', value=diretorio)
         #return diretorio
 
     @task(provide_context=True)
@@ -135,8 +136,8 @@ with DAG(
             # Adicionar aspas simples no início e no fim da string
             #emails_string = f"'{emails_string}'"
             
-            kwargs['ti'].xcom_push(key='lista_string', value=emails_string)
-
+           # kwargs['ti'].xcom_push(key='lista_string', value=emails_string)
+            return   emails_string
             
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
