@@ -51,16 +51,7 @@ with DAG(
             max_length=200,
                        
         ),
-    #    ,"SENDEMAIL": Param(
-    #         type="boolean",
-    #         title="SEND EMAIL:",
-    #         description="Enter com False (processo whatsapp) ou True (processo email) .",
-    #         section="Important params",
-    #         min_length=1,
-    #         max_length=10,
-    #         default=False,  # Valor padrão selecionado
-    #     ),
-        "FILEPDF": Param(
+          "FILEPDF": Param(
             type="string",
             title="FILEPDF:",
             description="Enter the integration FILEPDF.",
@@ -189,49 +180,12 @@ with DAG(
         )
         email.execute(context=kwargs)  
 
-
-    @task(provide_context=True)
-    def verificar_envio(**kwargs):
-        # Puxa o valor booleano da tarefa decide_enviar_email
-        decidir = kwargs['ti'].xcom_pull(task_ids='decide_enviar_email')
-        print(decidir)
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        # Verifica se decidir é True
-        if decidir:
-            # Executa o fluxo de envio do e-mail se decidir for True
-            listaemail = report_baixar_email()
-            pdffile = report_baixar_pdf()
-            tipo = report_tipo_relatorio()
-            enviar_email()
-            listaemail >> pdffile >> tipo >> enviar_email()
-
-
-    # Definindo o fluxo de execução
-    # decide_enviar_email() >>  verificar_envio()
-    verificar_envio()
-       
-    # decidir=decide_enviar_email()   
- 
-    # if decidir:
-    #     listemail=report_baixar_email()
-    #     pdffile=report_baixar_pdf()
-    #     tipo=report_tipo_relatorio()
-        
-    #    # a=print_mostrar(t1,t2,t3)
-        
-    #     # enviar_email=EmailOperator(
-    #     #         task_id='send_email',
-    #     #         to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
-    #     #         subject= assunto,
-    #     #         html_content=corpoemail,
-    #     #         files=[pdffile],  # Esta lista será preenchida condicionalmente
-    #     #     )
-        
-    #     listemail >> pdffile >> tipo >> enviar_email()
-    # else:
-    #     print("entrou para what")
+    listemail=report_baixar_email()
+    pdffile=report_baixar_pdf()
+    tipo=report_tipo_relatorio()
+    enviar= enviar_email()
     
-
+    listemail >> pdffile >> tipo >> enviar
 
     
 
