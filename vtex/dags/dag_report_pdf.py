@@ -212,10 +212,9 @@ with DAG(
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
-        trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="b2-report-sendemail-pdf",  # Substitua pelo nome real da sua segunda DAG
         conf={
                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
-               # "SENDEMAIL": "{{ params.SENDEMAIL }}",
                 "FILEPDF": cam_pdf,
                 "TYPREREPORT": "{{ params.TYPREREPORT }}"
             }  # Se precisar passar informações adicionais para a DAG_B

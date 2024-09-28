@@ -35,7 +35,7 @@ default_args = {
 
 
 with DAG(
-    "b2-report-send-pdf",
+    "b2-report-sendemail-pdf",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
