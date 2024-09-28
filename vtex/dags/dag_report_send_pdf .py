@@ -166,7 +166,7 @@ with DAG(
             print("aaaaaaaaaaaaaa")
             return 'sem relatorio','sem relatório'
     @task(provide_context=True)
-    def print_mostrar(**kwargs):
+    def print_mostrar(t1,t2,t3):
         print(t1)
         print(t2)
         print(t3)
