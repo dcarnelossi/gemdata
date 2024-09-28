@@ -145,8 +145,7 @@ with DAG(
     # @task(provide_context=True)
     @task(provide_context=True)
     def decide_enviar_email (**kwargs):
-        enviaremail=  kwargs["params"]["SENDEMAIL"]
-        return enviaremail
+        return  kwargs["params"]["SENDEMAIL"]
     
 
     @task(provide_context=True)
@@ -190,29 +189,45 @@ with DAG(
         )
         email.execute(context=kwargs)  
 
-       
-    decidir=decide_enviar_email()   
- 
-    if decidir:
-        listemail=report_baixar_email()
-        pdffile=report_baixar_pdf()
-        tipo=report_tipo_relatorio()
-       
-        
-       # a=print_mostrar(t1,t2,t3)
-        
-        # enviar_email=EmailOperator(
-        #         task_id='send_email',
-        #         to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
-        #         subject= assunto,
-        #         html_content=corpoemail,
-        #         files=[pdffile],  # Esta lista será preenchida condicionalmente
-        #     )
 
+    @task(provide_context=True)
+    def verificar_envio(**kwargs):
+        # Puxa o valor booleano da tarefa decide_enviar_email
+        decidir = kwargs['ti'].xcom_pull(task_ids='decide_enviar_email')
+
+        # Verifica se decidir é True
+        if decidir:
+            # Executa o fluxo de envio do e-mail se decidir for True
+            listaemail = report_baixar_email()
+            pdffile = report_baixar_pdf()
+            tipo = report_tipo_relatorio()
+            enviar_email()
+
+
+    # Definindo o fluxo de execução
+    decidir = decide_enviar_email()
+    verificar_envio()
+       
+    # decidir=decide_enviar_email()   
+ 
+    # if decidir:
+    #     listemail=report_baixar_email()
+    #     pdffile=report_baixar_pdf()
+    #     tipo=report_tipo_relatorio()
         
-        listemail >> pdffile >> tipo >> enviar_email()
-    else:
-        print("entrou para what")
+    #    # a=print_mostrar(t1,t2,t3)
+        
+    #     # enviar_email=EmailOperator(
+    #     #         task_id='send_email',
+    #     #         to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
+    #     #         subject= assunto,
+    #     #         html_content=corpoemail,
+    #     #         files=[pdffile],  # Esta lista será preenchida condicionalmente
+    #     #     )
+        
+    #     listemail >> pdffile >> tipo >> enviar_email()
+    # else:
+    #     print("entrou para what")
     
 
 
