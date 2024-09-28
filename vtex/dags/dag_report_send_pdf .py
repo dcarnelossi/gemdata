@@ -157,14 +157,6 @@ with DAG(
     #         raise
 
 
-    enviar_email=EmailOperator(
-                task_id='send_email',
-                to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
-                subject= "assunto",
-                html_content="corpo_email",
-                files=[],  # Esta lista será preenchida condicionalmente
-            )
-
 
     # @task(provide_context=True)
     @task(provide_context=True)
@@ -201,6 +193,15 @@ with DAG(
         t1=report_baixar_email()
         t2=report_baixar_pdf()
         t3=dispara_email()
+
+        enviar_email=EmailOperator(
+                task_id='send_email',
+                to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
+                subject= t2,
+                html_content="corpo_email",
+                files=[],  # Esta lista será preenchida condicionalmente
+            )
+
         
         t1 >> t2 >> t3 >> enviar_email
     else:
