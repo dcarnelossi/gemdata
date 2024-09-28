@@ -220,7 +220,7 @@ with DAG(
     )
     
 
-    should_trigger = should_trigger_dag('{{ params }}')
+    should_trigger = should_trigger_dag()
     skip_trigger_task = skip_trigger()
 
     # Definindo as dependências entre as tarefas
