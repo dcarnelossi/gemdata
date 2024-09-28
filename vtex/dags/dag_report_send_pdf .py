@@ -50,16 +50,16 @@ with DAG(
             min_length=1,
             max_length=200,
                        
-        )
-       ,"SENDEMAIL": Param(
-            type="boolean",
-            title="SEND EMAIL:",
-            description="Enter com False (processo whatsapp) ou True (processo email) .",
-            section="Important params",
-            min_length=1,
-            max_length=10,
-            default=False,  # Valor padrão selecionado
         ),
+    #    ,"SENDEMAIL": Param(
+    #         type="boolean",
+    #         title="SEND EMAIL:",
+    #         description="Enter com False (processo whatsapp) ou True (processo email) .",
+    #         section="Important params",
+    #         min_length=1,
+    #         max_length=10,
+    #         default=False,  # Valor padrão selecionado
+    #     ),
         "FILEPDF": Param(
             type="string",
             title="FILEPDF:",

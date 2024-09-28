@@ -192,9 +192,20 @@ with DAG(
      
         return caminho_pdf
 
-    
+    @task.branch
+    def should_trigger_dag(params):
+    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
+        if params['TYPREREPORT']:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+            return 'trigger_dag_report_send_pdf'
+        else:
+            return 'skip_trigger'
+
+
     cam_pdf = report_pdf()
     
+    @task
+    def skip_trigger():
+        print("Condição não atendida, a DAG não será disparada")
    
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
@@ -202,12 +213,13 @@ with DAG(
         trigger_dag_id="b2-report-send-pdf",  # Substitua pelo nome real da sua segunda DAG
         conf={
                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
-                "SENDEMAIL": "{{ params.SENDEMAIL }}",
+               # "SENDEMAIL": "{{ params.SENDEMAIL }}",
                 "FILEPDF": cam_pdf,
                 "TYPREREPORT": "{{ params.TYPREREPORT }}"
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
-    trigger_dag_report_send_pdf
-
+    # Definindo a sequência das tasks
+should_trigger = should_trigger_dag('{{ params }}')
+should_trigger >> [trigger_dag_report_send_pdf, skip_trigger]
 
