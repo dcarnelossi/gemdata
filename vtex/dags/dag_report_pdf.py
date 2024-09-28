@@ -193,9 +193,9 @@ with DAG(
         return caminho_pdf
 
     @task.branch
-    def should_trigger_dag(params):
+    def should_trigger_dag(**kwargs):
     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-        if params['TYPREREPORT']:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+        if kwargs["params"]['TYPREREPORT']:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
             return 'trigger_dag_report_send_pdf'
         else:
             return 'skip_trigger'
