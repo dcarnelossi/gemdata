@@ -133,11 +133,6 @@ with DAG(
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
     
-    # # @task(provide_context=True)
-    # @task(provide_context=True)
-    # def decide_enviar_email (**kwargs):
-    #     return  kwargs["params"]["SENDEMAIL"]
-    
 
     @task(provide_context=True)
     def report_tipo_relatorio(**kwargs):
@@ -156,13 +151,7 @@ with DAG(
         else:
             print("aaaaaaaaaaaaaa")
             return 'sem relatorio','sem relatório'
-    
-    # @task(provide_context=True)
-    # def print_mostrar(t1,t2,t3):
-    #     print(t1)
-    #     print(t2)
-    #     print(t3)
-        
+
     @task(provide_context=True)
     def enviar_email(**kwargs):
         # Pegando os valores das tarefas anteriores
