@@ -164,7 +164,7 @@ with DAG(
             # Coloque a lógica do relatório semanal aqui
         elif tiporela == "2_relatorio_semanal":
             from modules import report_weekly
-            semana = data_ini.strftime("%W")+1
+            semana = int(data_ini.strftime("%W"))+1
             print(semana)
             caminho_pdf= f"relatorio_semanal_{semana}_{celphone}_{numeric_datetime}"
             try:
