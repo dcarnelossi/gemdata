@@ -207,8 +207,8 @@ with DAG(
 
 
     # Definindo o fluxo de execução
-    decidir = decide_enviar_email()
-    verificar_envio(decidir)
+    decide_enviar_email() >>  verificar_envio()
+   
        
     # decidir=decide_enviar_email()   
  
