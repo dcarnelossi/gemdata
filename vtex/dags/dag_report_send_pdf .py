@@ -173,6 +173,23 @@ with DAG(
     #     print(t2)
     #     print(t3)
         
+    @task(provide_context=True)
+    def enviar_email(**kwargs):
+        # Pegando os valores das tarefas anteriores
+        listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
+        filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
+        assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
+
+        # Configurando o EmailOperator
+        email = EmailOperator(
+            task_id='envia_email',
+            to="gabriel.pereira.sousa@gmail.com", #listaemail_recebido
+            subject=assunto,
+            html_content=corpoemail,
+            files=[filepdf_recebido]
+        )
+        email.execute(context=kwargs)  
+
        
     decidir=decide_enviar_email()   
  
@@ -180,46 +197,24 @@ with DAG(
         listemail=report_baixar_email()
         pdffile=report_baixar_pdf()
         tipo=report_tipo_relatorio()
-        assunto,corpoemail =tipo
+       
         
        # a=print_mostrar(t1,t2,t3)
         
-        enviar_email=EmailOperator(
-                task_id='send_email',
-                to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
-                subject= assunto,
-                html_content=corpoemail,
-                files=[pdffile],  # Esta lista será preenchida condicionalmente
-            )
+        # enviar_email=EmailOperator(
+        #         task_id='send_email',
+        #         to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
+        #         subject= assunto,
+        #         html_content=corpoemail,
+        #         files=[pdffile],  # Esta lista será preenchida condicionalmente
+        #     )
 
         
-        listemail >> pdffile >> tipo >> enviar_email
+        listemail >> pdffile >> tipo >> enviar_email()
     else:
         print("entrou para what")
     
 
-    # @task(provide_context=True)
-    # def decide_process(**kwargs):
-    #     enviaremail=  kwargs["params"]["SENDEMAIL"]
-    #     if enviaremail:
-    #         listemail=report_baixar_email()
-    #         filepdf=report_baixar_pdf()
-    #         tiporelatorio= kwargs["params"]["TYPREREPORT"]
-    #         if tiporelatorio== '1_relatorio_mensal':
-    #             print("ok")
-    #             send_email_task =report_send_email_pdf(listemail,"Relatório Mensal","<p>Segue anexo o relatório mensal.</p>",filepdf) 
-    #             send_email_task
-    #         elif  tiporelatorio== '2_relatorio_semanal':  
-    #             print("ok")
-    #             send_email_task =report_send_email_pdf(listemail,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf)       
-    #             send_email_task
-            
-    #         elif  tiporelatorio== '3_relatorio_personalizado':   
-    #                 print("ok")
-    #     else:
-    #         print("aaaaaaaaaaaaaa")
-       
-    # decide_process()
 
     
 
