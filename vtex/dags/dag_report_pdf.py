@@ -217,7 +217,7 @@ with DAG(
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
-    # Definindo a sequência das tasks
-should_trigger = should_trigger_dag('{{ params }}')
-should_trigger >> [trigger_dag_report_send_pdf, skip_trigger]
+#     # Definindo a sequência das tasks
+# should_trigger = should_trigger_dag('{{ params }}')
+# should_trigger >> [trigger_dag_report_send_pdf, skip_trigger]
 
