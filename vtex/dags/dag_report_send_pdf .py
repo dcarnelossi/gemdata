@@ -150,7 +150,7 @@ with DAG(
     
 
     @task(provide_context=True)
-    def dispara_email(**kwargs):
+    def report_tipo_relatorio(**kwargs):
         tiporelatorio= kwargs["params"]["TYPREREPORT"]
         # listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
         # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
@@ -166,38 +166,32 @@ with DAG(
         else:
             print("aaaaaaaaaaaaaa")
             return 'sem relatorio','sem relatório'
-    @task(provide_context=True)
-    def print_mostrar(t1,t2,t3):
-        print(t1)
-        print(t2)
-        print(t3)
+    # @task(provide_context=True)
+    # def print_mostrar(t1,t2,t3):
+    #     print(t1)
+    #     print(t2)
+    #     print(t3)
         
        
     decidir=decide_enviar_email()   
-    print(decidir)
+ 
     if decidir:
-        t1=report_baixar_email()
-        t2=report_baixar_pdf()
-        t3=dispara_email()
+        listemail=report_baixar_email()
+        pdffile=report_baixar_pdf()
+        tipo=report_tipo_relatorio()
         
-        print("aaaaaa")
-        print(t1)
-        
-        print(t2)
-
-        print(t3)
-        a=print_mostrar(t1,t2,t3)
+       # a=print_mostrar(t1,t2,t3)
         
         enviar_email=EmailOperator(
                 task_id='send_email',
-                to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário
-                subject= t2,
-                html_content="corpo_email",
-                files=[],  # Esta lista será preenchida condicionalmente
+                to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
+                subject= tipo[0],
+                html_content=tipo[1],
+                files=[pdffile],  # Esta lista será preenchida condicionalmente
             )
 
         
-        t1 >> t2 >> t3 >> a >> enviar_email
+        listemail >> pdffile >> tipo >> enviar_email
     else:
         print("entrou para what")
     
