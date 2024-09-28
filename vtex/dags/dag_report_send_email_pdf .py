@@ -165,7 +165,8 @@ with DAG(
             to="gabriel.pereira.sousa@gmail.com", #listaemail_recebido
             subject=assunto,
             html_content=corpoemail,
-            files=[filepdf_recebido]
+            files=[filepdf_recebido],
+            smtp_conn_id='report_email',  # Use o ID da conexão configurada
         )
         email.execute(context=kwargs)  
 
