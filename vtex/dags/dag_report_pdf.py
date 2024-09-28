@@ -195,9 +195,8 @@ with DAG(
     @task.branch
     def should_trigger_dag(**kwargs):
     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-        isemail = kwargs["params"]['TYPREREPORT']
-        print("aaaaaaaaaaaaaaaaaa")
-        print(isemail)
+        isemail = kwargs["params"]['SENDEMAIL']
+
         if isemail:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
             return 'trigger_dag_report_send_pdf'
         else:
