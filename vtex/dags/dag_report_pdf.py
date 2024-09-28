@@ -6,8 +6,6 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.models.param import Param
-from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualenvOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from modules.dags_common_functions import (
