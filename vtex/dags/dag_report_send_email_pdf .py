@@ -168,7 +168,7 @@ with DAG(
             files=[filepdf_recebido],
             smtp_conn_id='report_email',  # Use o ID da conexão configurada
         )
-        email.execute(context=kwargs)  
+        email
 
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
