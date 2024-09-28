@@ -194,7 +194,8 @@ with DAG(
     def verificar_envio(**kwargs):
         # Puxa o valor booleano da tarefa decide_enviar_email
         decidir = kwargs['ti'].xcom_pull(task_ids='decide_enviar_email')
-
+        print(decidir)
+        print('aaaaaaaaaaaaaaaaaaaaaaaaaaa')
         # Verifica se decidir é True
         if decidir:
             # Executa o fluxo de envio do e-mail se decidir for True
@@ -202,6 +203,7 @@ with DAG(
             pdffile = report_baixar_pdf()
             tipo = report_tipo_relatorio()
             enviar_email()
+            listaemail >> pdffile >> tipo >> enviar_email()
 
 
     # Definindo o fluxo de execução
