@@ -195,7 +195,8 @@ with DAG(
     @task.branch
     def should_trigger_dag(**kwargs):
     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-        if kwargs["params"]['TYPREREPORT']:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+        isemail = kwargs["params"]['TYPREREPORT']
+        if isemail:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
             return 'trigger_dag_report_send_pdf'
         else:
             return 'skip_trigger'
@@ -224,5 +225,5 @@ with DAG(
     skip_trigger_task = skip_trigger()
 
     # Definindo as dependências entre as tarefas
-    should_trigger >> trigger_dag_report_send_pdf
-    should_trigger >> skip_trigger_task
+    should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
+   # should_trigger >> skip_trigger_task
