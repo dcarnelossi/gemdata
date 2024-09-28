@@ -179,14 +179,16 @@ with DAG(
         listemail=report_baixar_email()
         pdffile=report_baixar_pdf()
         tipo=report_tipo_relatorio()
+        assunto =tipo[0]
+        corpoemail =tipo[1]
         
        # a=print_mostrar(t1,t2,t3)
         
         enviar_email=EmailOperator(
                 task_id='send_email',
                 to= "gabriel.pereira.sousa@gmail.com",  # Defina o destinatário #jogar listemail
-                subject= tipo[0],
-                html_content=tipo[1],
+                subject= assunto,
+                html_content=corpoemail,
                 files=[pdffile],  # Esta lista será preenchida condicionalmente
             )
 
