@@ -9,7 +9,7 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.email import EmailOperator
 from airflow.hooks.base import BaseHook
-from smtplib import SMTP
+from smtplib import SMTP_SSL
 from email.mime.text import MIMEText
 
 
@@ -48,8 +48,9 @@ def send_email_via_connection(**kwargs):
 
     # Envia o e-mail usando as configurações da conexão
     try:
-        with SMTP(host=connection.host, port=connection.port) as server:
-            server.starttls() if connection.extra_dejson.get('starttls', True) else None
+        # Use SMTP_SSL para iniciar a conexão já com SSL
+        with SMTP_SSL(host=connection.host, port=connection.port) as server:
+            # Não use starttls() com SMTP_SSL, pois a conexão já é segura desde o início
             server.login(connection.login, connection.password)
             server.sendmail(msg['From'], [msg['To']], msg.as_string())
             print("E-mail enviado com sucesso!")
