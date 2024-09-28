@@ -166,6 +166,7 @@ with DAG(
         else:
             print("aaaaaaaaaaaaaa")
             return 'sem relatorio','sem relatório'
+    
     # @task(provide_context=True)
     # def print_mostrar(t1,t2,t3):
     #     print(t1)
@@ -179,8 +180,7 @@ with DAG(
         listemail=report_baixar_email()
         pdffile=report_baixar_pdf()
         tipo=report_tipo_relatorio()
-        assunto =tipo[0]
-        corpoemail =tipo[1]
+        assunto,corpoemail =tipo
         
        # a=print_mostrar(t1,t2,t3)
         
