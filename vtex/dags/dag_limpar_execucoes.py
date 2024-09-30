@@ -4,6 +4,8 @@ from airflow.utils.dates import days_ago
 from datetime import timedelta, datetime
 from airflow.models import DagRun
 from airflow.settings import Session  # Importar para obter a sessão manualmente
+import pendulum  # Usando pendulum para gerenciar timezone
+
 
 # Lista de requisitos
 requirements = [
@@ -26,16 +28,16 @@ default_args = {
 def delete_old_dag_runs(**kwargs):
     # Criar uma sessão manualmente
     session = Session()
-    
-    # Definir a data limite para exclusão (execuções com mais de 30 dias)
-    cutoff_date = datetime.now() - timedelta(days=30)
-    
+
+    # Definir a data limite para exclusão (execuções com mais de 30 dias) com timezone UTC
+    cutoff_date = pendulum.now('UTC') - timedelta(days=30)
+
     # Excluir as execuções de DAGs que têm a data de execução anterior ao cutoff_date
     session.query(DagRun).filter(DagRun.execution_date < cutoff_date).delete()
-    
+
     # Confirmar a transação no banco de dados
     session.commit()
-    
+
     # Fechar a sessão
     session.close()
 
