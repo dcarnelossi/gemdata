@@ -213,7 +213,11 @@ with DAG(
         listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
         filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
         assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
-        send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail)
+        
+        from modules import send_email
+        send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpoemail,True,filepdf_recebido)
+
+        # send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail)
         
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
