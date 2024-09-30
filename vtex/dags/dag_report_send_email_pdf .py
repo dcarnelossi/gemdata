@@ -134,8 +134,15 @@ with DAG(
         team_id = kwargs["params"]["PGSCHEMA"]
         caminho_pdf = kwargs["params"]["FILEPDF"]
         from modules import save_to_blob
-        diretorio = f"/opt/airflow/temp/{caminho_pdf}"
-        save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
+        
+        try:
+            
+            diretorio = f"/opt/airflow/temp/{caminho_pdf}"
+            save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
+            
+        except Exception as e:
+            logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
+            raise
 
         return   diretorio
         #kwargs['ti'].xcom_push(key='lista_diretorio', value=diretorio)
@@ -187,7 +194,7 @@ with DAG(
             
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
-    
+            raise
 
     @task(provide_context=True)
     def report_tipo_relatorio(**kwargs):
@@ -209,16 +216,19 @@ with DAG(
 
     @task(provide_context=True)
     def enviar_email(**kwargs):
-        # Pegando os valores das tarefas anteriores
-        listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
-        filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
-        assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
-        
-        from modules import send_email
-        send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpoemail,True,filepdf_recebido)
+        try:
+            # Pegando os valores das tarefas anteriores
+            listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
+            filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
+            assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
+            
+            from modules import send_email
+            
+            send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpoemail,True,filepdf_recebido)
+        except Exception as e:
+            logging.exception(f"deu erro ao achar ao enviar email - {e}")
+            raise
 
-        # send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail)
-        
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
     tipo=report_tipo_relatorio()
