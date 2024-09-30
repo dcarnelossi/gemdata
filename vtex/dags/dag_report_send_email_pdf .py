@@ -56,13 +56,14 @@ def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpo
 
 
     try:
-
+        print(filepdf_recebido)
+        attachment_path = filepdf_recebido
         if not os.path.exists(attachment_path):
             raise FileNotFoundError(f"O arquivo {attachment_path} não foi encontrado.")
         # Adiciona o anexo
 
-        print(filepdf_recebido)
-        attachment_path = filepdf_recebido # Coloque o caminho para o arquivo que deseja anexar
+        
+       # Coloque o caminho para o arquivo que deseja anexar
         filename = os.path.basename(attachment_path)
         with open(attachment_path, 'rb') as attachment_file:
             # Cria a parte do anexo
