@@ -48,11 +48,11 @@ def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpo
     msg = MIMEText('<p>Este é um teste de envio de email pelo Airflow.</p>', 'html')
     msg['Subject'] = assunto
     msg['From'] = connection.login
-    msg['To'] = 'gabriel.pereira.sousa@email.com'
+    msg['To'] = 'gabriel.pereira.sousa@gmail.com'
 
-    # Adiciona o corpo do e-mail
-    body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
-    msg.attach(body)
+    # # Adiciona o corpo do e-mail
+    # body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
+    # msg.attach(body)
 
 
     try:
