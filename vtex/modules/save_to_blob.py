@@ -29,6 +29,7 @@ class ExecuteBlob:
             print(f"Arquivo {blob_name} baixado com sucesso para {download_path}")
         except Exception as e:
             print(f"Erro ao baixar o arquivo: {e}")
+            raise e
             
 
 
@@ -46,4 +47,4 @@ class ExecuteBlob:
             print(f"Arquivo {file_path} enviado com sucesso para o blob {blob_name} no container {container_name}")
         except Exception as e:
             print(f"Erro ao enviar o arquivo: {e}")
-
+            raise e
