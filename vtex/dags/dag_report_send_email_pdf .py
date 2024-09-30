@@ -44,15 +44,16 @@ def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpo
     # Recupera a conexão SMTP cadastrada no Airflow
     connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
 
+
     # Define o conteúdo do e-mail
-    msg = MIMEText('<p>Este é um teste de envio de email pelo Airflow.</p>', 'html')
+    msg= MIMEMultipart()
     msg['Subject'] = assunto
     msg['From'] = connection.login
     msg['To'] = 'gabriel.pereira.sousa@gmail.com'
 
-    # # Adiciona o corpo do e-mail
-    # body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
-    # msg.attach(body)
+    # Adiciona o corpo do e-mail
+    body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
+    msg.attach(body)  # Anexa o corpo do e-mail
 
 
     try:
@@ -74,6 +75,7 @@ def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpo
             msg.attach(part)
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
+        raise 
 
     # Envia o e-mail usando as configurações da conexão
     try:
@@ -85,7 +87,7 @@ def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpo
             print("E-mail enviado com sucesso!")
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
-
+        raise
 
 with DAG(
     "b2-report-sendemail-pdf",
