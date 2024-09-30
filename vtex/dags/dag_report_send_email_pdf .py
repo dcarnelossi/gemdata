@@ -1,6 +1,7 @@
 import logging
 
 from datetime import datetime
+import os
 
 from airflow import DAG
 from airflow.decorators import task
@@ -11,6 +12,9 @@ from airflow.operators.email import EmailOperator
 from airflow.hooks.base import BaseHook
 from smtplib import SMTP_SSL
 from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 
 
 from modules.dags_common_functions import (
@@ -36,15 +40,37 @@ default_args = {
 }
 
 
-def send_email_via_connection(**kwargs):
+def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail):
     # Recupera a conexão SMTP cadastrada no Airflow
     connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
 
     # Define o conteúdo do e-mail
     msg = MIMEText('<p>Este é um teste de envio de email pelo Airflow.</p>', 'html')
-    msg['Subject'] = 'Teste de Email no Airflow'
+    msg['Subject'] = assunto
     msg['From'] = connection.login
     msg['To'] = 'gabriel.pereira.sousa@email.com'
+
+    # Adiciona o corpo do e-mail
+    body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
+    msg.attach(body)
+
+
+    try:
+
+        if not os.path.exists(attachment_path):
+            raise FileNotFoundError(f"O arquivo {attachment_path} não foi encontrado.")
+        # Adiciona o anexo
+        attachment_path = filepdf_recebido # Coloque o caminho para o arquivo que deseja anexar
+        filename = os.path.basename(attachment_path)
+        with open(attachment_path, 'rb') as attachment_file:
+            # Cria a parte do anexo
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(attachment_file.read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', f'attachment; filename={filename}')
+            msg.attach(part)
+    except Exception as e:
+        print(f"Erro ao enviar e-mail: {e}")
 
     # Envia o e-mail usando as configurações da conexão
     try:
@@ -182,18 +208,8 @@ with DAG(
         listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
         filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
         assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
-        send_email_via_connection()
-        # # Configurando o EmailOperator
-        # email = EmailOperator(
-        #     task_id='envia_email',
-        #     to="gabriel.pereira.sousa@gmail.com", #listaemail_recebido
-        #     subject=assunto,
-        #     html_content=corpoemail,
-        #     files=[filepdf_recebido],
-        #     smtp_conn_id='report_email',  # Use o ID da conexão configurada
-        # )
-        # email
-
+        send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail)
+        
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
     tipo=report_tipo_relatorio()
