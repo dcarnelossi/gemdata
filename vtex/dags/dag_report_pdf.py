@@ -206,8 +206,10 @@ with DAG(
     cam_pdf = report_pdf()
     
     @task
-    def skip_trigger():
+    def skip_trigger(**kwargs):
+        caminho_whats_pdf = kwargs['ti'].xcom_pull(task_ids='report_pdf')
         print("Condição não atendida, a DAG não será disparada")
+        return caminho_whats_pdf
    
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(

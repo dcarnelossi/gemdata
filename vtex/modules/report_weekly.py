@@ -387,9 +387,15 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
     # Carregar os dados geográficos
     mapa_br = gpd.read_file(f"{diretorio}/BR_UF_2022.shp")
 
- 
+
+    # Definir o índice e converter ambos para maiúsculas
+    mapa_br = mapa_br.set_index(mapa_br['SIGLA_UF'].str.upper())
+    dataframe = dataframe.set_index(dataframe['selectedaddresses_0_state'].str.upper())
     # Combinar os dados geográficos com os dados de faturamento
-    mapa_br = mapa_br.set_index('SIGLA_UF').join(dataframe.set_index('selectedaddresses_0_state'))
+    #mapa_br = mapa_br.set_index('SIGLA_UF').join(dataframe.set_index('selectedaddresses_0_state'))
+    mapa_br = mapa_br.join(dataframe) 
+
+
     mapa_br['faturamento']=mapa_br['faturamento'].fillna(0)
     
 
