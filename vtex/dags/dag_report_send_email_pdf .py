@@ -40,54 +40,54 @@ default_args = {
 }
 
 
-def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail):
-    # Recupera a conexão SMTP cadastrada no Airflow
-    connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
+# def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail):
+#     # Recupera a conexão SMTP cadastrada no Airflow
+#     connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
 
 
-    # Define o conteúdo do e-mail
-    msg= MIMEMultipart()
-    msg['Subject'] = assunto
-    msg['From'] = connection.login
-    msg['To'] = 'gabriel.pereira.sousa@gmail.com'
+#     # Define o conteúdo do e-mail
+#     msg= MIMEMultipart()
+#     msg['Subject'] = assunto
+#     msg['From'] = connection.login
+#     msg['To'] = 'gabriel.pereira.sousa@gmail.com'
 
-    # Adiciona o corpo do e-mail
-    body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
-    msg.attach(body)  # Anexa o corpo do e-mail
+#     # Adiciona o corpo do e-mail
+#     body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
+#     msg.attach(body)  # Anexa o corpo do e-mail
 
 
-    try:
-        print(filepdf_recebido)
-        attachment_path = filepdf_recebido
-        if not os.path.exists(attachment_path):
-            raise FileNotFoundError(f"O arquivo {attachment_path} não foi encontrado.")
-        # Adiciona o anexo
+#     try:
+#         print(filepdf_recebido)
+#         attachment_path = filepdf_recebido
+#         if not os.path.exists(attachment_path):
+#             raise FileNotFoundError(f"O arquivo {attachment_path} não foi encontrado.")
+#         # Adiciona o anexo
 
         
-       # Coloque o caminho para o arquivo que deseja anexar
-        filename = os.path.basename(attachment_path)
-        with open(attachment_path, 'rb') as attachment_file:
-            # Cria a parte do anexo
-            part = MIMEBase('application', 'octet-stream')
-            part.set_payload(attachment_file.read())
-            encoders.encode_base64(part)
-            part.add_header('Content-Disposition', f'attachment; filename={filename}')
-            msg.attach(part)
-    except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
-        raise 
+#        # Coloque o caminho para o arquivo que deseja anexar
+#         filename = os.path.basename(attachment_path)
+#         with open(attachment_path, 'rb') as attachment_file:
+#             # Cria a parte do anexo
+#             part = MIMEBase('application', 'octet-stream')
+#             part.set_payload(attachment_file.read())
+#             encoders.encode_base64(part)
+#             part.add_header('Content-Disposition', f'attachment; filename={filename}')
+#             msg.attach(part)
+#     except Exception as e:
+#         print(f"Erro ao enviar e-mail: {e}")
+#         raise 
 
-    # Envia o e-mail usando as configurações da conexão
-    try:
-        # Use SMTP_SSL para iniciar a conexão já com SSL
-        with SMTP_SSL(host=connection.host, port=connection.port) as server:
-            # Não use starttls() com SMTP_SSL, pois a conexão já é segura desde o início
-            server.login(connection.login, connection.password)
-            server.sendmail(msg['From'], [msg['To']], msg.as_string())
-            print("E-mail enviado com sucesso!")
-    except Exception as e:
-        print(f"Erro ao enviar e-mail: {e}")
-        raise
+#     # Envia o e-mail usando as configurações da conexão
+#     try:
+#         # Use SMTP_SSL para iniciar a conexão já com SSL
+#         with SMTP_SSL(host=connection.host, port=connection.port) as server:
+#             # Não use starttls() com SMTP_SSL, pois a conexão já é segura desde o início
+#             server.login(connection.login, connection.password)
+#             server.sendmail(msg['From'], [msg['To']], msg.as_string())
+#             print("E-mail enviado com sucesso!")
+#     except Exception as e:
+#         print(f"Erro ao enviar e-mail: {e}")
+#         raise
 
 with DAG(
     "b2-report-sendemail-pdf",
