@@ -6,7 +6,6 @@ from airflow.models import DagRun
 from airflow.settings import Session  # Importar para obter a sessão manualmente
 import pendulum  # Usando pendulum para gerenciar timezone
 
-
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -25,7 +24,10 @@ default_args = {
 }
 
 
-def delete_old_dag_runs(days, **kwargs):
+def delete_old_dag_runs(**kwargs):
+    # Pegar o parâmetro `days` dos `params` da DAG (se não estiver definido, usar 30 como padrão)
+    days = kwargs['params'].get('days', 30)
+
     # Criar uma sessão manualmente
     session = Session()
 
@@ -49,13 +51,12 @@ with DAG(
     default_args=default_args,
     tags=["Limpar", "v1", "limpeza"],
     render_template_as_native_obj=True,
-    params={},
+    params={'days': 30}  # Valor padrão de 30 dias
 ) as dag:
 
-   # Definir a tarefa Python
+    # Definir a tarefa Python
     clean_dag_runs = PythonOperator(
         task_id='delete_old_dag_runs',
         python_callable=delete_old_dag_runs,
-        op_kwargs={'days': '{{ dag_run.conf["days"] if dag_run else 30 }}'},  # Parâmetro "days" com valor padrão de 30 dias
         provide_context=True,
     )
