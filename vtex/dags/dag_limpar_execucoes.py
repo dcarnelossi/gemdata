@@ -25,12 +25,12 @@ default_args = {
 }
 
 
-def delete_old_dag_runs(**kwargs):
+def delete_old_dag_runs(days, **kwargs):
     # Criar uma sessão manualmente
     session = Session()
 
-    # Definir a data limite para exclusão (execuções com mais de 30 dias) com timezone UTC
-    cutoff_date = pendulum.now('UTC') - timedelta(days=30)
+    # Definir a data limite para exclusão com timezone UTC, usando o valor dos dias passado como parâmetro
+    cutoff_date = pendulum.now('UTC') - timedelta(days=days)
 
     # Excluir as execuções de DAGs que têm a data de execução anterior ao cutoff_date
     session.query(DagRun).filter(DagRun.execution_date < cutoff_date).delete()
@@ -40,6 +40,7 @@ def delete_old_dag_runs(**kwargs):
 
     # Fechar a sessão
     session.close()
+
 
 with DAG(
     "limpar_execucoes_dag",
@@ -51,8 +52,10 @@ with DAG(
     params={},
 ) as dag:
 
+   # Definir a tarefa Python
     clean_dag_runs = PythonOperator(
         task_id='delete_old_dag_runs',
         python_callable=delete_old_dag_runs,
+        op_kwargs={'days': '{{ dag_run.conf["days"] if dag_run else 30 }}'},  # Parâmetro "days" com valor padrão de 30 dias
         provide_context=True,
     )
