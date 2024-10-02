@@ -55,7 +55,7 @@ with DAG(
             title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],  # Opções para o dropdown
+            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_analise_loja"],  # Opções para o dropdown
      #       default=None,  # Valor padrão selecionado
         )
         ,"CELULAR": Param(
@@ -183,10 +183,24 @@ with DAG(
                 logging.exception(f"Erro ao processar o relatorio semanal - {e}")
                 raise
                   
-        elif tiporela == "3_relatorio_personalizado":
-            print("Processando o Relatório Diário...")
-            # Coloque a lógica do relatório diário aqui
-             
+        elif tiporela == "3_relatorio_analise_loja":
+            from modules import report_products_analytics
+            caminho_pdf= f"relatorio_analise_loja_{semana}_{celphone}_{numeric_datetime}"
+            try:
+                print("Processando o Relatório analise loja...")
+                report_products_analytics.set_globals(
+                data_conection_info,
+                team_id,
+                celphone,
+                caminho_logo,
+                caminho_pdf
+                )
+                print(" Relatório analise loja processado...")
+           
+            except Exception as e:
+                logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
+                raise
+                  
         else:
             print("Opção de relatório desconhecida.")
      
