@@ -180,6 +180,7 @@ with DAG(
                 )
                 print("Relatório semanal processado...")
            
+
             except Exception as e:
                 logging.exception(f"Erro ao processar o relatorio semanal - {e}")
                 raise
@@ -201,10 +202,14 @@ with DAG(
             except Exception as e:
                 logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
                 raise
-                  
+        
+                   
         else:
             print("Opção de relatório desconhecida.")
-     
+        
+        kwargs['ti'].xcom_push(key='pdf_path', value=caminho_pdf)   
+        
+
         return caminho_pdf
 
     @task.branch
@@ -224,7 +229,6 @@ with DAG(
     def skip_trigger(**kwargs):
         caminho_whats_pdf = kwargs['ti'].xcom_pull(task_ids='report_pdf')
 
-        kwargs['ti'].xcom_push(key='pdf_path', value=caminho_whats_pdf)
 
         print("Condição não atendida, a DAG não será disparada")
         return caminho_whats_pdf
