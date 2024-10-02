@@ -262,15 +262,13 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        _, tend = WriteJsonToPostgres("integrations-data-dev", query_item, "orders_items_ia").query()
-        if not result:
-            logging.warning("Sem resultado da segunda query ")
+        df_tendencia=WriteJsonToPostgres(data_conection_info,query_item).query_dataframe()
+        if len(df_tendencia) ==0 :
+            logging.warning("No skus found in the database.")
             return False
-
         #print(result) 
         #df_tupla = pd.DataFrame(result, columns=['idprod', 'namesku', 'revenue_without_shipping', 'pedidos', 'revenue_orders', 'tickemedio', 'receita_incremental'])
-        df_tendencia = pd.DataFrame(tend)
-
+    
 
     
         # Filtrar o DataFrame completo com base na coluna 'idprod' do DataFrame filtrado
@@ -486,7 +484,7 @@ def getbase(celular,integration,diretorio):
 
 
     except Exception as e:
-        logging.error(f"An error occurred in get_categories_id_from_db: {e}")
+        logging.error(f"erro ao processar os png : {e}")
         raise  # Ensure the Airflow task fails on error
         
 
