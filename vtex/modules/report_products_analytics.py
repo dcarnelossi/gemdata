@@ -129,8 +129,10 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
-        if not result:
+        # _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
+        df_ticket=WriteJsonToPostgres(data_conection_info,query).query_dataframe()
+
+        if not df_ticket:
             logging.warning("No skus found in the database.")
             return False
         
@@ -147,18 +149,16 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
-        if not result_pedidos:
+        # _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
+
+        df_pedidos=WriteJsonToPostgres(data_conection_info,query_pedidos).query_dataframe()
+        if not df_pedidos:
             logging.warning("No skus found in the database.")
             return False
-
-        df_pedidos = pd.DataFrame(result_pedidos)    
-
-
-        
+        # df_pedidos = pd.DataFrame(result_pedidos)    
         #print(result) 
         #df_tupla = pd.DataFrame(result, columns=['idprod', 'namesku', 'revenue_without_shipping', 'pedidos', 'revenue_orders', 'tickemedio', 'receita_incremental'])
-        df_ticket = pd.DataFrame(result)
+       # df_ticket = pd.DataFrame(result)
         qtd_prod_total = df_ticket['idprod'].count()
         
         #ordenando do dataframe 
