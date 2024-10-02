@@ -754,8 +754,8 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.multi_cell(0, 6, vermelho_texto)
     pdf.ln(90)
 
-    pdf.image(f"{diretorio}/positivo_grupo2{celular}.png", x = 7, y = 75, w = 95)
-    pdf.image(f"{diretorio}/negativo_grupo2{celular}.png", x = 108, y =75, w = 95)
+    pdf.image(f"{diretorio}/positivo_grupo2{celular}.png", x = 7, y = 78, w = 95)
+    pdf.image(f"{diretorio}/negativo_grupo2{celular}.png", x = 108, y =78, w = 95)
 
     azul_texto = "3- Azul: Produtos com crescimento moderado a elevado e alta ou média representatividade financeira. A estratégia atual deve ser mantida com monitoramento contínuo."
      # Adicionar a descrição normal
