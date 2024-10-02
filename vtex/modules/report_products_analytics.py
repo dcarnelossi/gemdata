@@ -861,7 +861,7 @@ def set_globals(data_conection,api_info,celphone,cami_logo,caminho_pdf,**kwargs)
     logo= cami_logo
     caminho_pdf_blob = caminho_pdf
 
-    if not all([idintegration,celular,semana]):
+    if not all([idintegration,celular]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
 
