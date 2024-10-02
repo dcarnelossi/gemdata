@@ -242,5 +242,5 @@ with DAG(
     skip_trigger_task = skip_trigger()
 
     # Definindo as dependências entre as tarefas
-    should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
+    cam_pdf >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
    # should_trigger >> skip_trigger_task
