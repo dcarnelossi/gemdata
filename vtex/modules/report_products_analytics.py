@@ -773,7 +773,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.add_page()
     # pdf.add_font('Helvetica', '', 'Fonte/Open_Sans/static/Helvetica-Regular.ttf')
     pdf.set_font('Helvetica', '', size=18)
-    pdf.cell(0, 5, f"Análise da Loja Provel", align='C')aa
+    pdf.cell(0, 5, f"Análise da Loja Provel", align='C')
     pdf.ln(5)
 
             #colocando logo do lado esquerdo
