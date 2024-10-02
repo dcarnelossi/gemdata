@@ -185,7 +185,7 @@ with DAG(
                   
         elif tiporela == "3_relatorio_analise_loja":
             from modules import report_products_analytics
-            caminho_pdf= f"relatorio_analise_loja_{semana}_{celphone}_{numeric_datetime}"
+            caminho_pdf= f"relatorio_analise_loja_{celphone}_{numeric_datetime}"
             try:
                 print("Processando o Relatório analise loja...")
                 report_products_analytics.set_globals(
