@@ -455,10 +455,10 @@ def getbase(celular,integration,diretorio):
 
 
         
-        grafico_dispersao(f"{diretorio}/positivo_grupo{celular}.png",'Análise grupo verde',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo vermelho',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo azul',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
-        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise Grupo amarelo',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
+        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
 
 
 
