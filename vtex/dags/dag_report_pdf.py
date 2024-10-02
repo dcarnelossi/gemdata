@@ -116,6 +116,7 @@ with DAG(
             data_conection_info = get_data_conection_info(team_id)
         except Exception as e:
             logging.exception(f"erro nos paramentos - {e}")
+            raise
         
         try:
             # Conecte-se ao PostgreSQL e execute o script
@@ -139,7 +140,7 @@ with DAG(
             caminho_logo = resultado_logo[0][0] 
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
-            
+            raise
         # Lógica condicional com base na escolha do usuário
         if tiporela == "1_relatorio_mensal":
             from modules import report_month
