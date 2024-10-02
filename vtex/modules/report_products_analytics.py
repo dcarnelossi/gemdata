@@ -132,7 +132,7 @@ def getbase(celular,integration,diretorio):
         # _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
         df_ticket=WriteJsonToPostgres(data_conection_info,query).query_dataframe()
 
-        if not df_ticket:
+        if len(df_ticket)==0:
             logging.warning("No skus found in the database.")
             return False
         
@@ -152,7 +152,7 @@ def getbase(celular,integration,diretorio):
         # _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
 
         df_pedidos=WriteJsonToPostgres(data_conection_info,query_pedidos).query_dataframe()
-        if not df_pedidos:
+        if len(df_pedidos) ==0 :
             logging.warning("No skus found in the database.")
             return False
         # df_pedidos = pd.DataFrame(result_pedidos)    
