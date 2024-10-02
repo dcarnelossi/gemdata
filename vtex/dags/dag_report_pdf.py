@@ -223,6 +223,9 @@ with DAG(
     @task
     def skip_trigger(**kwargs):
         caminho_whats_pdf = kwargs['ti'].xcom_pull(task_ids='report_pdf')
+
+        kwargs['ti'].xcom_push(key='pdf_path', value=caminho_whats_pdf)
+
         print("Condição não atendida, a DAG não será disparada")
         return caminho_whats_pdf
    
