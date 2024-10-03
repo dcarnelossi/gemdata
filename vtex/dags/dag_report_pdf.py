@@ -117,7 +117,7 @@ def get_informacao_pg(integration_id,canal,celular,email):
 
 def insert_report_pg(integration_id,tiporela,canal,infos_user,**kwargs):
         dag_id = "b1-report-create-pdf"
-        dag_run_id = kwargs['dag_run'].run_id
+        dag_run_id = kwargs['b1-report-create-pdf'].run_id
         start_date = datetime.now()
         team_id=infos_user[0]
         team_logo=infos_user[1]
