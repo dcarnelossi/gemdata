@@ -94,7 +94,7 @@ def get_informacao_pg(integration_id,canal,celular,email):
                     where 
                     ii.id = '{integration_id}'
                     and
-                    us.cell_phone = +'{celular}'
+                    us.cell_phone = '+{celular}'
                     and 
                     us.is_active is true
                     and 
