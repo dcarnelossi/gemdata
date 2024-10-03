@@ -192,7 +192,7 @@ with DAG(
             section="Important params",
             default="1900-01-01"
          )
-        ,"CElULAR": Param(
+        ,"CELULAR": Param(
             type="string",
             title="CELULAR:",
             description="Enter the celphone.",
@@ -206,7 +206,7 @@ with DAG(
             title="Important params",
             description="Enter the email address to send the email to.",
             default="email",  # Valor padrão
-            section="Email parameters" 
+            section="Important params" 
         )
     
     },
