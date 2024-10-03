@@ -697,7 +697,7 @@ def criar_relatorio_semanal (celular,integration,data_inicio,data_fim,data_inici
 
 
 
-def gerar_pdf(semana,celular,integration,extensao,diretorio):
+def gerar_pdf(semana,celular,integration,extensao,diretorio,caminho_pdf_blob):
 
           
     tempo=datetime.datetime.today()
@@ -772,13 +772,11 @@ def gerar_pdf(semana,celular,integration,extensao,diretorio):
   
 
 
-    current_datetime = datetime.datetime.now() 
-    numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
-    pdf.output(f"{diretorio}/relatorio_semanal_{celular}_{semana}_{numeric_datetime}.pdf")
+    filename= f"{caminho_pdf_blob}.pdf"
+    pdf.output(f"{diretorio}/{filename}")
     
-    filename=f"relatorio_semanal_{celular}_{semana}_{numeric_datetime}.pdf"
-
     return filename
+    
 
 
 
@@ -799,7 +797,7 @@ def get_logo(logo,celular, diretorio):
 
 def salvar_pdf_blob(idintegration,diretorio,filename):
         try:
-            ExecuteBlob().upload_file("reportclient",f"{idintegration}/{filename}",f"{diretorio}/{filename}") 
+            ExecuteBlob().upload_file("jsondashboard",f"{idintegration}/report/{filename}",f"{diretorio}/{filename}") 
             print ("PDF gravado no blob com sucesso") 
         except Exception as e:
             print (f"erro ao gravar PDF mensal {e}") 

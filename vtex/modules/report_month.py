@@ -1097,7 +1097,7 @@ def get_logo(logo,celular, diretorio):
 
 def salvar_pdf_blob(idintegration,diretorio,filename):
         try:
-            ExecuteBlob().upload_file("reportclient",f"{idintegration}/{filename}",f"{diretorio}/{filename}") 
+            ExecuteBlob().upload_file("jsondashboard",f"{idintegration}/report/{filename}",f"{diretorio}/{filename}") 
             print ("PDF gravado no blob com sucesso") 
         except Exception as e:
             print (f"erro ao gravar PDF mensal {e}") 
