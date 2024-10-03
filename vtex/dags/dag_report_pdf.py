@@ -199,13 +199,13 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=13,
-            default=None,  # Define como None por padrão
+            default="99",  # Define como None por padrão
           
         ),"EMAIL_PRINCIPAL": Param(
             type="string",
-            title="Email Principal",
+            title="Important params",
             description="Enter the email address to send the email to.",
-            default=None,  # Valor padrão
+            default="email",  # Valor padrão
             section="Email parameters" 
         )
     
