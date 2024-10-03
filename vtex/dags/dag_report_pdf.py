@@ -134,9 +134,9 @@ def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
             query = """
             INSERT INTO public.reports_report
             (created_at,updated_at, channel,"name", "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
             """
-            hook2.run(query, parameters=(start_date,start_date,dag_id,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,team_id,user_id))
+            hook2.run(query, parameters=(start_date,start_date,dag_id,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,int(team_id),int(user_id)))
  
             return True
         except Exception as e:
