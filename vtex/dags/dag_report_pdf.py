@@ -1,6 +1,7 @@
 import logging
 
 from datetime import datetime
+import uuid
 
 from airflow import DAG
 from airflow.decorators import task
@@ -121,22 +122,23 @@ def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
         team_id=infos_user[0]
         team_logo=infos_user[1]
         user_id=infos_user[2]
-
+        report_id = str(uuid.uuid4())
+        
         print(dag_run_id) 
         print(team_id) 
         print(team_logo) 
         print(user_id) 
-        
+
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
             INSERT INTO public.reports_report
-            (created_at,updated_at, channel,"name", "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
-            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
+            (created_at,updated_at, id,channel,"name", "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
+            VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
             """
-            hook2.run(query, parameters=(start_date,start_date,dag_id,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,int(team_id),int(user_id)))
+            hook2.run(query, parameters=(start_date,start_date,report_id,dag_id,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,int(team_id),int(user_id)))
  
             return True
         except Exception as e:
