@@ -133,10 +133,10 @@ def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
             hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
             INSERT INTO public.reports_report
-            (created_at, channel, "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
+            (created_at,updated_at, channel,"name", "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
             VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);
             """
-            hook2.run(query, parameters=(start_date,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,team_id,user_id))
+            hook2.run(query, parameters=(start_date,start_date,dag_id,canal,tiporela,dag_id,start_date,dag_run_id,"EXECUTANDO",integration_id,team_id,user_id))
  
             return True
         except Exception as e:
@@ -232,6 +232,7 @@ with DAG(
             print(data_fim)
             print(canal)
             print(email_prin)
+            print(dag_run_id)
 
             current_datetime = datetime.now() 
             numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
