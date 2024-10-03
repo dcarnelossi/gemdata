@@ -1,16 +1,24 @@
 
-
-from modules.dbpgconn import *
-
-from modules.save_to_blob import *
+#from modules.dbpgconn import *
+#from modules.save_to_blob import *
+from teste_dbpgconn import WriteJsonToPostgres
+import logging
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+import matplotlib.image as mpimg
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import os
+from io import BytesIO
 import subprocess
 import sys
 import os
 import datetime
 from dateutil.relativedelta import relativedelta
 
-import uuid
-import shutil
+
+import pandas as pd 
 
 # Função para instalar um pacote via pip
 def install(package):
@@ -46,14 +54,6 @@ except ImportError:
 
 
 
-
-
-
-data_conection_info = None
-idintegration = None
-celular = None
-logo = None
-caminho_pdf_blob = None
 
 
 
@@ -103,7 +103,7 @@ def classify_ranking(ranking):
     else:
         return 4  # Caso deseje lidar com valores fora dos intervalos
 
-def getbase(celular,integration,diretorio):
+def getbase(schema):
     try:
         query =f""" 
 					select 
@@ -115,7 +115,7 @@ def getbase(celular,integration,diretorio):
                     cast(sum(revenue_orders_out_ship)/ count(distinct orderid) as float) as tickemedio,
                     cast(sum(revenue_orders_out_ship) - sum(revenue_without_shipping) as float) as receita_incremental
 
-                    from "{integration}".orders_items_ia
+                    from "{schema}".orders_items_ia
                     where
                     date_trunc('month',COALESCE(creationdate, '1900-01-01'))::date >= date_trunc('month', CURRENT_DATE) - INTERVAL '7 month'
                     and 
@@ -129,10 +129,8 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        # _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
-        df_ticket=WriteJsonToPostgres(data_conection_info,query).query_dataframe()
-
-        if len(df_ticket)==0:
+        _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
+        if not result:
             logging.warning("No skus found in the database.")
             return False
         
@@ -140,7 +138,7 @@ def getbase(celular,integration,diretorio):
         query_pedidos =f""" 
 					select 
                     cast(count(distinct orderid) as int) as pedidos
-                    from "{integration}".orders_items_ia
+                    from "{schema}".orders_items_ia
                     where
                     date_trunc('month',COALESCE(creationdate, '1900-01-01'))::date >= date_trunc('month', CURRENT_DATE) - INTERVAL '6 month'
                     and 
@@ -149,16 +147,18 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        # _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
-
-        df_pedidos=WriteJsonToPostgres(data_conection_info,query_pedidos).query_dataframe()
-        if len(df_pedidos) ==0 :
+        _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
+        if not result_pedidos:
             logging.warning("No skus found in the database.")
             return False
-        # df_pedidos = pd.DataFrame(result_pedidos)    
+
+        df_pedidos = pd.DataFrame(result_pedidos)    
+
+
+        
         #print(result) 
         #df_tupla = pd.DataFrame(result, columns=['idprod', 'namesku', 'revenue_without_shipping', 'pedidos', 'revenue_orders', 'tickemedio', 'receita_incremental'])
-       # df_ticket = pd.DataFrame(result)
+        df_ticket = pd.DataFrame(result)
         qtd_prod_total = df_ticket['idprod'].count()
         
         #ordenando do dataframe 
@@ -205,7 +205,7 @@ def getbase(celular,integration,diretorio):
                             orderid 
                             ,date_trunc('month', CURRENT_DATE) - INTERVAL '1 month' as datafim 
                             ,date_trunc('month', CURRENT_DATE) - INTERVAL '6 month'as dataini
-                        from "{integration}".orders_items_ia b 
+                        from "{schema}".orders_items_ia b 
                 )
 				select  
                     cast(idprod as int) as idprod,
@@ -248,7 +248,7 @@ def getbase(celular,integration,diretorio):
 	        				0
 	                	end)/4 as float  ) AS  revenue_4semanas
 	                	
-                       from "{integration}".orders_items_ia o
+                       from "{schema}".orders_items_ia o
                        left join data_base d on
                        d.orderid = o.orderid
                    
@@ -262,13 +262,15 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        df_tendencia=WriteJsonToPostgres(data_conection_info,query_item).query_dataframe()
-        if len(df_tendencia) ==0 :
-            logging.warning("No skus found in the database.")
+        _, tend = WriteJsonToPostgres("integrations-data-dev", query_item, "orders_items_ia").query()
+        if not result:
+            logging.warning("Sem resultado da segunda query ")
             return False
+
         #print(result) 
         #df_tupla = pd.DataFrame(result, columns=['idprod', 'namesku', 'revenue_without_shipping', 'pedidos', 'revenue_orders', 'tickemedio', 'receita_incremental'])
-    
+        df_tendencia = pd.DataFrame(tend)
+
 
     
         # Filtrar o DataFrame completo com base na coluna 'idprod' do DataFrame filtrado
@@ -373,6 +375,27 @@ def getbase(celular,integration,diretorio):
 
 
 
+        # #######################
+        # #  #classificando os quartis do Faturamento  -> teste pegando uma media , desvio padroa e cortando o 25 quartil
+
+    #   #  media_revenue = df_merged['revenue_without_shipping'].mean()
+    #   #  desvio_padrao_revenue = df_merged['revenue_without_shipping'].std()
+    #     desvio_padrao_revenue=np.percentile( df_merged['revenue_without_shipping'], 25)
+
+    #     revenue_25=np.percentile(df_merged.loc[df_merged['revenue_without_shipping'] >= desvio_padrao_revenue,'revenue_without_shipping'], 25)
+    #     revenue_50=np.percentile(df_merged.loc[df_merged['revenue_without_shipping'] >= desvio_padrao_revenue,'revenue_without_shipping'], 50)
+    #     revenue_75=np.percentile(df_merged.loc[df_merged['revenue_without_shipping'] >= desvio_padrao_revenue,'revenue_without_shipping'], 75)
+    #     # Definir as condições e os valores correspondentes
+    #     conditions = [
+    #             df_merged['revenue_without_shipping'] < revenue_25,  # Menor que o 1º quartil
+    #             (df_merged['revenue_without_shipping'] >= revenue_25) & (df_merged['revenue_without_shipping'] < revenue_50),  # Entre 25% e 50%
+    #             (df_merged['revenue_without_shipping'] >= revenue_50) & (df_merged['revenue_without_shipping'] < revenue_75),  # Entre 50% e 75%
+    #             df_merged['revenue_without_shipping'] >= revenue_75  # Maior ou igual ao 3º quartil
+    #                 ]
+    #     choices = [0, 1, 2, 3]
+    #     df_merged['revenue_without_shipping_quartis'] =  np.select(conditions, choices)
+
+
 
         #######################
         #  #classificando os quartis de tendencia                    
@@ -455,16 +478,17 @@ def getbase(celular,integration,diretorio):
 
 
         
-        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
-        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao('./pdf_analise/positivo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao('./pdf_analise/positivo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        grafico_dispersao('./pdf_analise/negativo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
+        grafico_dispersao('./pdf_analise/negativo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
 
 
 
         df_merged= df_merged.sort_values(by='score_final', ascending=True).reset_index(drop=True)
         
-        df_primeiros_30 = df_merged.iloc[:45].copy()
+        
+        df_primeiros_30 = df_merged.iloc[:43].copy()
         df_primeiros_30['ID-Nome'] = df_primeiros_30.apply(
                         lambda row: f"{row['idprod']}-{row['namesku_x']}", axis=1
                         )
@@ -478,13 +502,13 @@ def getbase(celular,integration,diretorio):
         df_primeiros_30['Tendência']  = df_primeiros_30['tendencia_quartis'].apply(calcular_tendencia)
        
         #print( df_primeiros_30['Receita Incremental'])
-        tabela_detalhada(f"{diretorio}/tabela_detalhada{celular}.png",df_primeiros_30[['ID-Nome','Faturamento (6 meses)','Ticket Médio','Receita Incremental','Tendência','grupos_finais']])
+        tabela_detalhada('./pdf_analise/tabela_detalhada',df_primeiros_30[['ID-Nome','Faturamento (6 meses)','Ticket Médio','Receita Incremental','Tendência','grupos_finais']])
 
         return  qtd_prod,qtd_prod_total
 
 
     except Exception as e:
-        logging.error(f"erro ao processar os png : {e}")
+        logging.error(f"An error occurred in get_categories_id_from_db: {e}")
         raise  # Ensure the Airflow task fails on error
         
 
@@ -559,7 +583,7 @@ def grafico_dispersao(nm_imagem,titulo,df_grafico):
                         ha='center',va= 'bottom', fontsize=14, color='black', weight='bold')
 
 
-    fig.suptitle(titulo, fontsize=22, fontweight='bold', ha='center',color="#15131B", y=0.98 )
+    fig.suptitle("Análise dos produtos", fontsize=22, fontweight='bold', ha='center',color="#15131B", y=0.98 )
     fig.subplots_adjust(top=0.8,left=0.12,right=0.95  )
     fancy_box = patches.FancyBboxPatch((0.03, 0.03), width=0.94, height=0.94,
                         boxstyle="round,pad=0.02,rounding_size=0.02", ec="lightgrey", lw=0.3, facecolor="none",
@@ -695,9 +719,9 @@ def tabela_detalhada(nm_imagem,dataframe):
 
 
 
-def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
+def gerar_pdf_analise(schema):
    
-    qtd_prod,qtd_prod_total=getbase(celular,integration,diretorio)
+    qtd_prod,qtd_prod_total=getbase(schema)
 
     pdf = FPDF(format='A4')
     pdf.add_page()
@@ -716,16 +740,16 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # pdf.add_font('Helvetica', '', 'Fonte/Open_Sans/static/Helvetica-Regular.ttf')
     pdf.set_font('Helvetica', '', size=18)
     pdf.cell(0, 5, f"Análise da Loja Provel", align='C')
-    pdf.ln(7)
+    pdf.ln(5)
 
-    #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
-    #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
+        #     #colocando logo do lado esquerdo
+    # pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
+    # #colocando logo do lado direito
+    # pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
 
     mes_analise = f"Período de analise: {data_inicio_analise}  até {data_formatada}"
 
-    pdf.set_font('Helvetica', '', size=10)
+    pdf.set_font('Helvetica', '', size=8)
     pdf.cell(0, 5, mes_analise, align='C')
     pdf.ln(10)
 
@@ -743,7 +767,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(4)
     verde_texto = "1 - Verde: SKUs cuja representatividade no faturamento total é bastante significativa e com tendência de crescimento acentuado. A recomendação é manter a estratégia atual, monitorar os níveis de estoque e replicar boas práticas para outros SKUs de pior desempenho."
-     # Adicionar a descrição normal
+    # Adicionar a descrição normal
     pdf.set_font('Helvetica', '', 8)
     pdf.multi_cell(0, 4, verde_texto)
    
@@ -754,21 +778,21 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.multi_cell(0, 4, vermelho_texto)
     pdf.ln(95)
 
-    pdf.image(f"{diretorio}/positivo_grupo2{celular}.png", x = 7, y = 80, w = 95)
-    pdf.image(f"{diretorio}/negativo_grupo2{celular}.png", x = 108, y =80, w = 95)
+    pdf.image(f'./pdf_analise/positivo_grupo2.png', x = 7, y = 80, w = 95)
+    pdf.image(f'./pdf_analise/negativo_grupo2.png', x = 108, y =80, w = 95)
 
     azul_texto = "3 - Azul: SKUs de alta representatividade financeira e leve tendência de crescimento ou média representatividade financeira e forte tendência de crescimento. A estratégia atual deve ser mantida com monitoramento contínuo, assim como uma boa gestão de seus níveis de estoque."
-     # Adicionar a descrição normal
+    # Adicionar a descrição normal
     pdf.set_font('Helvetica', '', 8)
     pdf.multi_cell(0, 4, azul_texto)
     pdf.ln(2)
     amarelo_texto = "4 - Amarelo: SKUs de alta representatividade financeira e leve tendência de queda ou média representatividade financeira e forte tendência de crescimento. Verificar se houve alguma ruptura de estoque ou formas de alavancar as vendas dessas produtos."
-     # Adicionar a descrição normal
+       # Adicionar a descrição normal
     pdf.set_font('Helvetica', '', 8)
     pdf.multi_cell(0, 4, amarelo_texto)
     
-    pdf.image(f"{diretorio}/positivo_grupo1{celular}.png", x = 7, y =190, w = 95)
-    pdf.image(f"{diretorio}/negativo_grupo1{celular}.png", x = 108, y =190 , w = 95)
+    pdf.image(f'./pdf_analise/positivo_grupo1.png', x = 7, y =190, w = 95)
+    pdf.image(f'./pdf_analise/negativo_grupo1.png', x = 108, y =190 , w = 95)
     
     pdf.add_page()
     # pdf.add_font('Helvetica', '', 'Fonte/Open_Sans/static/Helvetica-Regular.ttf')
@@ -776,10 +800,10 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.cell(0, 5, f"Análise da Loja Provel", align='C')
     pdf.ln(5)
 
-            #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
-    #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
+        #     #colocando logo do lado esquerdo
+    # pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
+    # #colocando logo do lado direito
+    # pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
 
     mes_analise = f"Período de analise: {data_inicio_analise}  até {data_formatada}"
 
@@ -798,88 +822,20 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195)
+    pdf.image(f'./pdf_analise/tabela_detalhada.png', x = 7,y= 50,w=195)
+
 
   
         # Configurar a fonte
     pdf.set_font('Helvetica', '', 6)
     # Adicionar o texto principal
     texto_intro3 = "Faturamento (6 meses): Faturamento do SKU sem frente acumulado dos últimos 6 meses.\nTicket Médio: Faturamento do pedido sem frente / total de pedidos com o SKU.\n\t\t\t\t\t 1*: Baixo Ticket médio; 2*: Médio TM; 3*: TM acima da média; 4*: Alto TM.\nReceita Incremental: Receita de outros SKUs no mesmo pedido.\n\t\t\t\t\t 1$: Muito baixo; 2$: baixo; 3$: médio; 4$: alto.\nTendência: Análise da tendência do faturamento sem frente dos últimos meses e semanas de cada SKU."
-    
+       
     pdf.multi_cell(0, 3, texto_intro3)
-    
-    filename= f"{caminho_pdf_blob}.pdf"
-    pdf.output(f"{diretorio}/{filename}")
-
    
-    return filename
+    pdf.output(f"./pdf_analise/pdf_analise.pdf")
 
 
 
-
-def get_logo(logo,celular, diretorio):
-
-
-    if(logo == ""):
-        extensao = '.png'
-        ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
-       
-    else:   
-            start_index = logo.rfind(".")
-            extensao = logo[start_index:] 
-            ExecuteBlob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
-       
-    return extensao
-
-
-def salvar_pdf_blob(idintegration,diretorio,filename):
-        try:
-            ExecuteBlob().upload_file("reportclient",f"{idintegration}/{filename}",f"{diretorio}/{filename}") 
-            print ("PDF gravado no blob com sucesso") 
-        except Exception as e:
-            print (f"erro ao gravar PDF mensal {e}") 
-
-
-def criar_pasta_temp(celular):
-    #Gera um UUID para criar um diretório único
-    unique_id = uuid.uuid4().hex
-    temp_dir = f"/opt/airflow/temp/{unique_id}_{celular}"
-
-    # Cria o diretório
-    os.makedirs(temp_dir, exist_ok=True)
-
-    return temp_dir
-
-    # Exemplo de caminho para salvar arquivos dentro do diretório temporário
-    #temp_file_path = os.path.join(temp_dir, 'imagem.png')
-
-
-
-
-def set_globals(data_conection,api_info,celphone,cami_logo,caminho_pdf,**kwargs):
-    global  data_conection_info,idintegration ,celular,logo,caminho_pdf_blob
-    data_conection_info = data_conection
-    idintegration = api_info
-    celular= celphone
-    logo= cami_logo
-    caminho_pdf_blob = caminho_pdf
-
-    if not all([idintegration,celular]):
-        logging.error("Global connection information is incomplete.")
-        raise ValueError("All global connection information must be provided.")
-
-    diretorio=criar_pasta_temp(celular)
-    print(diretorio)
-
-    extensao=get_logo(logo,celular,diretorio)
-    filename=gerar_pdf_analise(celular,idintegration,extensao,diretorio,caminho_pdf_blob)
-
-    salvar_pdf_blob(idintegration,diretorio,filename)
-    
-    # Remover o diretório após o uso
-    shutil.rmtree(diretorio, ignore_errors=True)
-    print(f"Diretório temporário {diretorio} removido.")
-
-
-
+gerar_pdf_analise('2dd03eaf-cf56-4a5b-bc99-3a06b237ded8')
 
