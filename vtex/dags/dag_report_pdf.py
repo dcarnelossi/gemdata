@@ -239,7 +239,7 @@ with DAG(
         except Exception as e:
             logging.exception(f"erro nos paramentos - {e}")
             raise
-        infos_user=get_informacao_pg(integration_id)
+        infos_user=get_informacao_pg(integration_id,canal,celphone,email_prin)
         
         insert_report_pg(integration_id,tiporela,canal,infos_user)
                 
