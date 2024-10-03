@@ -115,9 +115,8 @@ def get_informacao_pg(integration_id,canal,celular,email):
             raise
 
 
-def insert_report_pg(integration_id,tiporela,canal,infos_user,**kwargs):
+def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
         dag_id = "b1-report-create-pdf"
-        dag_run_id = kwargs['b1-report-create-pdf'].run_id
         start_date = datetime.now()
         team_id=infos_user[0]
         team_logo=infos_user[1]
@@ -215,6 +214,8 @@ with DAG(
     @task(provide_context=True)
     def report_pdf(**kwargs):
         try:
+            dag_run_id = kwargs['dag_run'].run_id
+            integration_id = kwargs["params"]["PGSCHEMA"]    
             integration_id = kwargs["params"]["PGSCHEMA"]
             tiporela = kwargs["params"]["TYPREREPORT"]
             canal = kwargs["params"]["CHANNEL"]
@@ -241,7 +242,7 @@ with DAG(
             raise
         infos_user=get_informacao_pg(integration_id,canal,celphone,email_prin)
         
-        insert_report_pg(integration_id,tiporela,canal,infos_user)
+        insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id)
                 
 
         # # Lógica condicional com base na escolha do usuário
