@@ -105,7 +105,18 @@ with DAG(
         
             resultado_file = hook.get_records(query)
             filename=resultado_file[0][0]
+
             diretorio = f"/opt/airflow/temp/{filename}"
+
+            # Garante que o diretório existe
+            criar_diretorio = os.path.dirname(diretorio)
+    
+            # Se o diretório não existir, cria-o
+            if not os.path.exists(criar_diretorio):
+                os.makedirs(criar_diretorio)
+
+            print(filename)
+           
             save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{filename}",f"{diretorio}") 
             
         except Exception as e:
@@ -113,8 +124,8 @@ with DAG(
             raise
 
         return   diretorio
-        #kwargs['ti'].xcom_push(key='lista_diretorio', value=diretorio)
-        #return diretorio
+
+    
 
     @task(provide_context=True)
     def report_baixar_email(**kwargs):
@@ -183,13 +194,9 @@ with DAG(
             return 'sem relatorio','sem relatório'
 
     @task(provide_context=True)
-    def enviar_email(**kwargs):
+    def enviar_email(listaemail_recebido,filepdf_recebido, assunto, corpoemail,**kwargs):
         try:
-            # Pegando os valores das tarefas anteriores
-            listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email')
-            filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf')
-            assunto, corpoemail = kwargs['ti'].xcom_pull(task_ids='report_tipo_relatorio')
-            
+             
             from modules import send_email
             
             send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpoemail,True,filepdf_recebido)
@@ -199,10 +206,10 @@ with DAG(
 
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
-    tipo=report_tipo_relatorio()
-    enviar= enviar_email()
+    assunto,corpo =report_tipo_relatorio()
+    enviar= enviar_email(listemail,pdffile,assunto,corpo)
     
-    listemail >> pdffile >> tipo >> enviar
+    listemail >> pdffile >> assunto >> enviar
 
     
 
