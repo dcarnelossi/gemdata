@@ -43,7 +43,7 @@ def get_informacao_pg(integration_id,canal,celular,email):
             
             if canal != 'whatsapp':
                 query = f"""
-                 					select distinct 
+                 	select distinct 
                     
                     te.id as team_id,
                     te.logo as team_logo,
@@ -116,13 +116,13 @@ def get_informacao_pg(integration_id,canal,celular,email):
             raise
 
 
-def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
+def insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_id):
         dag_id = "b1-report-create-pdf"
         start_date = datetime.now()
         team_id=infos_user[0]
         team_logo=infos_user[1]
         user_id=infos_user[2]
-        report_id = str(uuid.uuid4())
+        
         
         print(dag_run_id) 
         print(team_id) 
@@ -144,6 +144,34 @@ def insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id):
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
             raise
+
+
+
+def update_report_pg(report_id,integration_id,filename):
+     
+        end_date = datetime.now()
+        file = f"{integration_id}/report/{filename}"
+
+
+        try:
+            # Conecte-se ao PostgreSQL e execute o script
+            hook3 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            query = """
+            UPDATE public.reports_report
+            SET updated_at =  %s,
+            file = %s,
+            dag_finished_at = %s,
+            dag_last_status = "SUCESSO"
+            WHERE id = %s;
+            """
+            hook3.run(query, parameters=(end_date,file,end_date,report_id))
+ 
+            return True
+        except Exception as e:
+            logging.exception(f"erro ao fazer o update  -  public.reports_report {e}")
+            raise
+
+
 
 
 with DAG(
@@ -212,13 +240,45 @@ with DAG(
     
     },
 ) as dag:
+    report_id = str(uuid.uuid4())
+    
+    
+    @task(provide_context=True)
+    def inserir_pg(**kwargs):
+        try:
+            dag_run_id = kwargs['dag_run'].run_id
+            integration_id = kwargs["params"]["PGSCHEMA"]    
+            tiporela = kwargs["params"]["TYPREREPORT"]
+            canal = kwargs["params"]["CHANNEL"]
+            email_prin = kwargs["params"]["EMAIL_PRINCIPAL"]
+            celphone = kwargs["params"]["CELULAR"]
+         
+            print(integration_id)
+            print(tiporela)
+            print(celphone)
+            print(canal)
+            print(email_prin)
+            print(dag_run_id)
+
+        except Exception as e:
+            logging.exception(f"erro nos paramentos - {e}")
+            raise
+        infos_user=get_informacao_pg(integration_id,canal,celphone,email_prin)
+        #team_id=infos_user[0]
+        team_logo=infos_user[1]
+        #user_id=infos_user[2]    
+
+        insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_id)
+
+        return team_logo
+    
+    logo=inserir_pg
 
     @task(provide_context=True)
     def report_pdf(**kwargs):
         try:
             dag_run_id = kwargs['dag_run'].run_id
             integration_id = kwargs["params"]["PGSCHEMA"]    
-            integration_id = kwargs["params"]["PGSCHEMA"]
             tiporela = kwargs["params"]["TYPREREPORT"]
             canal = kwargs["params"]["CHANNEL"]
             email_prin = kwargs["params"]["EMAIL_PRINCIPAL"]
@@ -243,119 +303,117 @@ with DAG(
         except Exception as e:
             logging.exception(f"erro nos paramentos - {e}")
             raise
-        infos_user=get_informacao_pg(integration_id,canal,celphone,email_prin)
-        
-        insert_report_pg(integration_id,tiporela,canal,infos_user,dag_run_id)
-                
 
-        # # Lógica condicional com base na escolha do usuário
-        # if tiporela == "1_relatorio_mensal":
-        #     from modules import report_month
-        #     mes = data_ini.month 
-        #     print(mes)   
 
-        #     caminho_pdf= f"relatorio_mensal_{mes}_{celphone}_{numeric_datetime}"
-        #     try:
-        #         print("Processando o Relatório mensal...")
-        #         report_month.set_globals(
-        #         data_conection_info,
-        #         integration_id,
-        #         celphone,
-        #         mes,
-        #         caminho_logo,
-        #         caminho_pdf 
-        #         )
-        #         print("Relatório mensal processado...")
-        #     except Exception as e:
-        #         logging.exception(f"Erro ao processar o relatorio mensal - {e}")
-        #         raise
-        #     # Coloque a lógica do relatório semanal aqui
-        # elif tiporela == "2_relatorio_semanal":
-        #     from modules import report_weekly
-        #     semana = int(data_ini.strftime("%W"))+1
-        #     print(semana)
-        #     caminho_pdf= f"relatorio_semanal_{semana}_{celphone}_{numeric_datetime}"
-        #     try:
-        #         print("Processando o Relatório  semanal...")
-        #         report_weekly.set_globals(
-        #         data_conection_info,
-        #         integration_id,
-        #         celphone,
-        #         semana,
-        #         caminho_logo,
-        #         caminho_pdf
-        #         )
-        #         print("Relatório semanal processado...")
+        # Lógica condicional com base na escolha do usuário
+        if tiporela == "faturamento_semanal":
+            from modules import report_month
+            mes = data_ini.month 
+            print(mes)   
+
+            caminho_pdf= f"relatorio_mensal_{mes}_{numeric_datetime}"
+            try:
+                print("Processando o Relatório mensal...")
+                report_month.set_globals(
+                data_conection_info,
+                integration_id,
+                celphone,
+                mes,
+                logo,
+                caminho_pdf 
+                )
+                print("Relatório mensal processado...")
+            except Exception as e:
+                logging.exception(f"Erro ao processar o relatorio mensal - {e}")
+                raise
+            # Coloque a lógica do relatório semanal aqui
+        elif tiporela == "2_relatorio_semanal":
+            from modules import report_weekly
+            semana = int(data_ini.strftime("%W"))+1
+            print(semana)
+            caminho_pdf= f"relatorio_semanal_{semana}_{numeric_datetime}"
+            try:
+                print("Processando o Relatório  semanal...")
+                report_weekly.set_globals(
+                data_conection_info,
+                integration_id,
+                celphone,
+                semana,
+                logo,
+                caminho_pdf
+                )
+                print("Relatório semanal processado...")
            
 
-        #     except Exception as e:
-        #         logging.exception(f"Erro ao processar o relatorio semanal - {e}")
-        #         raise
+            except Exception as e:
+                logging.exception(f"Erro ao processar o relatorio semanal - {e}")
+                raise
                   
-        # elif tiporela == "3_relatorio_analise_loja":
-        #     from modules import report_products_analytics
-        #     caminho_pdf= f"relatorio_analise_loja_{celphone}_{numeric_datetime}"
-        #     try:
-        #         print("Processando o Relatório analise loja...")
-        #         report_products_analytics.set_globals(
-        #         data_conection_info,
-        #         integration_id,
-        #         celphone,
-        #         caminho_logo,
-        #         caminho_pdf
-        #         )
-        #         print(" Relatório analise loja processado...")
+        elif tiporela == "analise_loja":
+            from modules import report_products_analytics
+            caminho_pdf= f"relatorio_analise_loja_{numeric_datetime}"
+            try:
+                print("Processando o Relatório analise loja...")
+                report_products_analytics.set_globals(
+                data_conection_info,
+                integration_id,
+                celphone,
+                logo,
+                caminho_pdf
+                )
+                print(" Relatório analise loja processado...")
            
-        #     except Exception as e:
-        #         logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
-        #         raise
+            except Exception as e:
+                logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
+                raise
         
                    
-        # else:
-        #     print("Opção de relatório desconhecida.")
+        else:
+            print("Opção de relatório desconhecida.")
         
 
-        # return caminho_pdf
 
-#     @task.branch
-#     def should_trigger_dag(**kwargs):
-#     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-#         isemail = kwargs["params"]['SENDEMAIL']
-
-#         if isemail:  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
-#             return 'trigger_dag_report_send_pdf'
-#         else:
-#             return 'skip_trigger'
-
-
-#     cam_pdf = report_pdf()
+        return caminho_pdf
     
-#     @task
-#     def skip_trigger(**kwargs):
-#         caminho_whats_pdf = kwargs['ti'].xcom_pull(task_ids='report_pdf')
-
-
-#         print("Condição não atendida, a DAG não será disparada")
-#         return caminho_whats_pdf
-   
-#     #@task(provide_context=True)   
-#     trigger_dag_report_send_pdf = TriggerDagRunOperator(
-#         task_id="trigger_dag_report_send_pdf",
-#         trigger_dag_id="b2-report-sendemail-pdf",  # Substitua pelo nome real da sua segunda DAG
-#         conf={
-#                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
-#                 "FILEPDF": cam_pdf,
-#                 "TYPREREPORT": "{{ params.TYPREREPORT }}"
-#             }  # Se precisar passar informações adicionais para a DAG_B
-#     )
-    
-
-#     should_trigger = should_trigger_dag()
-#     skip_trigger_task = skip_trigger()
-
-#     # Definindo as dependências entre as tarefas
-#     cam_pdf >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
-#    # should_trigger >> skip_trigger_task
-
     cam_pdf = report_pdf()
-    cam_pdf
+
+    @task.branch
+    def should_trigger_dag(**kwargs):
+    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
+        canal = kwargs["params"]["CHANNEL"]
+
+        if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+            return 'trigger_dag_report_send_pdf'
+        else:
+            return 'skip_trigger'
+
+    @task
+    def skip_trigger(**kwargs):
+        integration_id = kwargs["params"]["PGSCHEMA"]   
+        try:
+            print("inicando a atualizacao do reports_report no postgree ...")
+            update_report_pg(report_id,integration_id,cam_pdf)
+        except Exception as e:
+                logging.exception(f"Erro ao processar  update report pg - {e}")
+                raise
+        print("Finalizado a atualizacao do reports_report no postgree ...")
+        return True
+   
+    #@task(provide_context=True)   
+    trigger_dag_report_send_pdf = TriggerDagRunOperator(
+        task_id="trigger_dag_report_send_pdf",
+        trigger_dag_id="b2-report-sendemail-pdf",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+                "PGSCHEMA": "{{ params.PGSCHEMA }}",
+                "REPORTID": report_id,
+                "TYPREREPORT": "{{ params.TYPREREPORT }}"
+            }  # Se precisar passar informações adicionais para a DAG_B
+    )
+    
+
+    should_trigger = should_trigger_dag()
+    skip_trigger_task = skip_trigger()
+    # Definindo as dependências entre as tarefas
+    logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
+   # should_trigger >> skip_trigger_task
+
