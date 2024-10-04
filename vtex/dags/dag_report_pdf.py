@@ -152,6 +152,12 @@ def update_report_pg(report_id,integration_id,filename):
         end_date = datetime.now()
         file = f"{integration_id}/report/{filename}"
 
+        print(end_date)
+        print(file)
+        print(len(file))
+        print(report_id)
+        
+        
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
