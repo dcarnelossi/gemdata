@@ -204,25 +204,28 @@ with DAG(
 
     @task(provide_context=True)
     def report_tipo_relatorio(**kwargs):
-        tiporelatorio= kwargs["params"]["TYPREREPORT"]
-        # listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
-        # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
- 
-        if tiporelatorio== 'faturamento_mensal':
-            escrita_email ="Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"  
-            return   escrita_email          
-        elif  tiporelatorio== 'faturamento_semanal':  
-            escrita_email = "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"    
-            return 
-               # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
-               # return enviar_email   
-        elif  tiporelatorio== 'analise_loja':  
-            escrita_email = "Relatório análise da loja","<p>Segue anexo o relatório análise da loja.</p>"
-            return  escrita_email
-        else:
-            print("erroo")
-            escrita_email = 'sem relatorio','sem relatório'
-            return escrita_email
+        
+        try:
+            tiporelatorio= kwargs["params"]["TYPREREPORT"]
+            
+            if tiporelatorio== 'faturamento_mensal':
+                escrita_email ="Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"  
+                return   escrita_email          
+            elif  tiporelatorio== 'faturamento_semanal':  
+                escrita_email = "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"    
+                return 
+                # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
+                # return enviar_email   
+            elif  tiporelatorio== 'analise_loja':  
+                escrita_email = "Relatório análise da loja","<p>Segue anexo o relatório análise da loja.</p>"
+                return  escrita_email
+            else:
+                print("erroo")
+                escrita_email = 'sem relatorio','sem relatório'
+                return escrita_email
+        except Exception as e:
+            logging.exception(f"deu erro no assunto e corpo de email - {e}")
+            return False
 
     @task(provide_context=True)
     def enviar_email(listaemail_recebido,filepdf_recebido, escrita_email,**kwargs):
