@@ -40,54 +40,6 @@ default_args = {
 }
 
 
-# def send_email_via_connection(listaemail_recebido,filepdf_recebido,assunto,corpoemail):
-#     # Recupera a conexão SMTP cadastrada no Airflow
-#     connection = BaseHook.get_connection('report_email')  # Nome da sua conexão SMTP
-
-
-#     # Define o conteúdo do e-mail
-#     msg= MIMEMultipart()
-#     msg['Subject'] = assunto
-#     msg['From'] = connection.login
-#     msg['To'] = 'gabriel.pereira.sousa@gmail.com'
-
-#     # Adiciona o corpo do e-mail
-#     body = MIMEText('<p>Este é um teste de envio de email pelo Airflow com anexo.</p>', 'html')
-#     msg.attach(body)  # Anexa o corpo do e-mail
-
-
-#     try:
-#         print(filepdf_recebido)
-#         attachment_path = filepdf_recebido
-#         if not os.path.exists(attachment_path):
-#             raise FileNotFoundError(f"O arquivo {attachment_path} não foi encontrado.")
-#         # Adiciona o anexo
-
-        
-#        # Coloque o caminho para o arquivo que deseja anexar
-#         filename = os.path.basename(attachment_path)
-#         with open(attachment_path, 'rb') as attachment_file:
-#             # Cria a parte do anexo
-#             part = MIMEBase('application', 'octet-stream')
-#             part.set_payload(attachment_file.read())
-#             encoders.encode_base64(part)
-#             part.add_header('Content-Disposition', f'attachment; filename={filename}')
-#             msg.attach(part)
-#     except Exception as e:
-#         print(f"Erro ao enviar e-mail: {e}")
-#         raise 
-
-#     # Envia o e-mail usando as configurações da conexão
-#     try:
-#         # Use SMTP_SSL para iniciar a conexão já com SSL
-#         with SMTP_SSL(host=connection.host, port=connection.port) as server:
-#             # Não use starttls() com SMTP_SSL, pois a conexão já é segura desde o início
-#             server.login(connection.login, connection.password)
-#             server.sendmail(msg['From'], [msg['To']], msg.as_string())
-#             print("E-mail enviado com sucesso!")
-#     except Exception as e:
-#         print(f"Erro ao enviar e-mail: {e}")
-#         raise
 
 with DAG(
     "b2-report-sendemail-pdf",
@@ -106,10 +58,10 @@ with DAG(
             max_length=200,
                        
         ),
-          "FILEPDF": Param(
+          "REPORTID": Param(
             type="string",
-            title="FILEPDF:",
-            description="Enter the integration FILEPDF.",
+            title="REPORT ID:",
+            description="Enter the REPORTID da tabela reports report.",
             section="Important params",
             min_length=1,
             max_length=200,
@@ -120,7 +72,7 @@ with DAG(
             title="Tipo de relatorio:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-            enum=["1_relatorio_mensal", "2_relatorio_semanal","3_relatorio_personalizado"],
+            enum=["faturamento_mensal", "faturamento_semanal","analise_loja"],
             default=None,  # Valor padrão selecionado
         )
 
@@ -132,13 +84,29 @@ with DAG(
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
-        caminho_pdf = kwargs["params"]["FILEPDF"]
+        report_id = kwargs["params"]["REPORTID"]
         from modules import save_to_blob
         
         try:
+              # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            query = f"""
+ 
+            select distinct 
             
-            diretorio = f"/opt/airflow/temp/{caminho_pdf}"
-            save_to_blob.ExecuteBlob().get_file("reportclient",f"{team_id}/{caminho_pdf}",f"{diretorio}") 
+            file
+           
+            from reports_report ii 
+
+            where 
+            ii .id = '{report_id}'
+       
+                """
+        
+            resultado_file = hook.get_records(query)
+            
+            diretorio = f"/opt/airflow/temp/{resultado_file}"
+            save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{resultado_file}",f"{diretorio}") 
             
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
@@ -202,16 +170,16 @@ with DAG(
         # listaemail_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_email', key='lista_string') 
         # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
  
-        if tiporelatorio== '1_relatorio_mensal':
-            return "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"              
-        elif  tiporelatorio== '2_relatorio_semanal':  
-            return "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
+        if tiporelatorio== 'faturamento_mensal':
+            return "Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"              
+        elif  tiporelatorio== 'faturamento_semanal':  
+            return "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
                # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
                # return enviar_email   
-        elif  tiporelatorio== '3_relatorio_personalizado':   
-            return  "Relatório Semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
+        elif  tiporelatorio== 'analise_loja':   
+            return  "Relatório análise da loja","<p>Segue anexo o relatório análise da loja.</p>"
         else:
-            print("aaaaaaaaaaaaaa")
+            print("erroo")
             return 'sem relatorio','sem relatório'
 
     @task(provide_context=True)
