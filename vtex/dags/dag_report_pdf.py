@@ -274,7 +274,7 @@ with DAG(
     
     logo=inserir_pg
 
-    #@task(provide_context=True)
+    @task(provide_context=True)
     def report_pdf(**kwargs):
         try:
             dag_run_id = kwargs['dag_run'].run_id
@@ -377,17 +377,9 @@ with DAG(
     
     cam_pdf = report_pdf()
 
-    @task.branch
-    def should_trigger_dag(**kwargs):
-    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-        canal = kwargs["params"]["CHANNEL"]
+  
 
-        if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
-            return 'trigger_dag_report_send_pdf'
-        else:
-            return 'skip_trigger'
-
-    # @task(provide_context=True)
+    @task(provide_context=True)
     def skip_trigger(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]   
         try:
@@ -399,6 +391,16 @@ with DAG(
         print("Finalizado a atualizacao do reports_report no postgree ...")
         return True
    
+    @task.branch
+    def should_trigger_dag(**kwargs):
+    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
+        canal = kwargs["params"]["CHANNEL"]
+
+        if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+            return 'trigger_dag_report_send_pdf'
+        else:
+            return 'skip_trigger'
+
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
