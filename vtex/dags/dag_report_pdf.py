@@ -275,7 +275,7 @@ with DAG(
         #user_id=infos_user[2]    
 
         insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_id)
-
+        print(report_id)
         return team_logo
     
   
@@ -305,7 +305,7 @@ with DAG(
             current_datetime = datetime.now() 
             numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
             data_conection_info = get_data_conection_info(integration_id)
-
+            
         except Exception as e:
             logging.exception(f"erro nos paramentos - {e}")
             raise
@@ -373,7 +373,7 @@ with DAG(
                 logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
                 raise
         
-                   
+            print(report_id)       
         else:
             print("Opção de relatório desconhecida.")
         
@@ -394,6 +394,8 @@ with DAG(
     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
         canal = kwargs["params"]["CHANNEL"]
         integration_id = kwargs["params"]["PGSCHEMA"]   
+
+        print(report_id)
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
             update_report_pg(report_id,integration_id,cam_pdf)
