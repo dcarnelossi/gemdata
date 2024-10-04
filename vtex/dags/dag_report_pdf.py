@@ -150,7 +150,7 @@ def insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_
 def update_report_pg(report_id,integration_id,filename):
      
         end_date = datetime.now()
-        file = f"{integration_id}/report/{filename}"
+        file = f"{integration_id}/report/{filename}.pdf"
 
         print(end_date)
         print(file)
