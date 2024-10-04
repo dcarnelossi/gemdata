@@ -416,7 +416,7 @@ with DAG(
 
             return 'skip_trigger'
     
-    report_id=gerar_report_id
+    report_id=gerar_report_id()
     
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
