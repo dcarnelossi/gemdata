@@ -110,7 +110,6 @@ with DAG(
         
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
-        team_id = kwargs["params"]["PGSCHEMA"]
         report_id = kwargs["params"]["REPORTID"]
         from modules import save_to_blob
         
@@ -156,7 +155,7 @@ with DAG(
 
     @task(provide_context=True)
     def report_baixar_email(**kwargs):
-        team_id2 = kwargs["params"]["PGSCHEMA"]
+        integration_id = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
@@ -178,7 +177,7 @@ with DAG(
             us.id = ms.user_id 
 
             where 
-            ii .id = '{team_id2}'
+            ii .id = '{integration_id}'
             and 
             us.is_active is true
             and 
