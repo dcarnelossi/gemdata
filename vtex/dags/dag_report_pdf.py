@@ -415,7 +415,9 @@ with DAG(
         else:
 
             return 'skip_trigger'
+    
     report_id=gerar_report_id
+    
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
@@ -434,6 +436,6 @@ with DAG(
     
   
     # Definindo as dependências entre as tarefas
-    logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
+    report_id >>logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
    # should_trigger >> skip_trigger_task
 
