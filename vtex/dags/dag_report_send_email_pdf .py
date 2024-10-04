@@ -99,7 +99,7 @@ with DAG(
             from reports_report ii 
 
             where 
-            ii .id = '{report_id}'
+            ii.id = '{report_id}'
        
                 """
         
