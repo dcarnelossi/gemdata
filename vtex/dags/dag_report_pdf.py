@@ -247,7 +247,7 @@ with DAG(
     },
 ) as dag:
    
-    @task
+    @task(provide_context=True)
     def gerar_report_id():
         report_id = str(uuid.uuid4())
         return report_id
