@@ -227,6 +227,7 @@ with DAG(
     @task(provide_context=True)
     def enviar_email(listaemail_recebido,filepdf_recebido, escrita_email,**kwargs):
         try:
+            print(escrita_email)
             assunto=escrita_email[0] 
             corpo_email=escrita_email[1] 
               
