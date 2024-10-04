@@ -206,13 +206,13 @@ with DAG(
         
         try:
             tiporelatorio= kwargs["params"]["TYPREREPORT"]
-            
+            print(tiporelatorio)
             if tiporelatorio== 'faturamento_mensal':
                 escrita_email ="Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"  
                 return   escrita_email          
             elif  tiporelatorio== 'faturamento_semanal':  
                 escrita_email = "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"    
-                return 
+                return escrita_email
                 # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
                 # return enviar_email   
             elif  tiporelatorio== 'analise_loja':  
