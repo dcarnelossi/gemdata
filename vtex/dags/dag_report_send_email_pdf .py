@@ -97,7 +97,7 @@ with DAG(
         )   ,"TYPREREPORT": Param(
             type="string",
             title="Tipo de relatorio:",
-            description="Enter com False (processo total) ou True (processo diario) .",
+            description="Entre com o tipo de relatorio.",
             section="Important params",
             enum=["faturamento_mensal", "faturamento_semanal","analise_loja"],
             default=None,  # Valor padrão selecionado
