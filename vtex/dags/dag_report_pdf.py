@@ -278,7 +278,7 @@ with DAG(
 
         return team_logo
     
-    logo=inserir_pg()
+  
 
     @task(provide_context=True)
     def report_pdf(**kwargs):
@@ -381,7 +381,6 @@ with DAG(
 
         return caminho_pdf
     
-    cam_pdf = report_pdf()
 
   
 
@@ -418,9 +417,11 @@ with DAG(
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
-
+    logo=inserir_pg()
+    cam_pdf = report_pdf(logo)
+    skip_trigger_task = skip_trigger(cam_pdf)
     should_trigger = should_trigger_dag()
-    skip_trigger_task = skip_trigger()
+  
     # Definindo as dependências entre as tarefas
     logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
    # should_trigger >> skip_trigger_task
