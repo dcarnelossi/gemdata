@@ -379,43 +379,43 @@ with DAG(
 
   
 
-    # @task(provide_context=True)
-    # def skip_trigger(**kwargs):
-    #     integration_id = kwargs["params"]["PGSCHEMA"]   
-    #     try:
-    #         print("inicando a atualizacao do reports_report no postgree ...")
-    #         update_report_pg(report_id,integration_id,cam_pdf)
-    #     except Exception as e:
-    #             logging.exception(f"Erro ao processar  update report pg - {e}")
-    #             raise
-    #     print("Finalizado a atualizacao do reports_report no postgree ...")
-    #     return True
+    @task(provide_context=True)
+    def skip_trigger(**kwargs):
+        integration_id = kwargs["params"]["PGSCHEMA"]   
+        try:
+            print("inicando a atualizacao do reports_report no postgree ...")
+            update_report_pg(report_id,integration_id,cam_pdf)
+        except Exception as e:
+                logging.exception(f"Erro ao processar  update report pg - {e}")
+                raise
+        print("Finalizado a atualizacao do reports_report no postgree ...")
+        return True
    
-    # @task.branch
-    # def should_trigger_dag(**kwargs):
-    # # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-    #     canal = kwargs["params"]["CHANNEL"]
+    @task.branch
+    def should_trigger_dag(**kwargs):
+    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
+        canal = kwargs["params"]["CHANNEL"]
 
-    #     if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
-    #         return 'trigger_dag_report_send_pdf'
-    #     else:
-    #         return 'skip_trigger'
+        if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+            return 'trigger_dag_report_send_pdf'
+        else:
+            return 'skip_trigger'
 
-    # #@task(provide_context=True)   
-    # trigger_dag_report_send_pdf = TriggerDagRunOperator(
-    #     task_id="trigger_dag_report_send_pdf",
-    #     trigger_dag_id="b2-report-sendemail-pdf",  # Substitua pelo nome real da sua segunda DAG
-    #     conf={
-    #             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-    #             "REPORTID": report_id,
-    #             "TYPREREPORT": "{{ params.TYPREREPORT }}"
-    #         }  # Se precisar passar informações adicionais para a DAG_B
-    # )
+    #@task(provide_context=True)   
+    trigger_dag_report_send_pdf = TriggerDagRunOperator(
+        task_id="trigger_dag_report_send_pdf",
+        trigger_dag_id="b2-report-sendemail-pdf",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+                "PGSCHEMA": "{{ params.PGSCHEMA }}",
+                "REPORTID": report_id,
+                "TYPREREPORT": "{{ params.TYPREREPORT }}"
+            }  # Se precisar passar informações adicionais para a DAG_B
+    )
     
 
-    # should_trigger = should_trigger_dag()
-    # skip_trigger_task = skip_trigger()
+    should_trigger = should_trigger_dag()
+    skip_trigger_task = skip_trigger()
     # Definindo as dependências entre as tarefas
-    logo >>  cam_pdf  #>>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
+    logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
    # should_trigger >> skip_trigger_task
 
