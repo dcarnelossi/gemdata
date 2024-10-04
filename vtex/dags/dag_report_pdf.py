@@ -147,7 +147,7 @@ def insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_
 
 
 
-def update_report_pg(report_id,integration_id,filename):
+def update_report_pg(report_id,integration_id,filename,canal):
      
         end_date = datetime.now()
         file = f"{integration_id}/report/{filename}.pdf"
@@ -157,7 +157,10 @@ def update_report_pg(report_id,integration_id,filename):
         print(len(file))
         print(report_id)
         
-        
+        if canal == 'email':
+            status_dag= "SUCESSO-PARTE1"
+        else:
+            status_dag= "SUCESSO"    
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
@@ -167,10 +170,10 @@ def update_report_pg(report_id,integration_id,filename):
             SET updated_at =  %s,
             file = %s,
             dag_finished_at = %s,
-            dag_last_status = 'SUCESSO'
+            dag_last_status = %s,
             WHERE id = %s;
             """
-            hook3.run(query, parameters=(end_date,file,end_date,report_id))
+            hook3.run(query, parameters=(end_date,file,end_date,status_dag ,report_id))
  
             return True
         except Exception as e:
@@ -403,7 +406,7 @@ with DAG(
         print(report_id)
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
-            update_report_pg(report_id,integration_id,cam_pdf)
+            update_report_pg(report_id,integration_id,cam_pdf,canal)
         except Exception as e:
                 logging.exception(f"Erro ao processar  update report pg - {e}")
                 raise
