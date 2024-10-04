@@ -246,11 +246,16 @@ with DAG(
     
     },
 ) as dag:
-    report_id = str(uuid.uuid4())
+   
+    @task
+    def gerar_report_id():
+        report_id = str(uuid.uuid4())
+        return report_id
+    
     
     
     @task(provide_context=True)
-    def inserir_pg(**kwargs):
+    def inserir_pg(report_id,**kwargs):
         try:
             dag_run_id = kwargs['dag_run'].run_id
             integration_id = kwargs["params"]["PGSCHEMA"]    
@@ -281,7 +286,7 @@ with DAG(
   
 
     @task(provide_context=True)
-    def report_pdf(logo,**kwargs):
+    def report_pdf(logo,report_id,**kwargs):
         try:
             dag_run_id = kwargs['dag_run'].run_id
             integration_id = kwargs["params"]["PGSCHEMA"]    
@@ -373,12 +378,12 @@ with DAG(
                 logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
                 raise
         
-            print(report_id)       
+                 
         else:
             print("Opção de relatório desconhecida.")
         
 
-
+        print(report_id)     
         return caminho_pdf
     
 
@@ -390,7 +395,7 @@ with DAG(
         return True
    
     @task.branch
-    def should_trigger_dag(cam_pdf,**kwargs):
+    def should_trigger_dag(cam_pdf,report_id,**kwargs):
     # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
         canal = kwargs["params"]["CHANNEL"]
         integration_id = kwargs["params"]["PGSCHEMA"]   
@@ -410,7 +415,7 @@ with DAG(
         else:
 
             return 'skip_trigger'
-
+    report_id=gerar_report_id
     #@task(provide_context=True)   
     trigger_dag_report_send_pdf = TriggerDagRunOperator(
         task_id="trigger_dag_report_send_pdf",
@@ -422,9 +427,9 @@ with DAG(
             }  # Se precisar passar informações adicionais para a DAG_B
     )
     
-    logo=inserir_pg()
-    cam_pdf = report_pdf(logo)
-    should_trigger = should_trigger_dag(cam_pdf)
+    logo=inserir_pg(report_id)
+    cam_pdf = report_pdf(logo,report_id)
+    should_trigger = should_trigger_dag(cam_pdf,report_id)
     skip_trigger_task = skip_trigger()
     
   
