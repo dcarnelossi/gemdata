@@ -121,10 +121,11 @@ with DAG(
         
     @task(provide_context=True)
     def report_baixar_pdf(**kwargs):
-        report_id = kwargs["params"]["REPORTID"]
-        from modules import save_to_blob
-        
         try:
+            report_id = kwargs["params"]["REPORTID"]
+            from modules import save_to_blob
+        
+       
               # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
@@ -167,8 +168,10 @@ with DAG(
 
     @task(provide_context=True)
     def report_baixar_email(**kwargs):
-        integration_id = kwargs["params"]["PGSCHEMA"]
         try:
+            report_id = kwargs["params"]["REPORTID"]
+            integration_id = kwargs["params"]["PGSCHEMA"]
+      
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
@@ -210,6 +213,7 @@ with DAG(
             return   emails_string
             
         except Exception as e:
+            update_report_pg(report_id,'erro',1)
             logging.exception(f"deu erro ao achar o caminho do logo - {e}")
             raise
 
@@ -241,6 +245,7 @@ with DAG(
     @task(provide_context=True)
     def enviar_email(listaemail_recebido,filepdf_recebido, escrita_email,**kwargs):
         try:
+            report_id = kwargs["params"]["REPORTID"]
             print(escrita_email)
             assunto=escrita_email[0] 
             corpo_email=escrita_email[1] 
@@ -249,6 +254,7 @@ with DAG(
             
             send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
+            update_report_pg(report_id,'erro',1)
             logging.exception(f"deu erro ao achar ao enviar email - {e}")
             raise
 
