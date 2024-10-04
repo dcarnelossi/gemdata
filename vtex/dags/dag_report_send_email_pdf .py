@@ -182,34 +182,40 @@ with DAG(
         # filepdf_recebido = kwargs['ti'].xcom_pull(task_ids='report_baixar_pdf', key='lista_diretorio') 
  
         if tiporelatorio== 'faturamento_mensal':
-            return "Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"              
+            escrita_email ="Relatório mensal periodico","<p>Segue anexo o relatório mensal.</p>"  
+            return   escrita_email          
         elif  tiporelatorio== 'faturamento_semanal':  
-            return "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"
+            escrita_email = "Relatório semanal periodico","<p>Segue anexo o relatório Semanal.</p>"    
+            return 
                # enviar_email=report_send_email_pdf(listaemail_recebido,"Relatório Semanal","<p>Segue anexo o relatório Semanal.</p>",filepdf_recebido)       
                # return enviar_email   
-        elif  tiporelatorio== 'analise_loja':   
-            return  "Relatório análise da loja","<p>Segue anexo o relatório análise da loja.</p>"
+        elif  tiporelatorio== 'analise_loja':  
+            escrita_email = "Relatório análise da loja","<p>Segue anexo o relatório análise da loja.</p>"
+            return  escrita_email
         else:
             print("erroo")
-            return 'sem relatorio','sem relatório'
+            escrita_email = 'sem relatorio','sem relatório'
+            return escrita_email
 
     @task(provide_context=True)
-    def enviar_email(listaemail_recebido,filepdf_recebido, assunto, corpoemail,**kwargs):
+    def enviar_email(listaemail_recebido,filepdf_recebido, escrita_email,**kwargs):
         try:
-             
+            assunto=escrita_email[0] 
+            corpo_email=escrita_email[1] 
+              
             from modules import send_email
             
-            send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpoemail,True,filepdf_recebido)
+            send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
             logging.exception(f"deu erro ao achar ao enviar email - {e}")
             raise
 
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
-    assunto,corpo =report_tipo_relatorio()
-    enviar= enviar_email(listemail,pdffile,assunto,corpo)
+    escrita_email =report_tipo_relatorio()
+    enviar= enviar_email(listemail,pdffile,escrita_email)
     
-    listemail >> pdffile >> assunto >> enviar
+    listemail >> pdffile >> escrita_email >> enviar
 
     
 
