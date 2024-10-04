@@ -265,7 +265,7 @@ with DAG(
         print(report_id)
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
-            update_report_pg(report_id,listemail)
+            update_report_pg(report_id,listemail,0)
         except Exception as e:
                 logging.exception(f"Erro ao processar  update report pg - {e}")
                 raise
