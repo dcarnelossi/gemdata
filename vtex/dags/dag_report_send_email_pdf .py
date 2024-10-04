@@ -104,9 +104,9 @@ with DAG(
                 """
         
             resultado_file = hook.get_records(query)
-            
-            diretorio = f"/opt/airflow/temp/{resultado_file}"
-            save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{resultado_file}",f"{diretorio}") 
+            filename=resultado_file[0][0]
+            diretorio = f"/opt/airflow/temp/{filename}"
+            save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{filename}",f"{diretorio}") 
             
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
