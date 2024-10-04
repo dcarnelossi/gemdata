@@ -147,22 +147,24 @@ def insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_
 
 
 
-def update_report_pg(report_id,integration_id,filename,canal):
-     
-        end_date = datetime.now()
-        file = f"{integration_id}/report/{filename}.pdf"
-
-        print(end_date)
-        print(file)
-        print(len(file))
-        print(report_id)
-        
-        if canal == 'email':
-            status_dag= "SUCESSO-PARTE1"
-        else:
-            status_dag= "SUCESSO"    
-
+def update_report_pg(report_id,integration_id,filename,canal,iserro):
         try:
+            end_date = datetime.now()
+            file = f"{integration_id}/report/{filename}.pdf"
+
+            print(end_date)
+            print(file)
+            print(len(file))
+            print(report_id)
+            
+            if iserro ==1:
+               status_dag= "ERRO"
+            elif canal == 'email':
+                status_dag= "SUCESSO-PARTE1"
+            else:
+                status_dag= "SUCESSO"    
+
+        
             # Conecte-se ao PostgreSQL e execute o script
             hook3 = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = """
@@ -177,7 +179,10 @@ def update_report_pg(report_id,integration_id,filename,canal):
  
             return True
         except Exception as e:
+            
+            
             logging.exception(f"erro ao fazer o update  -  public.reports_report {e}")
+
             raise
 
 
@@ -290,7 +295,7 @@ with DAG(
 
     @task(provide_context=True)
     def report_pdf(logo,report_id,**kwargs):
-        try:
+        try:    
             dag_run_id = kwargs['dag_run'].run_id
             integration_id = kwargs["params"]["PGSCHEMA"]    
             tiporela = kwargs["params"]["TYPREREPORT"]
@@ -299,8 +304,8 @@ with DAG(
             celphone = kwargs["params"]["CELULAR"]
             data_ini = datetime.strptime(kwargs["params"]["DATAINI"],"%Y-%m-%d")
             data_fim = datetime.strptime(kwargs["params"]["DATAFIM"],"%Y-%m-%d")
-           
-            caminho_pdf =""
+            
+            
             print(integration_id)
             print(tiporela)
             print(celphone)
@@ -313,80 +318,72 @@ with DAG(
             current_datetime = datetime.now() 
             numeric_datetime = current_datetime.strftime('%Y%m%d%H%M%S')
             data_conection_info = get_data_conection_info(integration_id)
+
+            # Lógica condicional com base na escolha do usuário
+            if tiporela == "faturamento_mensal":
+                from modules import report_month
+                mes = data_ini.month 
+                print(mes)   
+
+                caminho_pdf= f"relatorio_mensal_{mes}_{numeric_datetime}"
             
-        except Exception as e:
-            logging.exception(f"erro nos paramentos - {e}")
-            raise
-
-
-        # Lógica condicional com base na escolha do usuário
-        if tiporela == "faturamento_mensal":
-            from modules import report_month
-            mes = data_ini.month 
-            print(mes)   
-
-            caminho_pdf= f"relatorio_mensal_{mes}_{numeric_datetime}"
-            try:
                 print("Processando o Relatório mensal...")
                 report_month.set_globals(
-                data_conection_info,
-                integration_id,
-                celphone,
-                mes,
-                logo,
-                caminho_pdf 
-                )
+                    data_conection_info,
+                    integration_id,
+                    celphone,
+                    mes,
+                    logo,
+                    caminho_pdf 
+                    )
                 print("Relatório mensal processado...")
-            except Exception as e:
-                logging.exception(f"Erro ao processar o relatorio mensal - {e}")
-                raise
-            # Coloque a lógica do relatório semanal aqui
-        elif tiporela == "faturamento_semanal":
-            from modules import report_weekly
-            semana = int(data_ini.strftime("%W"))+1
-            print(semana)
-            caminho_pdf= f"relatorio_semanal_{semana}_{numeric_datetime}"
-            try:
+            
+                # Coloque a lógica do relatório semanal aqui
+            elif tiporela == "faturamento_semanal":
+                from modules import report_weekly
+                semana = int(data_ini.strftime("%W"))+1
+                print(semana)
+                caminho_pdf= f"relatorio_semanal_{semana}_{numeric_datetime}"
+        
                 print("Processando o Relatório  semanal...")
                 report_weekly.set_globals(
-                data_conection_info,
-                integration_id,
-                celphone,
-                semana,
-                logo,
-                caminho_pdf
-                )
+                    data_conection_info,
+                    integration_id,
+                    celphone,
+                    semana,
+                    logo,
+                    caminho_pdf
+                    )
                 print("Relatório semanal processado...")
-           
+            
 
-            except Exception as e:
-                logging.exception(f"Erro ao processar o relatorio semanal - {e}")
-                raise
-                  
-        elif tiporela == "analise_loja":
-            from modules import report_products_analytics
-            caminho_pdf= f"relatorio_analise_loja_{numeric_datetime}"
-            try:
+                    
+            elif tiporela == "analise_loja":
+                from modules import report_products_analytics
+                caminho_pdf= f"relatorio_analise_loja_{numeric_datetime}"
+                # try:
                 print("Processando o Relatório analise loja...")
                 report_products_analytics.set_globals(
-                data_conection_info,
-                integration_id,
-                celphone,
-                logo,
-                caminho_pdf
-                )
+                    data_conection_info,
+                    integration_id,
+                    celphone,
+                    logo,
+                    caminho_pdf
+                    )
                 print(" Relatório analise loja processado...")
-           
-            except Exception as e:
-                logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
-                raise
-        
-                 
-        else:
-            print("Opção de relatório desconhecida.")
-        
+            
+                # except Exception as e:
+                #     logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
+                #     raise
+            
+                    
+            else:
+                print("Opção de relatório desconhecida.")
 
-        print(report_id)     
+        except Exception as e:
+            update_report_pg(report_id,integration_id,cam_pdf,canal,1)
+            logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
+            raise      
         return caminho_pdf
     
 
@@ -406,8 +403,9 @@ with DAG(
         print(report_id)
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
-            update_report_pg(report_id,integration_id,cam_pdf,canal)
+            update_report_pg(report_id,integration_id,cam_pdf,canal,0)
         except Exception as e:
+                update_report_pg(report_id,integration_id,cam_pdf,canal,1)
                 logging.exception(f"Erro ao processar  update report pg - {e}")
                 raise
         print("Finalizado a atualizacao do reports_report no postgree ...")
