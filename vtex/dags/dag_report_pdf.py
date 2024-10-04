@@ -272,7 +272,7 @@ with DAG(
 
         return team_logo
     
-    logo=inserir_pg
+    logo=inserir_pg()
 
     @task(provide_context=True)
     def report_pdf(**kwargs):
