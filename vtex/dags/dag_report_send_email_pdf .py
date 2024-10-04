@@ -41,6 +41,33 @@ default_args = {
 
 
 
+def update_report_pg(report_id,listaemail):
+     
+        end_date = datetime.now()
+
+        print(end_date)
+        print(report_id)
+        log = f"SUCESSO NO DISPARO DO EMAIL ({listaemail})"
+
+        try:
+            # Conecte-se ao PostgreSQL e execute o script
+            hook3 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            query = """
+            UPDATE public.reports_report
+            SET updated_at =  %s,
+            dag_finished_at = %s,
+            log = %s,
+            dag_last_status = 'SUCESSO'
+            WHERE id = %s;
+            """
+            hook3.run(query, parameters=(end_date,end_date,log,report_id))
+ 
+            return True
+        except Exception as e:
+            logging.exception(f"erro ao fazer o update  -  public.reports_report {e}")
+            raise
+
+
 with DAG(
     "b2-report-sendemail-pdf",
     schedule_interval=None,
@@ -210,12 +237,27 @@ with DAG(
             logging.exception(f"deu erro ao achar ao enviar email - {e}")
             raise
 
+
+    @task(provide_context=True)
+    def update_pg(listemail,**kwargs):
+        report_id = kwargs["params"]["REPORTID"]
+        print(report_id)
+        try:
+            print("inicando a atualizacao do reports_report no postgree ...")
+            update_report_pg(report_id,listemail)
+        except Exception as e:
+                logging.exception(f"Erro ao processar  update report pg - {e}")
+                raise
+        print("Finalizado a atualizacao do reports_report no postgree ...")    
+       
+
     listemail=report_baixar_email()
     pdffile=report_baixar_pdf()
     escrita_email =report_tipo_relatorio()
-    enviar= enviar_email(listemail,pdffile,escrita_email)
     
-    listemail >> pdffile >> escrita_email >> enviar
+    enviar= enviar_email(listemail,pdffile,escrita_email)
+    update_log_pg=update_pg(listemail)
+    listemail >> pdffile >> escrita_email >> enviar >>update_log_pg
 
     
 
