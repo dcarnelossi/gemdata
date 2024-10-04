@@ -170,7 +170,7 @@ def update_report_pg(report_id,integration_id,filename,canal):
             SET updated_at =  %s,
             file = %s,
             dag_finished_at = %s,
-            dag_last_status = %s,
+            dag_last_status = %s
             WHERE id = %s;
             """
             hook3.run(query, parameters=(end_date,file,end_date,status_dag ,report_id))
