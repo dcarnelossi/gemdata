@@ -281,7 +281,7 @@ with DAG(
   
 
     @task(provide_context=True)
-    def report_pdf(**kwargs):
+    def report_pdf(logo,**kwargs):
         try:
             dag_run_id = kwargs['dag_run'].run_id
             integration_id = kwargs["params"]["PGSCHEMA"]    
@@ -385,7 +385,7 @@ with DAG(
   
 
     @task(provide_context=True)
-    def skip_trigger(**kwargs):
+    def skip_trigger(cam_pdf,**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]   
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
