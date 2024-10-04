@@ -312,7 +312,7 @@ with DAG(
 
 
         # Lógica condicional com base na escolha do usuário
-        if tiporela == "faturamento_semanal":
+        if tiporela == "faturamento_mensal":
             from modules import report_month
             mes = data_ini.month 
             print(mes)   
@@ -333,7 +333,7 @@ with DAG(
                 logging.exception(f"Erro ao processar o relatorio mensal - {e}")
                 raise
             # Coloque a lógica do relatório semanal aqui
-        elif tiporela == "2_relatorio_semanal":
+        elif tiporela == "faturamento_semanal":
             from modules import report_weekly
             semana = int(data_ini.strftime("%W"))+1
             print(semana)
@@ -385,7 +385,14 @@ with DAG(
   
 
     @task(provide_context=True)
-    def skip_trigger(cam_pdf,**kwargs):
+    def skip_trigger():
+        print("Sem disparo de email")
+        return True
+   
+    @task.branch
+    def should_trigger_dag(cam_pdf,**kwargs):
+    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
+        canal = kwargs["params"]["CHANNEL"]
         integration_id = kwargs["params"]["PGSCHEMA"]   
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
@@ -394,16 +401,12 @@ with DAG(
                 logging.exception(f"Erro ao processar  update report pg - {e}")
                 raise
         print("Finalizado a atualizacao do reports_report no postgree ...")
-        return True
-   
-    @task.branch
-    def should_trigger_dag(**kwargs):
-    # Substitua `params['YOUR_PARAM']` pela condição que você quer verificar
-        canal = kwargs["params"]["CHANNEL"]
 
         if canal == 'email':  # Troque YOUR_PARAM pelo nome do parâmetro que você deseja verificar
+            
             return 'trigger_dag_report_send_pdf'
         else:
+
             return 'skip_trigger'
 
     #@task(provide_context=True)   
@@ -419,8 +422,9 @@ with DAG(
     
     logo=inserir_pg()
     cam_pdf = report_pdf(logo)
-    skip_trigger_task = skip_trigger(cam_pdf)
-    should_trigger = should_trigger_dag()
+    should_trigger = should_trigger_dag(cam_pdf)
+    skip_trigger_task = skip_trigger()
+    
   
     # Definindo as dependências entre as tarefas
     logo >>  cam_pdf  >>should_trigger >>  [trigger_dag_report_send_pdf, skip_trigger_task]
