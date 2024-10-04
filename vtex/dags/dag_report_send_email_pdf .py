@@ -41,13 +41,24 @@ default_args = {
 
 
 
-def update_report_pg(report_id,listaemail):
+def update_report_pg(report_id,listaemail,iserro):
      
+
+
+
         end_date = datetime.now()
 
         print(end_date)
         print(report_id)
-        log = f"SUCESSO NO DISPARO DO EMAIL ({listaemail})"
+        
+        if iserro ==1:
+            status_dag= "ERRO"
+            log = f"ERRO NO DISPARO EMAIL ({listaemail})"
+        else:
+            status_dag= "SUCESSO"    
+            log = f"SUCESSO NO DISPARO DO EMAIL ({listaemail})"
+
+
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
@@ -57,10 +68,10 @@ def update_report_pg(report_id,listaemail):
             SET updated_at =  %s,
             dag_finished_at = %s,
             log = %s,
-            dag_last_status = 'SUCESSO'
+            dag_last_status = %s
             WHERE id = %s;
             """
-            hook3.run(query, parameters=(end_date,end_date,log,report_id))
+            hook3.run(query, parameters=(end_date,end_date,log,status_dag,report_id))
  
             return True
         except Exception as e:
@@ -146,6 +157,7 @@ with DAG(
             save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{filename}",f"{diretorio}") 
             
         except Exception as e:
+            update_report_pg(report_id,'erro',1)
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
             raise
 

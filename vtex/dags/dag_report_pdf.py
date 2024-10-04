@@ -381,7 +381,7 @@ with DAG(
                 print("Opção de relatório desconhecida.")
 
         except Exception as e:
-            update_report_pg(report_id,integration_id,cam_pdf,canal,1)
+            update_report_pg(report_id,integration_id,caminho_pdf,canal,1)
             logging.exception(f"Erro ao processar  Relatório analise loja - {e}")
             raise      
         return caminho_pdf
