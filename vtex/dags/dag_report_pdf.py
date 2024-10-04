@@ -387,12 +387,12 @@ with DAG(
         else:
             return 'skip_trigger'
 
-    @task
+    @task(provide_context=True)
     def skip_trigger(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]   
         try:
             print("inicando a atualizacao do reports_report no postgree ...")
-            update_report_pg(report_id,integration_id,cam_pdf)
+           # update_report_pg(report_id,integration_id,cam_pdf)
         except Exception as e:
                 logging.exception(f"Erro ao processar  update report pg - {e}")
                 raise
