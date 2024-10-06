@@ -196,6 +196,16 @@ with DAG(
     tags=["vtex", "v1", "report"],
     render_template_as_native_obj=True,
     params={
+          "REPORTID": Param(
+            type="string",
+            title="ID REPORT (uuid4):",
+            description="Entre com uuid ou deixe o valor default para criar um.",
+            section="Important params",
+            min_length=1,
+            max_length=250,
+            default="0"
+                       
+        ),    
         "PGSCHEMA": Param(
             type="string",
             title="PGSCHEMA:",
@@ -258,7 +268,7 @@ with DAG(
     @task(provide_context=True)
     def gerar_report_id(**kwargs):
         report_id = str(uuid.uuid4())
-        kwargs['ti'].xcom_push(key='idreport', value=report_id)
+        
 
         return report_id
     
