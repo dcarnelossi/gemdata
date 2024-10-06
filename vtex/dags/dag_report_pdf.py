@@ -256,8 +256,10 @@ with DAG(
 ) as dag:
    
     @task(provide_context=True)
-    def gerar_report_id():
+    def gerar_report_id(**kwargs):
         report_id = str(uuid.uuid4())
+        kwargs['ti'].xcom_push(key='idreport', value=report_id)
+
         return report_id
     
     
