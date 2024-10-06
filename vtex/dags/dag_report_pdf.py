@@ -267,9 +267,10 @@ with DAG(
    
     @task(provide_context=True)
     def gerar_report_id(**kwargs):
-        report_id = str(uuid.uuid4())
         
-
+        report_id = kwargs["params"]["REPORTID"]    
+        if( report_id == "0" ):
+            report_id = str(uuid.uuid4())    
         return report_id
     
     
