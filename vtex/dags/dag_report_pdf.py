@@ -199,7 +199,7 @@ with DAG(
           "REPORTID": Param(
             type="string",
             title="ID REPORT (uuid4):",
-            description="Entre com uuid ou deixe o valor default para criar um.",
+            description="Entre com uuid ou deixe o valor default para criar automaticamente",
             section="Important params",
             min_length=1,
             max_length=250,
