@@ -464,7 +464,7 @@ def getbase(celular,integration,diretorio):
 
         df_merged= df_merged.sort_values(by='score_final', ascending=True).reset_index(drop=True)
         
-        df_primeiros_30 = df_merged.iloc[:45].copy()
+        df_primeiros_30 = df_merged.iloc[:43].copy()
         df_primeiros_30['ID-Nome'] = df_primeiros_30.apply(
                         lambda row: f"{row['idprod']}-{row['namesku_x']}", axis=1
                         )
@@ -796,7 +796,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     
     pdf.multi_cell(0, 6, texto_intro2)
     # Inserir um espaço
-    pdf.ln(220)
+    pdf.ln(215)
 
     pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195)
 
