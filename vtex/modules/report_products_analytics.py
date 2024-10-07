@@ -719,9 +719,9 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.ln(7)
 
     #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 10 , w = 20,h=20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 8 , w = 15,h=15)
     #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 10 , w = 20,h=20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 8 , w = 15,h=15)
 
     mes_analise = f"Período de analise: {data_inicio_analise}  até {data_formatada}"
 
@@ -777,9 +777,9 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.ln(5)
 
             #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 10 , w = 20,h=20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 8 , w = 15,h=15)
     #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 10 , w = 20,h=20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 8 , w = 15,h=15)
 
     mes_analise = f"Período de analise: {data_inicio_analise}  até {data_formatada}"
 
@@ -796,7 +796,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     
     pdf.multi_cell(0, 6, texto_intro2)
     # Inserir um espaço
-    pdf.ln(215)
+    pdf.ln(220)
 
     pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195)
 
