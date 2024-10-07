@@ -97,6 +97,18 @@ def vtexsqlscriptjson(schema):
                                             order by 1    
                                                
                                             """
+
+                 ,'faturamento_compradores': f"""
+                                                                                 
+                                select 
+                                cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
+                                userprofileid 
+
+                                from "{schema}".orders_ia oi 
+
+                                group by 1,2
+                                order by 1
+                                      """                            
                 ,'faturamento_canais': f"""
                                                 
                                         SET CLIENT_ENCODING = 'UTF8';
@@ -179,6 +191,7 @@ def vtexsqlscriptjson(schema):
 
                                         group by 1,3,4
                                         """
+                                        
                 ,'faturamento_regiao': f"""
                                                                         
                                             SET CLIENT_ENCODING = 'UTF8';
