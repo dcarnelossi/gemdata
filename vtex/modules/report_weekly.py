@@ -748,9 +748,9 @@ def gerar_pdf(semana,celular,integration,extensao,diretorio,caminho_pdf_blob):
 
 
     #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 8 , w = 15,h=15)
     #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 8 , w = 15,h=15)
 
    
 

@@ -1030,10 +1030,10 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio,caminho_pdf_blob):
     
 
     #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 8 , w = 15,h=15)
 
     #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 8 , w = 15,h=15)
 
     # # cards
     pdf.image(f"{diretorio}/cardfaturamento{celular}.png", x = 10, y = altura + 10, w = 47)
@@ -1062,9 +1062,9 @@ def gerar_pdf(mes,celular,integration,extensao,diretorio,caminho_pdf_blob):
     pdf.ln(4)
     pdf.cell(0, 5,txt=mescompativotexto, align='C')
     #colocando logo do lado esquerdo
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 15, y = 8 , w = 15,h=15)
     #colocando logo do lado direito
-    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 15 , w = 20)
+    pdf.image(f"{diretorio}/logo_{celular}{extensao}", x = 180, y = 8 , w = 15,h=15)
 
     pdf.image(f"{diretorio}/grafico_abc_fatprodutoabc{celular}.png",x = 10,  y = altura + 12 ,w = 190 ,h=90) 
     pdf.image(f"{diretorio}/grafico_h_precomedio{celular}.png",x = 9, y = altura + 106 ,w=95 ) 
