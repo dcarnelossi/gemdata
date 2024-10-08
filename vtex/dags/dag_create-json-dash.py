@@ -112,18 +112,23 @@ def daily_run_date_update(pg_schema):
        
 
         try:
-            query = """
-            UPDATE public.integrations_integration
-            SET daily_run_date_end = %s,isdaily_manual = false  
-            WHERE id = %s;
-            """
-            # Initialize the PostgresHook
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
-            # Execute the query with parameters
-            
-            hook2.run(query, parameters=(datetime.now(),pg_schema))
-         
 
+            if(pg_schema !="demonstracao"):
+                    
+                query = """
+                UPDATE public.integrations_integration
+                SET daily_run_date_end = %s,isdaily_manual = false  
+                WHERE id = %s;
+                """
+                # Initialize the PostgresHook
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+                # Execute the query with parameters
+                
+                hook2.run(query, parameters=(datetime.now(),pg_schema))
+            
+            else:
+                print("arquivos demonstracao atualizados")
+                return True
             
         except Exception as e:
             logging.exception(
@@ -198,6 +203,7 @@ with DAG(
             op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
             #provide_context=True
         )
+        
         log_update_corp = PythonOperator(
             task_id=f'log_daily_rum_data_update_{chave}',
             python_callable=daily_run_date_update,
