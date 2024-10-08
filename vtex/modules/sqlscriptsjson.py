@@ -128,68 +128,8 @@ def vtexsqlscriptjson(schema):
 
                                         group by 1,3,4
 
-                                        union all 
-                                        select 
+                                        limit 100
 
-                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                        'OLX' as nomecanal,
-                                          cast(ori.idprod as integer) as idsku,
-                                        ori.namesku as nomesku ,
-                                        cast(round(cast(SUM(ori.sellingprice)*1 as numeric),2) as float)  as faturamento,
-                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
-
-                                        from  "{schema}".orders_ia as ord
-                                        inner join  "{schema}".orders_items_ia  as ori on
-                                        ord.orderid = ori.orderid
-
-                                        group by 1,3,4
-
-                                        union all 
-                                        select 
-
-                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                        'Amazon' as nomecanal,
-                                          cast(ori.idprod as integer) as idsku,
-                                        ori.namesku as nomesku ,
-                                        cast(round(cast(SUM(ori.sellingprice)*0.80 as numeric),2) as float)  as faturamento,
-                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
-
-                                        from  "{schema}".orders_ia as ord
-                                        inner join  "{schema}".orders_items_ia  as ori on
-                                        ord.orderid = ori.orderid
-
-                                        group by 1,3,4
-                                        union all 
-                                        select 
-
-                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                        'Google' as nomecanal,
-                                         cast(ori.idprod as integer) as idsku,
-                                        ori.namesku as nomesku ,
-                                        cast(round(cast(SUM(ori.sellingprice)*0.6 as numeric),2) as float)  as faturamento,
-                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
-
-                                        from  "{schema}".orders_ia as ord
-                                        inner join  "{schema}".orders_items_ia  as ori on
-                                        ord.orderid = ori.orderid
-
-                                        group by 1,3,4
-
-                                        union all 
-                                        select 
-
-                                        cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                        'Site proprio' as nomecanal,
-                                        cast(ori.idprod as integer) as idsku,
-                                        ori.namesku as nomesku ,
-                                        cast(round(cast(SUM(ori.sellingprice)*0.20 as numeric),2) as float)  as faturamento,
-                                        cast(SUM(ori.quantityorder) as integer)  as pedidos
-
-                                        from  "{schema}".orders_ia as ord
-                                        inner join  "{schema}".orders_items_ia  as ori on
-                                        ord.orderid = ori.orderid
-
-                                        group by 1,3,4
                                         """
                                         
                 ,'faturamento_regiao': f"""
