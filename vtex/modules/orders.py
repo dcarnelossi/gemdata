@@ -44,6 +44,7 @@ def write_orders_to_db(order_id):
             logging.info("Created record for order ID: %s", order_id)
         except Exception as e:
             logging.error(f"Error creating record - {e}")
+            raise e
 
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")

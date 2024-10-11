@@ -293,6 +293,10 @@ class WriteJsonToPostgres:
                 if isdatainsercao== 1:
                         
                     # Construct the UPSERT query using INSERT...ON CONFLICT
+                    print(self.tablename)
+                    print(columns)
+                    print(self.table_key)
+                                        
                     upsert_query = f"""
                         INSERT INTO {self.tablename} ({', '.join(columns)})
                         VALUES %s
