@@ -51,10 +51,11 @@ def process_products():
              # Mapeia cada tarefa para um future e armazena em um dicionário
         
         with concurrent.futures.ThreadPoolExecutor() as executor:
+            
+            tuple_ids = [item[0] for item in categories_ids[0]] 
+           
             future_to_category = {
-                executor.submit(process_product, category_id): category_id 
-                for category_id in categories_ids
-            }
+                executor.submit(process_product, tuple_ids) }
             # Itera conforme as tarefas forem completadas
             for future in concurrent.futures.as_completed(future_to_category):
                 category_id = future_to_category[future]
