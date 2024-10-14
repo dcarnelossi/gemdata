@@ -375,37 +375,34 @@ class WriteJsonToPostgres:
                 print(f"Chaves de self.data: {columns}")
                 print(f"Valores reordenados: {data_values_reordenados}")
 
-          
-                if isdatainsercao== 1:
-                        
-                    # Construct the UPSERT query using INSERT...ON CONFLICT
-                  #  print(self.tablename)
-                   
-                  #  print(self.table_key)
-                                        
+                update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
+
+                # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
+                if isdatainsercao == 1:
+                    # Query para inserção com conflito
                     upsert_query = f"""
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        ({', '.join(colunas_tabela)}) = %s, data_insercao = now()
-                        RETURNING {self.table_key}
+                        {update_columns}, data_insercao = now()
+                        RETURNING {self.table_key};
                     """
                 else:
-                      # Construct the UPSERT query using INSERT...ON CONFLICT
+                    # Query para inserção sem a atualização de data_insercao
                     upsert_query = f"""
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        ({', '.join(colunas_tabela)}) = %s
-                        RETURNING {self.table_key}
+                        {update_columns}
+                        RETURNING {self.table_key};
                     """
                 
                 print(f"Upsert Query: {upsert_query}")
 
                 # Usando mogrify para substituir os valores na query de forma segura
                 upsert_query = cursor.mogrify(
-                    upsert_query, (tuple(data_values_reordenados), tuple(data_values_reordenados))
-                    )
+                    upsert_query, (tuple(data_values_reordenados),)
+                )
 
                 print(f"Upsert Query Executada: {upsert_query.decode()}")
                 # print("Upsert Query:", upsert_query.decode())
