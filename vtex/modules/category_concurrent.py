@@ -30,10 +30,13 @@ def make_request(method, endpoint, params=None):
 
     except requests.RequestException as e:
         log_error(f"Error in HTTP request to {endpoint}", e)
+        raise
     except json.JSONDecodeError as e:
         log_error(f"JSON decoding error for response from {endpoint}", e)
+        raise
     except Exception as e:
         log_error(f"An unexpected error occurred in HTTP request to {endpoint}", e)
+        raise
 
     return None
 
@@ -57,12 +60,13 @@ def handle_category_data(category_id, data):
 
     except json.JSONDecodeError as e:
         log_error(f"JSON decoding error: {e}")
-        return None
+        raise
     except Exception as e:
         log_error(
             f"An unexpected error occurred in handle_category_data - {category_id}: {e}"
         )
-        return None
+        raise
+
 
 
 def extract_category_ids(objeto):
@@ -82,10 +86,12 @@ def extract_category_ids_wrapper(category_list):
 
     except json.JSONDecodeError as e:
         log_error(f"JSON decoding error in extract_category_ids: {e}")
+        raise
     except Exception as e:
         log_error(f"An unexpected error occurred in extract_category_ids: {e}")
+        raise
 
-    return []
+   
 
 
 def process_category_id(category_id):
@@ -107,23 +113,33 @@ def fetch_categories_from_api(category_levels):
         )
     except Exception as e:
         log_error(f"Error fetching categories from API: {e}")
-        return None
+        raise
 
 
 def process_categories(data):
     try:
         category_lists = extract_category_ids_wrapper(json.dumps(data))
 
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     list(executor.map(process_category_id, category_lists))
+        
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            list(executor.map(process_category_id, category_lists))
+                    future_to_category = {
+                        executor.submit(process_category_id, category_l): category_l 
+                        for category_l in category_lists
+                    }
+                    # Itera conforme as tarefas forem completadas
+                    for future in concurrent.futures.as_completed(future_to_category):
+                        category_l = future_to_category[future]
+                        try:
+                            result = future.result()  # Lança exceção se houver falha na tarefa
+                            logging.info(f"category ID {category_l} processado com sucesso.")
+                        except Exception as e:
+                            logging.error(f"category ID {category_l} gerou uma exceção: {e}")
+                            raise e  # Lança a exceção para garantir que o erro seja capturado
+               
 
-            # results = list(executor.map(executor.map(lambda category_list:
-            # process_category_id(api_conection_info,
-            # data_conection_info, category_list),
-            # category_lists)))
 
-            # executor.map(lambda brand_id: get_brand_id(api_conection_info,
-            # data_conection_info, brand_id), brand_ids)
     except Exception as e:
         log_error(f"Error processing categories: {e}")
 
@@ -150,7 +166,7 @@ def process_category_tree(category_levels):
         return data
     except Exception as e:
         log_error(f"Error processing category tree: {e}")
-        return e
+        raise e
 
 
 if __name__ == "__main__":

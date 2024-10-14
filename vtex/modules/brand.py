@@ -95,19 +95,6 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
                 logging.error(f"An unexpected error occurred: {e}")
                 raise e    
             
-            # # Use ThreadPoolExecutor para obter dados de marcas em paralelo
-            # brand_ids = extract_brand_ids(data.decode("utf-8"))
-            # with concurrent.futures.ThreadPoolExecutor() as executor:
-            #     # executor.map
-            #     # (get_brand_id, brand_ids, api_conection_info, data_conection_info)
-            #     executor.map(
-            #         lambda brand_id: get_brand_id(
-            #             api_conection_info, data_conection_info, brand_id
-            #         ),
-            #         brand_ids,
-            #     )
-
-            # return True
         else:
             logging.error(f"Error: {res.status} - {res.reason}")
             return None
