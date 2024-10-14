@@ -346,6 +346,86 @@ class WriteJsonToPostgres:
                 self.connection.close()
 
    
+    def upsert_data2(self,isdatainsercao= None):
+        try:
+           
+           
+            
+            # Use context manager to ensure cursor and connection are properly closed
+            with self.connection.connect().cursor() as cursor:
+                columns = self.data.keys()
+
+                query = f"""   SELECT *   
+                        FROM {self.tablename} ora      
+                        limit 1    """
+                result = WriteJsonToPostgres(self.connection, query, self.tablename)
+                _,colunas = result.query()
+                
+
+
+                # Convert values to JSON for dictionary and list types
+                data_values = [
+                    json.dumps(value) if isinstance(value, (dict, list)) else value
+                    for value in self.data.values()
+                ]
+
+
+                if isdatainsercao== 1:
+                        
+                    # Construct the UPSERT query using INSERT...ON CONFLICT
+                  #  print(self.tablename)
+                   
+                  #  print(self.table_key)
+                                        
+                    upsert_query = f"""
+                        INSERT INTO {self.tablename} ({', '.join(colunas)})
+                        VALUES %s
+                        ON CONFLICT ({self.table_key}) DO UPDATE SET
+                        ({', '.join(colunas)}) = %s, data_insercao = now()
+                        RETURNING {self.table_key}
+                    """
+                else:
+                      # Construct the UPSERT query using INSERT...ON CONFLICT
+                    upsert_query = f"""
+                        INSERT INTO {self.tablename} ({', '.join(colunas)})
+                        VALUES %s
+                        ON CONFLICT ({self.table_key}) DO UPDATE SET
+                        ({', '.join(colunas)}) = %s
+                        RETURNING {self.table_key}
+                    """
+                print(upsert_query)
+
+                print(data_values)
+                print(columns)    
+                print(colunas)    
+
+                # Use mogrify to safely substitute the values into the query
+                upsert_query = cursor.mogrify(
+                    upsert_query, (tuple(data_values), tuple(data_values))
+                )
+
+                # print("Upsert Query:", upsert_query.decode())
+
+                # Execute the UPSERT query and fetch the id
+                cursor.execute(upsert_query)
+                affected_id = cursor.fetchone()[0] if cursor.rowcount > 0 else None
+                self.connection.commit()
+
+                print(f"Data upserted successfully for {self.table_key}: {affected_id}")
+                return True
+
+        except Exception as e:
+            # Handle exceptions and log the full error
+            self.connection.rollback()
+            logging.error(f"Error during upsert operation: {e}")
+            raise  # Re-raise the exception to propagate it
+        
+        finally:
+            # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
+            if self.connection:
+                self.connection.close()
+
+   
     def insert_data_batch(self, batch_data):
         try:
             cursor = self.connection.connect().cursor()
