@@ -55,14 +55,27 @@ def write_orders_to_db(order_id):
     
 
 def process_orders():
+
+        # orders_ids = get_orders_ids_from_db()
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     executor.map(write_orders_to_db, orders_ids[0])
     try:
         orders_ids = get_orders_ids_from_db()
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(write_orders_to_db, orders_ids[0])
+            future_to_order = {executor.submit(write_orders_to_db, order_id): order_id for order_id in orders_ids[0]}
+            for future in concurrent.futures.as_completed(future_to_order):
+                order_id = future_to_order[future]
+                try:
+                    future.result()  # This will raise an exception if the thread failed
+                except Exception as e:
+                    logging.error(f"Order {order_id} generated an exception: {e}")
+                    raise e  # Raise the exception to ensure task failure
         return True
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
-        raise e
+        raise e    
+        
+
 
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
