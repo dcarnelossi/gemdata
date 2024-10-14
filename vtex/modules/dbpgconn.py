@@ -354,12 +354,21 @@ class WriteJsonToPostgres:
             # Use context manager to ensure cursor and connection are properly closed
             with self.connection.connect().cursor() as cursor:
                 columns = self.data.keys()
+                
 
-                query = f"""   SELECT *   
+                query_select = f"""   SELECT *   
                         FROM {self.tablename} ora      
                         limit 1    """
-                _,colunas = WriteJsonToPostgres(self.connection, query, self.tablename).query()
-                
+                cursor.execute(query_select)
+
+                # Obter os nomes das colunas
+                column_names = [desc[0] for desc in cursor.description]
+
+                # Obter os resultados com colunas nomeadas
+                results = cursor.fetchall()
+                colunas = [dict(zip(column_names, row)) for row in results]
+
+
                 # Convert values to JSON for dictionary and list types
                 data_values = [
                     json.dumps(value) if isinstance(value, (dict, list)) else value
