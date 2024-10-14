@@ -111,8 +111,7 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-        finally:
-            pass
+     
         
     trigger_dag_update_orders_list = TriggerDagRunOperator(
         task_id="trigger_dag_update_orders_list",
