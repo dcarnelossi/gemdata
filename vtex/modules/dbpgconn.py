@@ -368,7 +368,8 @@ class WriteJsonToPostgres:
                 results = cursor.fetchall()
                 colunas = [dict(zip(column_names, row)) for row in results]
 
-
+                print(colunas)
+                print(colunas[0])
                 # Convert values to JSON for dictionary and list types
                 data_values = [
                     json.dumps(value) if isinstance(value, (dict, list)) else value
