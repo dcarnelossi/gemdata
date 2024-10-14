@@ -358,11 +358,8 @@ class WriteJsonToPostgres:
                 query = f"""   SELECT *   
                         FROM {self.tablename} ora      
                         limit 1    """
-                result = WriteJsonToPostgres(self.connection, query, self.tablename)
-                _,colunas = result.query()
+                _,colunas = WriteJsonToPostgres(self.connection, query, self.tablename).query()
                 
-
-
                 # Convert values to JSON for dictionary and list types
                 data_values = [
                     json.dumps(value) if isinstance(value, (dict, list)) else value
