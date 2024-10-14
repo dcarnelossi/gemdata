@@ -353,21 +353,21 @@ class WriteJsonToPostgres:
             
             # Use context manager to ensure cursor and connection are properly closed
             with self.connection.connect().cursor() as cursor:
-                columns = self.data.keys()
+                columns = {key.lower(): key for key in self.data.keys()}
                 
-
+                
                 query_select = f"""   SELECT *   
                         FROM {self.tablename} ora      
                         limit 1    """
                 cursor.execute(query_select)
 
                 # Obter os nomes das colunas
-                colunas_tabela = [desc[0] for desc in cursor.description]
+                colunas_tabela = [desc[0].lower() for desc in cursor.description]
                 # Filtrar e reordenar os valores de self.data com base nas colunas da tabela
                 
                 data_values_reordenados = [
-                    json.dumps(self.data[col]) if isinstance(self.data[col], (dict, list)) else self.data[col]
-                    for col in colunas_tabela if col in self.data
+                    json.dumps(self.data[columns[col]]) if isinstance(self.data[columns[col]], (dict, list)) else self.data[columns[col]]
+                    for col in colunas_tabela if col in columns
                 ]
 
 
@@ -375,9 +375,10 @@ class WriteJsonToPostgres:
                 print(f"Chaves de self.data: {columns}")
                 print(f"Valores reordenados: {data_values_reordenados}")
 
+                    
+                # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
                 update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
 
-                # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
                 if isdatainsercao == 1:
                     # Query para inserção com conflito
                     upsert_query = f"""
@@ -403,6 +404,7 @@ class WriteJsonToPostgres:
                 upsert_query = cursor.mogrify(
                     upsert_query, (tuple(data_values_reordenados),)
                 )
+
 
                 print(f"Upsert Query Executada: {upsert_query.decode()}")
                 # print("Upsert Query:", upsert_query.decode())
