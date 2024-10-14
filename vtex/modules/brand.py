@@ -119,7 +119,7 @@ def get_brand_id(api_conection_info, data_conection_info, brand_id):
 
             try:
                 # writer.insert_data()
-                writer.upsert_data()
+                writer.upsert_data2()
                 logging.info("Data upsert successfully.")
                 return True
             except Exception as e:
