@@ -290,11 +290,12 @@ class WriteJsonToPostgres:
                     for value in self.data.values()
                 ]
 
+
                 if isdatainsercao== 1:
                         
                     # Construct the UPSERT query using INSERT...ON CONFLICT
                   #  print(self.tablename)
-                    print(columns)
+                   
                   #  print(self.table_key)
                                         
                     upsert_query = f"""
@@ -313,8 +314,10 @@ class WriteJsonToPostgres:
                         ({', '.join(columns)}) = %s
                         RETURNING {self.table_key}
                     """
+                print(upsert_query)
 
-                    
+                print(data_values)
+                print(columns)    
 
                 # Use mogrify to safely substitute the values into the query
                 upsert_query = cursor.mogrify(
