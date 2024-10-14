@@ -35,7 +35,7 @@ def process_product(product_id):
     try:
         product_data = get_product_by_id(product_id)
         writer = WriteJsonToPostgres(data_conection_info, product_data, "products", "id")
-        writer.upsert_data()
+        writer.upsert_data2()
         logging.info(f"Product data inserted successfully for product_id {product_id}.")
     except Exception as e:
         logging.error(f"Error inserting data for product_id {product_id} in process_product: {e}")
@@ -43,20 +43,37 @@ def process_product(product_id):
 
 def process_products():
     try:
-        categories_id = get_categories_id_from_db()
+        categories_ids = get_categories_id_from_db()
         
-        if not categories_id:
+        if not categories_ids:
             logging.warning("No categories to process.")
             return
-
+             # Mapeia cada tarefa para um future e armazena em um dicionário
+        
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            #for category_id in categories_id:
-             #   print(category_id[0])
-                if categories_id:
-                    tuple_ids = [item[0] for item in categories_id[0]] 
-                    executor.map(process_product, tuple_ids)
-                else:
-                    logging.warning(f"No products found for category_id {category_id}.")
+            future_to_category = {
+                executor.submit(process_product, category_id): category_id 
+                for category_id in categories_ids
+            }
+            # Itera conforme as tarefas forem completadas
+            for future in concurrent.futures.as_completed(future_to_category):
+                category_id = future_to_category[future]
+                try:
+                    result = future.result()  # Lança exceção se houver falha na tarefa
+                    logging.info(f"Category ID {category_id} processado com sucesso.")
+                except Exception as e:
+                    logging.error(f"Category ID {category_id} gerou uma exceção: {e}")
+                    raise e  # Lança a exceção para garantir que o erro seja capturado
+
+
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     #for category_id in categories_id:
+        #      #   print(category_id[0])
+        #         if categories_ids:
+        #             tuple_ids = [item[0] for item in categories_ids[0]] 
+        #             executor.map(process_product, tuple_ids)
+        #         else:
+        #             logging.warning(f"No products found for category_id {categories_ids}.")
 
         
     except Exception as e:
