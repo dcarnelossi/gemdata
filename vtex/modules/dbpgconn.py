@@ -371,23 +371,33 @@ class WriteJsonToPostgres:
                 ]
 
 
-                print(f"Colunas da tabela: {colunas_tabela}")
-                print(f"Chaves de self.data: {columns}")
-                print(f"Valores reordenados: {data_values_reordenados}")
+                # print(f"Colunas da tabela: {colunas_tabela}")
+                # print(f"Chaves de self.data: {columns}")
+                # print(f"Valores reordenados: {data_values_reordenados}")
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
                 update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
 
+                if isdatainsercao== 1:
                     # Query para inserção sem a atualização de data_insercao
-                upsert_query = f"""
-                        INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
-                        VALUES %s
-                        ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {update_columns}, data_insercao = now()
-                        RETURNING {self.table_key};
-                    """
-                
+                    upsert_query = f"""
+                            INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
+                            VALUES %s
+                            ON CONFLICT ({self.table_key}) DO UPDATE SET
+                            {update_columns}, data_insercao = now()
+                            RETURNING {self.table_key};
+                        """
+                else:
+                    # Query para inserção sem a atualização de data_insercao
+                    upsert_query = f"""
+                            INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
+                            VALUES %s
+                            ON CONFLICT ({self.table_key}) DO UPDATE SET
+                            {update_columns}
+                            RETURNING {self.table_key};
+                        """
+                        
                 print(f"Upsert Query: {upsert_query}")
 
                 # Usando mogrify para substituir os valores na query de forma segura
