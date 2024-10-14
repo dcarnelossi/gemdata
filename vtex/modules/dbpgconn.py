@@ -402,7 +402,7 @@ class WriteJsonToPostgres:
 
                 # Usando mogrify para substituir os valores na query de forma segura
                 upsert_query = cursor.mogrify(
-                    upsert_query, (tuple(data_values_reordenados),)
+                    upsert_query, (tuple(data_values_reordenados),tuple(data_values_reordenados))
                 )
 
 
