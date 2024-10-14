@@ -362,18 +362,20 @@ class WriteJsonToPostgres:
                 cursor.execute(query_select)
 
                 # Obter os nomes das colunas
-                colunas = [desc[0] for desc in cursor.description]
-
-                print(f'aqui: {columns}')    
-                print(colunas)
-                print(colunas[0])
-                # Convert values to JSON for dictionary and list types
-                data_values = [
-                    json.dumps(value) if isinstance(value, (dict, list)) else value
-                    for value in self.data.values()
+                colunas_tabela = [desc[0] for desc in cursor.description]
+                # Filtrar e reordenar os valores de self.data com base nas colunas da tabela
+                
+                data_values_reordenados = [
+                    json.dumps(self.data[col]) if isinstance(self.data[col], (dict, list)) else self.data[col]
+                    for col in colunas_tabela if col in self.data
                 ]
 
 
+                print(f"Colunas da tabela: {colunas_tabela}")
+                print(f"Chaves de self.data: {columns}")
+                print(f"Valores reordenados: {data_values_reordenados}")
+
+          
                 if isdatainsercao== 1:
                         
                     # Construct the UPSERT query using INSERT...ON CONFLICT
@@ -382,32 +384,30 @@ class WriteJsonToPostgres:
                   #  print(self.table_key)
                                         
                     upsert_query = f"""
-                        INSERT INTO {self.tablename} ({', '.join(colunas)})
+                        INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        ({', '.join(colunas)}) = %s, data_insercao = now()
+                        ({', '.join(colunas_tabela)}) = %s, data_insercao = now()
                         RETURNING {self.table_key}
                     """
                 else:
                       # Construct the UPSERT query using INSERT...ON CONFLICT
                     upsert_query = f"""
-                        INSERT INTO {self.tablename} ({', '.join(colunas)})
+                        INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        ({', '.join(colunas)}) = %s
+                        ({', '.join(colunas_tabela)}) = %s
                         RETURNING {self.table_key}
                     """
-                print(upsert_query)
+                
+                print(f"Upsert Query: {upsert_query}")
 
-                print(data_values)
-                print(columns)    
-                print(colunas)    
-
-                # Use mogrify to safely substitute the values into the query
+                # Usando mogrify para substituir os valores na query de forma segura
                 upsert_query = cursor.mogrify(
-                    upsert_query, (tuple(data_values), tuple(data_values))
-                )
+                    upsert_query, (tuple(data_values_reordenados), tuple(data_values_reordenados))
+                    )
 
+                print(f"Upsert Query Executada: {upsert_query.decode()}")
                 # print("Upsert Query:", upsert_query.decode())
 
                 # Execute the UPSERT query and fetch the id
