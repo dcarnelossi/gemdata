@@ -55,7 +55,7 @@ def handle_category_data(category_id, data):
         #     except Exception as e:
         #         log_error(f"Error creating table - {e}")
 
-        writer.upsert_data()
+        writer.upsert_data2()
         logging.info("Data upsert_data successfully.")
 
     except json.JSONDecodeError as e:
@@ -95,15 +95,20 @@ def extract_category_ids_wrapper(category_list):
 
 
 def process_category_id(category_id):
-    category_details = make_request("GET", f"/api/catalog/pvt/category/{category_id}")
+    
+    try:
+        category_details = make_request("GET", f"/api/catalog/pvt/category/{category_id}")
 
-    if category_details:
-        logging.info(f"Processing completed for category {category_id}.")
-        handle_category_data(category_id, json.dumps(category_details))
-        return category_details
+        if category_details:
+            logging.info(f"Processing completed for category {category_id}.")
+            handle_category_data(category_id, json.dumps(category_details))
+            return category_details
 
-    logging.error(f"Processing failed for category {category_id}.")
-    return None
+        logging.error(f"Processing failed for category {category_id}.")
+        return None
+    except Exception as e:
+        log_error(f"process_category_id : {e}")
+        raise
 
 
 def fetch_categories_from_api(category_levels):
