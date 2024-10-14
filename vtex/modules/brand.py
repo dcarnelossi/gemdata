@@ -80,10 +80,10 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
 
     except http.client.HTTPException as http_error:
         logging.error(f"HTTPException: {http_error}")
-        return None
+        raise 
     except Exception as e:
         logging.error(f"get_brands_list_parallel - An unexpected error occurred: {e}")
-        return None
+        raise
     finally:
         conn.close()
 
@@ -124,7 +124,7 @@ def get_brand_id(api_conection_info, data_conection_info, brand_id):
                 return True
             except Exception as e:
                 logging.error(f"Error inserting data - {e}")
-                return False
+                raise
 
             # return data.decode("utf-8")
         else:
@@ -132,35 +132,40 @@ def get_brand_id(api_conection_info, data_conection_info, brand_id):
             return None
     except http.client.HTTPException as http_error:
         logging.error(f"HTTPException: {http_error}")
-        return None
+        raise
     except Exception as e:
         logging.error(f"get_brand_id - {brand_id} - An unexpected error occurred: {e}")
-        return None
+        raise
     finally:
         conn.close()
 
 
 # Função para percorrer a estrutura JSON e extrair os IDs
 def extract_brand_ids(brand_list):
-    # Carregar a string JSON
-    dados_json = json.loads(brand_list)
+    
+    try:
 
-    # Função para extrair recursivamente os IDs
-    def extrair_ids(objeto):
-        ids = [objeto["id"]]
-        if "children" in objeto:
-            for child in objeto["children"]:
-                ids.extend(extrair_ids(child))
-        return ids
+        # Carregar a string JSON
+        dados_json = json.loads(brand_list)
 
-    # Extrair os IDs usando a função recursiva
-    brand_ids = []
-    for item in dados_json:
-        brand_ids.extend(extrair_ids(item))
+        # Função para extrair recursivamente os IDs
+        def extrair_ids(objeto):
+            ids = [objeto["id"]]
+            if "children" in objeto:
+                for child in objeto["children"]:
+                    ids.extend(extrair_ids(child))
+            return ids
 
-    print(brand_ids)
-    return brand_ids
+        # Extrair os IDs usando a função recursiva
+        brand_ids = []
+        for item in dados_json:
+            brand_ids.extend(extrair_ids(item))
 
+        print(brand_ids)
+        return brand_ids
+    except Exception as e:
+        logging.error(f"extract_brand_ids - An unexpected error occurred: {e}")
+        raise
 
 if __name__ == "__main__":
     get_brands_list_parallel()
