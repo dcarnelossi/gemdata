@@ -377,7 +377,7 @@ class WriteJsonToPostgres:
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
-              #  update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
+                update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
 
                 if isdatainsercao == 1:
                     # Query para inserção com conflito
@@ -385,7 +385,7 @@ class WriteJsonToPostgres:
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {colunas_tabela}, data_insercao = now()
+                        {update_columns}, data_insercao = now()
                         RETURNING {self.table_key};
                     """
                 else:
@@ -394,7 +394,7 @@ class WriteJsonToPostgres:
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {colunas_tabela}, data_insercao = now()
+                        {update_columns}, data_insercao = now()
                         RETURNING {self.table_key};
                     """
                 
@@ -402,7 +402,7 @@ class WriteJsonToPostgres:
 
                 # Usando mogrify para substituir os valores na query de forma segura
                 upsert_query = cursor.mogrify(
-                    upsert_query, (tuple(data_values_reordenados),tuple(data_values_reordenados))
+                    upsert_query, (tuple(data_values_reordenados),)
                 )
 
 
