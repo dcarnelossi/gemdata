@@ -362,7 +362,7 @@ class WriteJsonToPostgres:
                 cursor.execute(query_select)
 
                 # Obter os nomes das colunas
-                colunas_tabela = [desc[0].lower() for desc in cursor.description]
+                colunas_tabela = [desc[0].lower() for desc in cursor.description if desc[0].lower() != 'data_insercao']
                 # Filtrar e reordenar os valores de self.data com base nas colunas da tabela
                 
                 data_values_reordenados = [
@@ -377,15 +377,15 @@ class WriteJsonToPostgres:
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
-                update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
-#, data_insercao = now()
+              #  update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
+
                 if isdatainsercao == 1:
                     # Query para inserção com conflito
                     upsert_query = f"""
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {update_columns}
+                        {colunas_tabela}, data_insercao = now()
                         RETURNING {self.table_key};
                     """
                 else:
@@ -394,7 +394,7 @@ class WriteJsonToPostgres:
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {update_columns}
+                        {colunas_tabela}, data_insercao = now()
                         RETURNING {self.table_key};
                     """
                 
