@@ -61,19 +61,53 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
             logging.info(data.decode("utf-8"))
             # save_json_to_blob_storage("brands","brands",data.decode("utf-8"))
 
-            # Use ThreadPoolExecutor para obter dados de marcas em paralelo
-            brand_ids = extract_brand_ids(data.decode("utf-8"))
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                # executor.map
-                # (get_brand_id, brand_ids, api_conection_info, data_conection_info)
-                executor.map(
-                    lambda brand_id: get_brand_id(
-                        api_conection_info, data_conection_info, brand_id
-                    ),
-                    brand_ids,
-                )
+            try:
+                # Use ThreadPoolExecutor para obter dados de marcas em paralelo
+                brand_ids = extract_brand_ids(data.decode("utf-8"))
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future_to_brand = {
+                        executor.submit(get_brand_id, api_conection_info, data_conection_info, brand_id): brand_id 
+                        for brand_id in brand_ids
+                    }
+                    # Itera conforme as tarefas forem completadas
+                    for future in concurrent.futures.as_completed(future_to_brand):
+                        brand_id = future_to_brand[future]
+                        try:
+                            result = future.result()  # Lança exceção se houver falha na tarefa
+                            logging.info(f"Brand ID {brand_id} processado com sucesso.")
+                        except Exception as e:
+                            logging.error(f"Brand ID {brand_id} gerou uma exceção: {e}")
+                            raise e  # Lança a exceção para garantir que o erro seja capturado
+                return True
 
-            return True
+
+                # with concurrent.futures.ThreadPoolExecutor() as executor:
+                #     # executor.map
+                #     # (get_brand_id, brand_ids, api_conection_info, data_conection_info)
+                #     executor.map(
+                #         lambda brand_id: get_brand_id(
+                #             api_conection_info, data_conection_info, brand_id
+                #         ),
+                #         brand_ids,
+                #     )
+
+            except Exception as e:
+                logging.error(f"An unexpected error occurred: {e}")
+                raise e    
+            
+            # # Use ThreadPoolExecutor para obter dados de marcas em paralelo
+            # brand_ids = extract_brand_ids(data.decode("utf-8"))
+            # with concurrent.futures.ThreadPoolExecutor() as executor:
+            #     # executor.map
+            #     # (get_brand_id, brand_ids, api_conection_info, data_conection_info)
+            #     executor.map(
+            #         lambda brand_id: get_brand_id(
+            #             api_conection_info, data_conection_info, brand_id
+            #         ),
+            #         brand_ids,
+            #     )
+
+            # return True
         else:
             logging.error(f"Error: {res.status} - {res.reason}")
             return None
