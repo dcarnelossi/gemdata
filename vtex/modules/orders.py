@@ -36,20 +36,23 @@ def get_order_by_id(orderId):
 def write_orders_to_db(order_id):
     try:
         order_json = get_order_by_id(order_id)
-        try:
-            writer = WriteJsonToPostgres(
-                data_conection_info, order_json, "orders", "orderid"
-            )
-            writer.upsert_data(isdatainsercao=1)
-            logging.info("Created record for order ID: %s", order_id)
-        except Exception as e:
-            logging.error(f"Error creating record - {e}")
-            raise e
 
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
         raise e
 
+    
+    try:
+        writer = WriteJsonToPostgres(
+                data_conection_info, order_json, "orders", "orderid"
+            )
+        writer.upsert_data(isdatainsercao=1)
+        logging.info("Created record for order ID: %s", order_id)
+    except Exception as e:
+            logging.error(f"Error creating record - {e}")
+            raise e
+
+    
 
 def process_orders():
     try:
@@ -71,11 +74,13 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
 
     global coorp_conection_info
     coorp_conection_info = coorp_conection
+    try:
+        process_orders()
+    except Exception as e:
+        raise e
 
-    process_orders()
 
 
 
-
-if __name__ == "__main__":
-    process_orders()
+# if __name__ == "__main__":
+#     process_orders()
