@@ -362,12 +362,9 @@ class WriteJsonToPostgres:
                 cursor.execute(query_select)
 
                 # Obter os nomes das colunas
-                column_names = [desc[0] for desc in cursor.description]
+                colunas = [desc[0] for desc in cursor.description]
 
-                # Obter os resultados com colunas nomeadas
-                results = cursor.fetchall()
-                colunas = [dict(zip(column_names, row)) for row in results]
-
+                print(f'aqui: {columns}')    
                 print(colunas)
                 print(colunas[0])
                 # Convert values to JSON for dictionary and list types
