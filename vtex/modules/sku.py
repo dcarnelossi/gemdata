@@ -25,25 +25,31 @@ def make_request(method, path, params=None):
         return response.json() if response.status_code == 200 else None
     except requests.JSONDecodeError as e:
         logging.error(f"Failed to parse JSON response: {e}")
-        return None
+        raise
     except requests.RequestException as e:
         logging.error(f"Request failed: {e}")
-        return None
+        raise
 
 def get_skus_list_pages(page):
     query_params = {"page": page, "pagesize": 1000}
     return make_request("GET", "stockkeepingunitids", params=query_params)
 
 def get_skus_ids(init_page):
-    skus_ids = []
-    while True:
-        skus_page = get_skus_list_pages(init_page)
-        if not skus_page:
-            logging.info(f"No more SKUs found starting from page {init_page}.")
-            break
-        skus_ids.extend(skus_page)
-        init_page += 1
-    return skus_ids
+    
+    try:
+    
+        skus_ids = []
+        while True:
+            skus_page = get_skus_list_pages(init_page)
+            if not skus_page:
+                logging.info(f"No more SKUs found starting from page {init_page}.")
+                break
+            skus_ids.extend(skus_page)
+            init_page += 1
+        return skus_ids
+    except Exception as e:
+        logging.error(f"get_skus - An unexpected error occurred: {e}")
+        raise 
 
 def get_sku_by_id(sku_id):
     return make_request("GET", f"stockkeepingunitbyid/{sku_id}")
@@ -56,7 +62,7 @@ def process_sku(sku_id):
     if sku_json:
         try:
             writer = WriteJsonToPostgres(data_conection_info, sku_json, "skus", "Id")
-            writer.upsert_data()
+            writer.upsert_data2()
             logging.info(f"SKU {sku_id} upserted successfully.")
             return True
         except Exception as e:
@@ -77,15 +83,32 @@ def get_skus(init_page):
             logging.info("No SKUs found to process.")
             return False
 
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     futures = {executor.submit(process_sku, sku): sku for sku in skus}
+        #     for future in concurrent.futures.as_completed(futures):
+        #         sku = futures[future]
+        #         try:
+        #             future.result()
+        #         except Exception as e:
+        #             logging.error(f"Error processing SKU {sku}: {e}")
+        # return True
+    
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = {executor.submit(process_sku, sku): sku for sku in skus}
-            for future in concurrent.futures.as_completed(futures):
-                sku = futures[future]
-                try:
-                    future.result()
-                except Exception as e:
-                    logging.error(f"Error processing SKU {sku}: {e}")
+                    future_to_sku = {
+                        executor.submit(process_sku,sku ): sku 
+                        for sku in skus
+                    }
+                    # Itera conforme as tarefas forem completadas
+                    for future in concurrent.futures.as_completed(future_to_sku):
+                        sku = future_to_sku[future]
+                        try:
+                            result = future.result()  # Lança exceção se houver falha na tarefa
+                            logging.info(f"sku {sku} processado com sucesso.")
+                        except Exception as e:
+                            logging.error(f"sku {sku} gerou uma exceção: {e}")
+                            raise e  # Lança a exceção para garantir que o erro seja capturado
         return True
+
     except Exception as e:
         logging.error(f"get_skus - An unexpected error occurred: {e}")
         raise e
