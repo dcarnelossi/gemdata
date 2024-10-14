@@ -76,7 +76,7 @@ with DAG(
             return True
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise
+            raise e
         
     trigger_dag_orders_items = TriggerDagRunOperator(
         task_id="trigger_dag_orders_items",
