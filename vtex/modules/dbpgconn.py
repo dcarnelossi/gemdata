@@ -378,14 +378,14 @@ class WriteJsonToPostgres:
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
                 update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
-
+#, data_insercao = now()
                 if isdatainsercao == 1:
                     # Query para inserção com conflito
                     upsert_query = f"""
                         INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
                         VALUES %s
                         ON CONFLICT ({self.table_key}) DO UPDATE SET
-                        {update_columns}, data_insercao = now()
+                        {update_columns}
                         RETURNING {self.table_key};
                     """
                 else:
