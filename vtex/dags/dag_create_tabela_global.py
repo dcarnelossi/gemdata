@@ -49,12 +49,16 @@ with DAG(
     def create_tabela_cliente_global(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
 
-        from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
+        
 
         try:
-            # Defina o código SQL para criar a tabela
-            sql_script = vtexsqlscriptscreatetabglobal(PGSCHEMA)
-
+            #esse schema usaremos para demo, para fazer videos e etc ..     
+            if(PGSCHEMA == "d95047ae-3802-4858-bad2-f2e0ffd486d4"):
+                from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
+                sql_script = vtexsqlscriptscreatetabglobal(PGSCHEMA)
+            else: # Defina o código SQL para criar a tabela
+                from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
+                sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMA)
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
             # não pode estar cravada aqui no codigo
