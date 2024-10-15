@@ -19,7 +19,7 @@ def vtexsqlscriptscreatetabglobaldemo(schemacopy,schema):
                         revenue_without_shipping * (1.05 + (RANDOM() * (0.20))) as revenue_without_shipping,
                         selectedaddresses_0_city,
                         selectedaddresses_0_state
-                        FROM "{schemacopy}".orders_items_ia  ;
+                        FROM '{schemacopy}'.orders_items_ia  ;
                         
 
                         DROP TABLE IF EXISTS "{schema}".orders_ia;
@@ -34,7 +34,7 @@ def vtexsqlscriptscreatetabglobaldemo(schemacopy,schema):
                         selectedaddresses_0_state,
                         selectedaddresses_0_city
 
-                        FROM "{schemacopy}".orders_ia  ;
+                        FROM '{schemacopy}'.orders_ia  ;
                         
                         
 
