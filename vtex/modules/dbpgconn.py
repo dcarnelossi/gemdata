@@ -378,10 +378,10 @@ class WriteJsonToPostgres:
                 # ]
 
 
-                print(f"Colunas da tabela{len(colunas_tabela)}: {colunas_tabela}")
-                print(f"Chaves de self.data{len(columns)}: {columns}")
-                print(f"Achou no arquivo e tambem na tabela {len(colunas_filtradas)} : {colunas_filtradas}")
-                print(f"Valores reordenados: {data_values_reordenados}")
+                # print(f"Colunas da tabela{len(colunas_tabela)}: {colunas_tabela}")
+                # print(f"Chaves de self.data{len(columns)}: {columns}")
+                # print(f"Achou no arquivo e tambem na tabela {len(colunas_filtradas)} : {colunas_filtradas}")
+                # print(f"Valores reordenados: {data_values_reordenados}")
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
@@ -414,7 +414,7 @@ class WriteJsonToPostgres:
                             RETURNING {self.table_key};
                         """
                         
-                print(f"Upsert Query: {upsert_query}")
+                #print(f"Upsert Query: {upsert_query}")
 
                 # Usando mogrify para substituir os valores na query de forma segura
                 upsert_query = cursor.mogrify(
@@ -422,7 +422,7 @@ class WriteJsonToPostgres:
                 )
 
 
-                print(f"Upsert Query Executada: {upsert_query.decode()}")
+              #  print(f"Upsert Query Executada: {upsert_query.decode()}")
                 # print("Upsert Query:", upsert_query.decode())
 
                 # Execute the UPSERT query and fetch the id
