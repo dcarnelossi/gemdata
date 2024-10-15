@@ -56,7 +56,7 @@ with DAG(
             #esse schema usaremos para demo, para fazer videos e etc ..     
             if(PGSCHEMA == "d95047ae-3802-4858-bad2-f2e0ffd486d4"):
                 from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
-                sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMA)
+                sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMA,PGSCHEMA)
                 
             else: # Defina o código SQL para criar a tabela
                 from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal

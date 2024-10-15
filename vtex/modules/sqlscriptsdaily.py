@@ -144,7 +144,7 @@ def vtexsqlscriptsorderslistupdate(schema):
 
 
     """
-    print(scripts)
+    # print(scripts)
     return scripts
 
 # if __name__ == "__main__":

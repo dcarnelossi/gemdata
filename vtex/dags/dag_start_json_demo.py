@@ -54,7 +54,7 @@ with DAG(
             PGSCHEMACOP = kwargs["params"]["PGSCHEMACOPY"]    
             from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
             # Defina o código SQL para criar a tabela
-            sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMACOP)
+            sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMACOP,pg_demo)
 
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG

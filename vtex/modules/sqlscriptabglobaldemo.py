@@ -1,12 +1,10 @@
-def vtexsqlscriptscreatetabglobaldemo(schema):
+def vtexsqlscriptscreatetabglobaldemo(schemacopy,schema):
     scripts = f"""
                                         
-                        CREATE SCHEMA IF NOT EXISTS demonstracao;
+                        CREATE SCHEMA IF NOT EXISTS "{schema}";
 
-
-
-                        DROP TABLE IF EXISTS "demonstracao".orders_items_ia;
-                        create TABLE "demonstracao".orders_items_ia
+                        DROP TABLE IF EXISTS "{schema}".orders_items_ia;
+                        create TABLE "{schema}".orders_items_ia
                         as
                         SELECT 
                         orderid,
@@ -21,11 +19,11 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                         revenue_without_shipping * (1.05 + (RANDOM() * (0.20))) as revenue_without_shipping,
                         selectedaddresses_0_city,
                         selectedaddresses_0_state
-                        FROM "{schema}".orders_items_ia  ;
+                        FROM "{schemacopy}".orders_items_ia  ;
                         
 
-                        DROP TABLE IF EXISTS "demonstracao".orders_ia;
-                        create TABLE "demonstracao".orders_ia
+                        DROP TABLE IF EXISTS "{schema}".orders_ia;
+                        create TABLE "{schema}".orders_ia
                         as
                         SELECT 
                         orderid,
@@ -36,12 +34,12 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                         selectedaddresses_0_state,
                         selectedaddresses_0_city
 
-                        FROM "{schema}".orders_ia  ;
+                        FROM "{schemacopy}".orders_ia  ;
                         
                         
 
                 
 
     """
-    print(scripts)
+    # print(scripts)
     return scripts

@@ -131,7 +131,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
 
     """
-    print(scripts)
+    # print(scripts)
     return scripts
 
 # if __name__ == "__main__":
