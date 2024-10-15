@@ -365,10 +365,17 @@ class WriteJsonToPostgres:
                 colunas_tabela = [desc[0].lower() for desc in cursor.description if desc[0].lower() not in ['data_insercao','sequence']]
                 # Filtrar e reordenar os valores de self.data com base nas colunas da tabela
                 
+                colunas_filtradas = [col for col in colunas_tabela if col in columns] 
+
                 data_values_reordenados = [
                     json.dumps(self.data[columns[col]]) if isinstance(self.data[columns[col]], (dict, list)) else self.data[columns[col]]
-                    for col in colunas_tabela if col in columns
+                    for col in colunas_filtradas
                 ]
+                
+                # data_values_reordenados = [
+                #     json.dumps(self.data[columns[col]]) if isinstance(self.data[columns[col]], (dict, list)) else self.data[columns[col]]
+                #     for col in colunas_tabela if col in columns
+                # ]
 
 
                 print(f"Colunas da tabela: {colunas_tabela}")
