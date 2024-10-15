@@ -54,9 +54,10 @@ with DAG(
         try:
       
             #esse schema usaremos para demo, para fazer videos e etc ..     
+            #copiando do schema 2dd03
             if(PGSCHEMA == "d95047ae-3802-4858-bad2-f2e0ffd486d4"):
                 from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
-                sql_script = vtexsqlscriptscreatetabglobaldemo(PGSCHEMA,PGSCHEMA)
+                sql_script = vtexsqlscriptscreatetabglobaldemo("2dd03eaf-cf56-4a5b-bc99-3a06b237ded8",PGSCHEMA)
                 
             else: # Defina o código SQL para criar a tabela
                 from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
