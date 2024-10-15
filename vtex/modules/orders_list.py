@@ -67,7 +67,7 @@ def process_order(order):
                     data_conection_info, order, "orders_list_daily", "orderid"
                 )
 
-        writer.upsert_data(isdatainsercao=1)
+        writer.upsert_data2(isdatainsercao=1)
         logging.info(f"Order {order['orderId']} upserted successfully.")
     except Exception as e:
         logging.error(f"Error inserting order {order['orderId']}: {e}")

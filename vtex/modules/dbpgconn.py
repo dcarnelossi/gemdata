@@ -362,7 +362,7 @@ class WriteJsonToPostgres:
                 cursor.execute(query_select)
 
                 # Obter os nomes das colunas
-                colunas_tabela = [desc[0].lower() for desc in cursor.description if desc[0].lower() not in ['data_insercao','sequence']]
+                colunas_tabela = [desc[0].lower() for desc in cursor.description ]
                 # Filtrar e reordenar os valores de self.data com base nas colunas da tabela
                 
                 colunas_filtradas = [col for col in colunas_tabela if col in columns] 
