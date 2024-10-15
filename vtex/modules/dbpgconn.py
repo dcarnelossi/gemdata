@@ -378,9 +378,9 @@ class WriteJsonToPostgres:
                 # ]
 
 
-                print(f"Colunas da tabela: {colunas_tabela}")
-                print(f"Chaves de self.data: {columns}")
-                print(f"Achou no arquivo e tambem na tabela : {colunas_filtradas}")
+                print(f"Colunas da tabela{len(colunas_tabela)}: {colunas_tabela}")
+                print(f"Chaves de self.data{len(columns)}: {columns}")
+                print(f"Achou no arquivo e tambem na tabela {len(colunas_filtradas)} : {colunas_filtradas}")
                 print(f"Valores reordenados: {data_values_reordenados}")
 
                     
