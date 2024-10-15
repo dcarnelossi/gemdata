@@ -67,8 +67,8 @@ with DAG(
             logging.exception(
                 f"An unexpected error occurred during create_tabela_global_cliente - {e}"
             )
-            return e
-
+            raise e
+            
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
         trigger_dag_id="a10-create-json-dash",  # Substitua pelo nome real da sua segunda DAG

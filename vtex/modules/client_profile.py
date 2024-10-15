@@ -33,11 +33,28 @@ def write_client_profile_to_database(batch_size=600):
             if not result[0]:
                 break  # No more results, exit the loop
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                # Mapeia a função para cada item em result usando threads
-                list(executor.map(process_client_profile, result[0]))
+            try:
+                client_ids = result[0]
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future_to_order = {executor.submit(process_client_profile, client_id): client_id for client_id in client_ids[0]}
+                    for future in concurrent.futures.as_completed(future_to_order):
+                        client_id = future_to_order[future]
+                        try:
+                            future.result()  # This will raise an exception if the thread failed
+                        except Exception as e:
+                            logging.error(f"Order {client_id} generated an exception: {e}")
+                            raise e  # Raise the exception to ensure task failure
+                return True
+            except Exception as e:
+                logging.error(f"An unexpected error occurred: {e}")
+                raise e    
+                    
 
-        return True
+        #     with concurrent.futures.ThreadPoolExecutor() as executor:
+        #         # Mapeia a função para cada item em result usando threads
+        #         list(executor.map(process_client_profile, result[0]))
+
+        # return True
 
     except Exception as e:
         logging.error(f"write_client_profile_to_database - Erro desconhecido - {e}")
@@ -52,7 +69,7 @@ def process_client_profile(result):
         writer = WriteJsonToPostgres(
             data_conection_info, client_profile, "client_profile", "orderid"
         )
-        writer.upsert_data(isdatainsercao=1)
+        writer.upsert_data2(isdatainsercao=1)
         logging.info(f"Inserção de dados concluída para orderid - {order_id}")
 
         return True  # Indica que a execução foi bem-sucedida

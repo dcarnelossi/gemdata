@@ -66,7 +66,7 @@ def process_order_item_colunar(order_totals):
         writer = WriteJsonToPostgres(
             data_conection_info, result, "orders_totals", "orderid"
         )
-        writer.upsert_data(isdatainsercao=1)
+        writer.upsert_data2(isdatainsercao=1)
 
         logging.info(f"Data upserted successfully for orderid - {order_id}")
 
