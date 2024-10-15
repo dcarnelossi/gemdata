@@ -371,7 +371,7 @@ class WriteJsonToPostgres:
                     json.dumps(self.data[columns[col]]) if isinstance(self.data[columns[col]], (dict, list)) else self.data[columns[col]]
                     for col in colunas_filtradas
                 ]
-                
+
                 # data_values_reordenados = [
                 #     json.dumps(self.data[columns[col]]) if isinstance(self.data[columns[col]], (dict, list)) else self.data[columns[col]]
                 #     for col in colunas_tabela if col in columns
@@ -380,16 +380,17 @@ class WriteJsonToPostgres:
 
                 print(f"Colunas da tabela: {colunas_tabela}")
                 print(f"Chaves de self.data: {columns}")
+                print(f"Achou no arquivo e tambem na tabela : {colunas_filtradas}")
                 print(f"Valores reordenados: {data_values_reordenados}")
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
-                update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_tabela])
+                update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_filtradas])
 
                 if isdatainsercao== 1:
                     # Query para inserção sem a atualização de data_insercao
                     upsert_query = f"""
-                            INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
+                            INSERT INTO {self.tablename} ({', '.join(colunas_filtradas)})
                             VALUES %s
                             ON CONFLICT ({self.table_key}) DO UPDATE SET
                             {update_columns}, data_insercao = now()
@@ -398,7 +399,7 @@ class WriteJsonToPostgres:
                 else:
                     # Query para inserção sem a atualização de data_insercao
                     upsert_query = f"""
-                            INSERT INTO {self.tablename} ({', '.join(colunas_tabela)})
+                            INSERT INTO {self.tablename} ({', '.join(colunas_filtradas)})
                             VALUES %s
                             ON CONFLICT ({self.table_key}) DO UPDATE SET
                             {update_columns}
