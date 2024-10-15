@@ -35,24 +35,31 @@ def write_client_profile_to_database(batch_size=600):
 
             try:
                 client_ids = result[0]
+                print(client_ids)
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future_to_order = {executor.submit(process_client_profile, client_id): client_id for client_id in client_ids[0]}
-                    for future in concurrent.futures.as_completed(future_to_order):
-                        client_id = future_to_order[future]
+                    # Submete as tarefas para cada client_id e mapeia o futuro para o client_id correspondente
+                    future_to_client = {executor.submit(process_client_profile, client_id): client_id for client_id in client_ids}
+                    
+                    # Conforme as tarefas são completadas, podemos verificar os resultados
+                    for future in concurrent.futures.as_completed(future_to_client):
+                        client_id = future_to_client[future]
                         try:
-                            future.result()  # This will raise an exception if the thread failed
+                            # Tenta obter o resultado da tarefa
+                            future.result()  # Isso lançará uma exceção se a tarefa falhar
                         except Exception as e:
-                            logging.error(f"Order {client_id} generated an exception: {e}")
-                            raise e  # Raise the exception to ensure task failure
+                            # Loga o erro associado a esse client_id e lança a exceção
+                            logging.error(f"Client ID {client_id} generated an exception: {e}")
+                            raise e  # Lança a exceção para garantir a falha da tarefa
+                            
                 return True
             except Exception as e:
                 logging.error(f"An unexpected error occurred: {e}")
                 raise e    
                     
 
-        #     with concurrent.futures.ThreadPoolExecutor() as executor:
-        #         # Mapeia a função para cada item em result usando threads
-        #         list(executor.map(process_client_profile, result[0]))
+            # with concurrent.futures.ThreadPoolExecutor() as executor:
+            #     # Mapeia a função para cada item em result usando threads
+            #     list(executor.map(process_client_profile, result[0]))
 
         # return True
 

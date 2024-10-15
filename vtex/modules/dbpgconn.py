@@ -386,6 +386,14 @@ class WriteJsonToPostgres:
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
                 update_columns = ', '.join([f"{col} = EXCLUDED.{col}" for col in colunas_filtradas])
+                #comparison_conditions = " OR ".join([f"sua_tabela.{coluna} IS DISTINCT FROM EXCLUDED.{coluna}" for coluna in colunas_filtradas])
+                # upsert_query = f"""
+                #             INSERT INTO {self.tablename} ({', '.join(colunas_filtradas)})
+                #             VALUES %s
+                #             ON CONFLICT ({self.table_key}) DO UPDATE SET
+                #             {update_columns}, data_insercao = now()
+                #             WHERE {comparison_conditions}
+                #             RETURN
 
                 if isdatainsercao== 1:
                     # Query para inserção sem a atualização de data_insercao
