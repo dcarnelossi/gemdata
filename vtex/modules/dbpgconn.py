@@ -371,9 +371,9 @@ class WriteJsonToPostgres:
                 ]
 
 
-                # print(f"Colunas da tabela: {colunas_tabela}")
-                # print(f"Chaves de self.data: {columns}")
-                # print(f"Valores reordenados: {data_values_reordenados}")
+                print(f"Colunas da tabela: {colunas_tabela}")
+                print(f"Chaves de self.data: {columns}")
+                print(f"Valores reordenados: {data_values_reordenados}")
 
                     
                 # Verificar se é uma inserção ou atualização com base no parâmetro isdatainsercao
