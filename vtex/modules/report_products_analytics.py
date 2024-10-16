@@ -625,7 +625,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     
     #lagura entre as linhas 50 px e 300dpi 
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(7.68, 11.81))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(18, 20))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
