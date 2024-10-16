@@ -1,14 +1,14 @@
 
 def vtexsqlscriptscreatetabglobaldemo(schema):
     scripts = f"""
-                                
+                    
                  DROP TABLE IF EXISTS ordersfretegratis;
                 CREATE TEMPORARY TABLE ordersfretegratis as
                 select distinct  oi.orderid,case when cast(shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping  
-                from  {schema}.orders_totals oi;  
+                from  "{schema}".orders_totals oi;  
 
-                DROP TABLE IF EXISTS {schema}.orders_items_ia;
-                create TABLE {schema}.orders_items_ia
+                DROP TABLE IF EXISTS "{schema}".orders_items_ia;
+                create TABLE "{schema}".orders_items_ia
                 as
                 select 
                  date_trunc('hour',ol.creationdate AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate ,
@@ -47,33 +47,33 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,cast(round(cast(((cast(od.value as float)/100)-(cast(ot.shipping as float)/100) )* (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as revenue_orders_out_ship
 
 
-                from {schema}.orders_items oi 
+                from "{schema}".orders_items oi 
 
-                inner join {schema}.orders_list ol on 
+                inner join "{schema}".orders_list ol on 
                 ol.orderid = oi.orderid
 
-                left join {schema}.skus sku on 
+                left join "{schema}".skus sku on 
                 sku.id = cast(oi.sellersku as int)
 
-                left join {schema}.products pro on 
+                left join "{schema}".products pro on 
                 pro.id = sku.productid
 
-                left join {schema}.categories cat on 
+                left join "{schema}".categories cat on 
                 cat.id = pro.categoryid
 
-                left join {schema}.orders_shippingdata sd on 
+                left join "{schema}".orders_shippingdata sd on 
                 sd.orderid = oi.orderid
 
-                left join {schema}.client_profile cp on 
+                left join "{schema}".client_profile cp on 
                 cp.orderid = oi.orderid
 
                 left join ordersfretegratis fg 
                 on fg.orderid = oi.orderid
 
-                left join {schema}.orders od 
+                left join "{schema}".orders od 
                 on od.orderid = oi.orderid
 
-                left join {schema}.orders_totals ot on 
+                left join "{schema}".orders_totals ot on 
                 ot.orderid = oi.orderid
                         
                 where 
@@ -83,14 +83,14 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 DROP TABLE IF EXISTS qtditemorder;
                 CREATE TEMPORARY TABLE qtditemorder as
                 select oi.orderid, cast(round(cast(sum(cast(oi.quantity as numeric)* (3+(RANDOM() * (3))))as decimal),0) as numeric) as quantityitems  
-                from {schema}.orders_items oi 
+                from "{schema}".orders_items oi 
                 group by orderid;
 
 
 
-                DROP TABLE IF EXISTS {schema}.orders_ia;
+                DROP TABLE IF EXISTS "{schema}".orders_ia;
 
-                create table {schema}.orders_ia
+                create table "{schema}".orders_ia
                 as
                 select 
                 date_trunc('hour',ol.creationdate AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate  
@@ -121,18 +121,18 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
 
 
-                from {schema}.orders o 
+                from "{schema}".orders o 
 
-                left join {schema}.orders_totals  ot 
+                left join "{schema}".orders_totals  ot 
                     on ot.orderid= o.orderid
 
-                left join {schema}.orders_list ol on 
+                left join "{schema}".orders_list ol on 
                 ol.orderid = o.orderid
 
-                left join {schema}.orders_shippingdata sd on 
+                left join "{schema}".orders_shippingdata sd on 
                 sd.orderid = o.orderid
 
-                left join {schema}.client_profile cp on 
+                left join "{schema}".client_profile cp on 
                 cp.orderid = o.orderid
 
                 left join qtditemorder qt on 
@@ -140,7 +140,6 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
 
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
-                        
 
                 
 
