@@ -636,7 +636,8 @@ def tabela_detalhada(nm_imagem,dataframe):
     table.auto_set_font_size(False)
     table.set_fontsize(12)
     table.scale(1, 2.5)  # Adjust scale to make the table fit nicely
-# Personalizar a aparência de cada célula
+    
+    #Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
         if i == 0:  # Linha de cabeçalho
             cell.set_fontsize(14)
@@ -804,7 +805,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195)
+    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,h=100,w=100 )
 
   
         # Configurar a fonte
