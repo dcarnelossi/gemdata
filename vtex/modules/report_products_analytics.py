@@ -625,7 +625,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     
     #lagura entre as linhas 50 px e 300dpi 
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(18, 20))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(5, 11.81))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
@@ -697,7 +697,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # # Display the saved image using PIL
     # image = Image.open('styled_table_image.png')
     # image.show()
-    plt.savefig(nm_imagem, dpi=300)
+    plt.savefig(nm_imagem, dpi=300,pad_inches=0)
 
 
 
@@ -805,7 +805,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=280 )
+    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195 )
 
   
         # Configurar a fonte
