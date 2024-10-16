@@ -94,7 +94,7 @@ def abreviar_eixoy_moeda(valor,casas,ismoeda,tipoabreviacao):
 def quebrarlinha(text,maxletraquebra):
     if len(text) <= maxletraquebra :
         espacos_faltantes = maxletraquebra - len(text)
-        return  text + '_' * espacos_faltantes  # Se o texto for menor ou igual ao dobro da quantidade, retorna o texto todo
+        return  text + ' ' * espacos_faltantes  # Se o texto for menor ou igual ao dobro da quantidade, retorna o texto todo
     else:
         # Pega os primeiros 'qtdletra' caracteres e evita cortar no meio da palavra
         return text[:maxletraquebra-3]+'...'   # Se não houver espaço, corta normalmente
@@ -635,6 +635,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     dataframe=dataframe.reset_index(drop=True)
     # Create a DataFrame
     df = dataframe.drop(columns=['grupos_finais'])
+    df['ID-Nome'] = [quebrarlinha(label, 100) for label in df['ID-Nome']]
     
     #lagura entre as linhas 50 px e 300dpi 
     # Plotting the table using matplotlib
@@ -645,7 +646,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
 
    
-    df['ID-Nome'] = [quebrarlinha(label, 5) for label in df['ID-Nome']]
+    
     
     # Styling the table
     table.auto_set_font_size(False)
