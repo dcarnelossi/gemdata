@@ -634,7 +634,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # Styling the table
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-    table.scale(1, 1.5)  # Adjust scale to make the table fit nicely
+    table.scale(1, 2)  # Adjust scale to make the table fit nicely
 # Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
         if i == 0:  # Linha de cabeçalho
@@ -670,14 +670,14 @@ def tabela_detalhada(nm_imagem,dataframe):
             cell.get_text().set_color(id_color if j == 0 else 'black') 
 
         if j == 1 and i > 0:  # faturamento 
-            cell.set_fontsize(14)
+            cell.set_fontsize(12)
             cell.set_text_props(color='#47346a')
 
         if j == 2 and i > 0:  # Avaliações de Ticket Médio
-            cell.set_fontsize(14)
+            cell.set_fontsize(12)
             cell.set_text_props(color='#47346a')
         if j == 3 and i > 0:  # Avaliações de Receita Incremental
-            cell.set_fontsize(14)
+            cell.set_fontsize(12)
             cell.set_text_props(color='#0a5c0a')
         if j == 4 and i > 0:  # Avaliações de Tendência
             if '⬆️' in cell.get_text().get_text():  # Verificar se tem setas para cima
