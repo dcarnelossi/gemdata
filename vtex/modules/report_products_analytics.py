@@ -697,7 +697,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # # Display the saved image using PIL
     # image = Image.open('styled_table_image.png')
     # image.show()
-    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300)
 
 
 
