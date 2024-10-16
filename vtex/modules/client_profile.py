@@ -30,7 +30,8 @@ def write_client_profile_to_database(batch_size=600):
                 data_conection_info, query, "client_profile"
             ).query()
 
-            if not result[0]:
+            if not result or not result[0]:
+                logging.info("No more orders to process. Exiting loop.")
                 break  # No more results, exit the loop
 
             try:
@@ -51,7 +52,7 @@ def write_client_profile_to_database(batch_size=600):
                             logging.error(f"Client ID {client_id} generated an exception: {e}")
                             raise e  # Lança a exceção para garantir a falha da tarefa
                             
-                return True
+                
             except Exception as e:
                 logging.error(f"An unexpected error occurred: {e}")
                 raise e    
