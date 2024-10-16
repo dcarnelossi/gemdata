@@ -663,7 +663,7 @@ def tabela_detalhada(nm_imagem,dataframe):
                 id_color = '#696969'  # Cor padrão
 
             # Definir o novo texto com o ID colorido e o nome em preto
-            cell.set_fontsize(10)
+            cell.set_fontsize(12)
             cell_text = f"{id_part}-{name_part}"
             cell.set_text_props(ha='left')  # Alinhar à esquerda
             cell.get_text().set_text(cell_text)
