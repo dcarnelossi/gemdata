@@ -634,7 +634,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # Styling the table
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-    table.scale(1, 2.5)  # Adjust scale to make the table fit nicely
+    table.scale(1, 0.5)  # Adjust scale to make the table fit nicely
 # Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
         if i == 0:  # Linha de cabeçalho
@@ -663,11 +663,15 @@ def tabela_detalhada(nm_imagem,dataframe):
                 id_color = '#696969'  # Cor padrão
 
             # Definir o novo texto com o ID colorido e o nome em preto
-            cell.set_fontsize(8)
+            cell.set_fontsize(10)
             cell_text = f"{id_part}-{name_part}"
             cell.set_text_props(ha='left')  # Alinhar à esquerda
             cell.get_text().set_text(cell_text)
             cell.get_text().set_color(id_color if j == 0 else 'black') 
+
+        if j == 1 and i > 0:  # faturamento 
+            cell.set_fontsize(14)
+            cell.set_text_props(color='#47346a')
 
         if j == 2 and i > 0:  # Avaliações de Ticket Médio
             cell.set_fontsize(14)
