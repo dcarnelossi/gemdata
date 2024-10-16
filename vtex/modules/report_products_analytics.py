@@ -94,7 +94,7 @@ def abreviar_eixoy_moeda(valor,casas,ismoeda,tipoabreviacao):
 def quebrarlinha(text,maxletraquebra):
     if len(text) <= maxletraquebra :
         espacos_faltantes = maxletraquebra - len(text)
-        return  text + ' ' * espacos_faltantes  # Se o texto for menor ou igual ao dobro da quantidade, retorna o texto todo
+        return  text + '_' * espacos_faltantes  # Se o texto for menor ou igual ao dobro da quantidade, retorna o texto todo
     else:
         # Pega os primeiros 'qtdletra' caracteres e evita cortar no meio da palavra
         return text[:maxletraquebra-3]+'...'   # Se não houver espaço, corta normalmente
