@@ -622,14 +622,17 @@ def tabela_detalhada(nm_imagem,dataframe):
     dataframe=dataframe.reset_index(drop=True)
     # Create a DataFrame
     df = dataframe.drop(columns=['grupos_finais'])
-   
+    
+    #lagura entre as linhas 50 px e 300dpi 
+    row_height_in_inches = 50 / 300
 
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(12, len(df)*0.3))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(len(df.columns)*2, len(df)*row_height_in_inches))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
     table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
+
 
     # Styling the table
     table.auto_set_font_size(False)
