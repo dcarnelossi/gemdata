@@ -634,7 +634,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # Styling the table
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-    table.scale(1, 2)  # Adjust scale to make the table fit nicely
+    table.scale(1, 1.5)  # Adjust scale to make the table fit nicely
 # Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
         if i == 0:  # Linha de cabeçalho
