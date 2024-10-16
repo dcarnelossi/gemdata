@@ -671,7 +671,7 @@ def tabela_detalhada(nm_imagem,dataframe):
 
         if j == 1 and i > 0:  # faturamento 
             cell.set_fontsize(12)
-            cell.set_text_props(color='#47346a')
+            cell.set_text_props(color='black')
 
         if j == 2 and i > 0:  # Avaliações de Ticket Médio
             cell.set_fontsize(12)
