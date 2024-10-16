@@ -90,6 +90,19 @@ def abreviar_eixoy_moeda(valor,casas,ismoeda,tipoabreviacao):
         return f'{formatar_numerocasas_br(valor,casas,ismoeda)}'
 
 
+
+def quebrarlinha(text,maxletraquebra):
+    if len(text) <= maxletraquebra :
+        espacos_faltantes = maxletraquebra - len(text)
+        return  text + ' ' * espacos_faltantes  # Se o texto for menor ou igual ao dobro da quantidade, retorna o texto todo
+    else:
+        # Pega os primeiros 'qtdletra' caracteres e evita cortar no meio da palavra
+        return text[:maxletraquebra-3]+'...'   # Se não houver espaço, corta normalmente
+        # Pega os últimos 'qtdletra' caracteres sem cortar palavras no meio
+   
+        
+
+
 # Função para atribuir valores com base nos intervalos
 def classify_ranking(ranking):
     if 1 <= ranking <= 10:
@@ -625,13 +638,15 @@ def tabela_detalhada(nm_imagem,dataframe):
     
     #lagura entre as linhas 50 px e 300dpi 
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(18, 20))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(12, len(df)*0.3))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
     table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
 
-
+   
+    df['ID-Nome'] = [quebrarlinha(label, 100) for label in df['ID-Nome']]
+    
     # Styling the table
     table.auto_set_font_size(False)
     table.set_fontsize(12)
@@ -697,7 +712,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # # Display the saved image using PIL
     # image = Image.open('styled_table_image.png')
     # image.show()
-    plt.savefig(nm_imagem, dpi=300,pad_inches=0)
+    plt.savefig(nm_imagem, dpi=300,pad_inches=0,bbox_inches='tight')
 
 
 
@@ -805,7 +820,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = -50,y= 50,w=300,h=220 )
+    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=195 )
 
   
         # Configurar a fonte
