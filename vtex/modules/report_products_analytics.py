@@ -635,7 +635,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     dataframe=dataframe.reset_index(drop=True)
     # Create a DataFrame
     df = dataframe.drop(columns=['grupos_finais'])
-    df['ID-Nome'] = [quebrarlinha(label, 100) for label in df['ID-Nome']]
+    df['ID-Nome'] = [quebrarlinha(label, 120) for label in df['ID-Nome']]
     
     #lagura entre as linhas 50 px e 300dpi 
     # Plotting the table using matplotlib
@@ -655,11 +655,16 @@ def tabela_detalhada(nm_imagem,dataframe):
     
     #Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
-        if i == 0:  # Linha de cabeçalho
+        if  i == 0 and j != 0 :  # Linha de cabeçalho
             cell.set_fontsize(14)
             cell.set_text_props(weight='bold')
             cell.set_facecolor('#f4f4f4')  # Fundo cinza claro para o cabeçalho
             cell.set_text_props(ha='center')  # Cabeçalho centralizado
+        if  i == 0 and j == 0 :  # Linha de cabeçalho
+            cell.set_fontsize(14)
+            cell.set_text_props(weight='bold')
+            cell.set_facecolor('#f4f4f4')  # Fundo cinza claro para o cabeçalho
+            cell.set_text_props(ha='left')  # Cabeçalho centralizado
 
         # Alinhar a primeira coluna à esquerda (ID-Nome)
         if j == 0 and i > 0:  # Verificar se é a primeira coluna
