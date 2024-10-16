@@ -645,7 +645,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     table = ax.table(cellText=df.values, colLabels=df.columns, cellLoc='center', loc='center')
 
    
-    df['ID-Nome'] = [quebrarlinha(label, 100) for label in df['ID-Nome']]
+    df['ID-Nome'] = [quebrarlinha(label, 5) for label in df['ID-Nome']]
     
     # Styling the table
     table.auto_set_font_size(False)
