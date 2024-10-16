@@ -805,7 +805,7 @@ def gerar_pdf_analise(celular,integration,extensao,diretorio,caminho_pdf_blob):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 40,w=200,h=200 )
+    pdf.image(f"{diretorio}/tabela_detalhada{celular}.png", x = 7,y= 50,w=250,h=250 )
 
   
         # Configurar a fonte
