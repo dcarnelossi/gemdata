@@ -624,10 +624,8 @@ def tabela_detalhada(nm_imagem,dataframe):
     df = dataframe.drop(columns=['grupos_finais'])
     
     #lagura entre as linhas 50 px e 300dpi 
-    row_height_in_inches = 50 / 300
-
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(len(df.columns)*2, len(df)*row_height_in_inches))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(5, 43))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
@@ -637,7 +635,7 @@ def tabela_detalhada(nm_imagem,dataframe):
     # Styling the table
     table.auto_set_font_size(False)
     table.set_fontsize(12)
-   # table.scale(1, 2.5)  # Adjust scale to make the table fit nicely
+    table.scale(1, 2.5)  # Adjust scale to make the table fit nicely
 # Personalizar a aparência de cada célula
     for (i, j), cell in table.get_celld().items():
         if i == 0:  # Linha de cabeçalho
