@@ -1,7 +1,7 @@
 
 def vtexsqlscriptscreatetabglobaldemo(schema):
     scripts = f"""
-                    
+                 
                  DROP TABLE IF EXISTS ordersfretegratis;
                 CREATE TEMPORARY TABLE ordersfretegratis as
                 select distinct  oi.orderid,case when cast(shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping  
@@ -21,14 +21,14 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 oi.taxcode,
                 cast(round(cast(cast(1 as float)* (1+(RANDOM() * (2)))as decimal),0) as float)  as quantityorder,
                 cast(round(cast(cast(oi.quantity as decimal)* (3+(RANDOM() * (3)))as decimal),0) as float)  as quantityitems ,
-                cast(round(cast((cast(oi.price as float)/100)* (2 + (RANDOM() * (0.20))) as decimal),2) as float) as price,
-                cast(round(cast((cast(oi.costprice as float)/100)* (2 + (RANDOM() * (0.20))) as decimal),2) as float)as costprice,
-                cast(round(cast((cast(oi.listprice as float)/100)* (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as listprice,
-                cast(round(cast((cast(oi.commission as float)/100)* (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as commission,
+                cast(round(cast((cast(oi.price as float)/100)* (1 + (RANDOM())) as decimal),2) as float) as price,
+                cast(round(cast((cast(oi.costprice as float)/100)* (1 + (RANDOM())) as decimal),2) as float)as costprice,
+                cast(round(cast((cast(oi.listprice as float)/100)* (1 + (RANDOM())) as decimal),2) as float)  as listprice,
+                cast(round(cast((cast(oi.commission as float)/100)* (1 + (RANDOM())) as decimal),2) as float)  as commission,
                 
-                cast(round(cast((cast(oi.sellingprice as float)/100)* (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as sellingprice,
-                cast(round(cast(((cast(oi.price as float)/100) - (cast(oi.sellingprice as float)/100))* cast(oi.quantity as float) * (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as totaldiscounts,
-                 cast(round(cast((cast(oi.sellingprice as float)/100)* cast(oi.quantity as float)* (2 + (RANDOM() * (0.20))) as decimal) ,2) as float)  as revenue_without_shipping ,
+                cast(round(cast((cast(oi.sellingprice as float)/100)* (1 + (RANDOM())) as decimal),2) as float)  as sellingprice,
+                cast(round(cast(((cast(oi.price as float)/100) - (cast(oi.sellingprice as float)/100))* cast(oi.quantity as float) * (1 + (RANDOM())) as decimal),2) as float)  as totaldiscounts,
+                 cast(round(cast((cast(oi.sellingprice as float)/100)* cast(oi.quantity as float)* (1 + (RANDOM())) as decimal) ,2) as float)  as revenue_without_shipping ,
                 oi.isgift
                 ,LOWER(sd.selectedaddresses_0_city) as selectedaddresses_0_city
                 ,LOWER(sd.selectedaddresses_0_state) as selectedaddresses_0_state
@@ -44,7 +44,7 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,LOWER(ol.statusdescription) as statusdescription
                 ,'marketplace' as origin
                 ,fg.isFreeShipping
-                ,cast(round(cast(((cast(od.value as float)/100)-(cast(ot.shipping as float)/100) )* (2 + (RANDOM() * (0.20))) as decimal),2) as float)  as revenue_orders_out_ship
+                ,cast(round(cast(((cast(od.value as float)/100)-(cast(ot.shipping as float)/100) )* (1 + (RANDOM())) as decimal),2) as float)  as revenue_orders_out_ship
 
 
                 from "{schema}".orders_items oi 
@@ -100,12 +100,12 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,LOWER(o.statusdescription) as statusdescription
                 ,cast(round(cast(qt.quantityitems as decimal),0) as float) as quantityitems
                 ,cast(round(cast((1+(RANDOM() * (2))) as decimal),0) as float) as quantityorder
-                ,cast(round(cast((cast(ot.items as float)/100)*(2 + (RANDOM() * (0.20))) as decimal),2)as float) as itemsPriceDar 
-                ,cast(round(cast((cast(ot.discounts as float)/100)*(2 + (RANDOM() * (0.20))) as decimal),2)as float) as DiscountsPrice
-                ,cast(round(cast((cast(ot.shipping as float)/100)*(2 + (RANDOM() * (0.20))) as decimal),2)as float)  as ShippingPrice
-                ,cast(round(cast((cast(ot.tax as float)/100)*(2 + (RANDOM() * (0.20))) as decimal),2)as float)  as tax
-                ,cast(round(cast((cast(o.value as float)/100)*(2 + (RANDOM() * (0.20))) as decimal),2)as float)   as revenue
-                ,cast(round(cast(((cast(o.value as float)/100)-(cast(ot.shipping as float)/100))*(2 + (RANDOM() * (0.20))) as decimal),2)as float)    as revenue_without_shipping
+                ,cast(round(cast((cast(ot.items as float)/100)*(1 + (RANDOM())) as decimal),2)as float) as itemsPriceDar 
+                ,cast(round(cast((cast(ot.discounts as float)/100)*(1 + (RANDOM())) as decimal),2)as float) as DiscountsPrice
+                ,cast(round(cast((cast(ot.shipping as float)/100)*(1 + (RANDOM())) as decimal),2)as float)  as ShippingPrice
+                ,cast(round(cast((cast(ot.tax as float)/100)*(1 + (RANDOM())) as decimal),2)as float)  as tax
+                ,cast(round(cast((cast(o.value as float)/100)*(1 + (RANDOM())) as decimal),2)as float)   as revenue
+                ,cast(round(cast(((cast(o.value as float)/100)-(cast(ot.shipping as float)/100))*(1 + (RANDOM())) as decimal),2)as float)    as revenue_without_shipping
                 ,case when  LOWER(ol.paymentnames) = 'visa' then 'visa'
                 when  LOWER(ol.paymentnames) = 'mastercard' then 'mastercard'
                 when  LOWER(ol.paymentnames) = 'pix' then 'pix'
@@ -140,7 +140,8 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
 
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
-
+                
+       
                 
 
     """
