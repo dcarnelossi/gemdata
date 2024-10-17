@@ -252,7 +252,7 @@ with DAG(
               
             from modules import send_email
             
-            send_email.send_email_via_connection('report_email','gabriel.sousa89@gmail.com,gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
+            send_email.send_email_via_connection('gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
             update_report_pg(report_id,'erro',1)
             logging.exception(f"deu erro ao achar ao enviar email - {e}")
