@@ -24,11 +24,6 @@ except ImportError:
 def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile,filename = None):
     # using SendGrid's Python Library
     # https://github.com/sendgrid/sendgrid-python
-    import os
-
-
-
-
     message = Mail(
         from_email='tecnologia2@gemdata.com.br',
         to_emails=listaemail_recebido,
