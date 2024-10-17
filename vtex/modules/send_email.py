@@ -30,7 +30,7 @@ def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile
 
 
     message = Mail(
-        from_email='tecnologia@gemdata.com.br',
+        from_email='tecnologia2@gemdata.com.br',
         to_emails=listaemail_recebido,
         subject=assunto,
         html_content='<strong>and easy to do anywhere, even with Python</strong>')
