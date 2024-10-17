@@ -53,11 +53,9 @@ with DAG(
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
             raise
 
+    teste=report_baixar_pdf()
 
-
-
-    report_baixar_pdf 
-
+    teste
     
 
       
