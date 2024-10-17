@@ -2,6 +2,7 @@
 import subprocess
 import sys
 import os
+from airflow.models import Variable
 
 
 # Função para instalar um pacote via pip
@@ -10,13 +11,14 @@ def install(package):
 
 # Instalar matplotlib se não estiver instalado
 try:
-    from sendgrid import SendGridAPIClient
+    import sendgrid
     from sendgrid.helpers.mail import Mail 
 except ImportError:
     print("sendgrid não está instalado. Instalando agora...")
     install("sendgrid")
-    from sendgrid import SendGridAPIClient
+    import sendgrid
     from sendgrid.helpers.mail import Mail 
+    
 
 
 def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile,filename = None):
@@ -24,13 +26,20 @@ def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile
     # https://github.com/sendgrid/sendgrid-python
     import os
 
+
+
+
     message = Mail(
         from_email='tecnologia@gemdata.com.br',
         to_emails=listaemail_recebido,
         subject=assunto,
         html_content='<strong>and easy to do anywhere, even with Python</strong>')
     try:
-        sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+        #sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+
+        sendgrid_api_key = Variable.get("SENDGRID_API_KEY")
+        sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key)
+
         response = sg.send(message)
         print(response.status_code)
         print(response.body)
