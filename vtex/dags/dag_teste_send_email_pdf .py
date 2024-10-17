@@ -11,17 +11,8 @@ from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.email import EmailOperator
 from airflow.hooks.base import BaseHook
-from smtplib import SMTP_SSL
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.base import MIMEBase
-from email import encoders
 
 
-from modules.dags_common_functions import (
-    get_data_conection_info,
-
-)
 
 # Lista de requisitos
 requirements = [
@@ -64,6 +55,7 @@ with DAG(
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
             raise
+
 
 
 

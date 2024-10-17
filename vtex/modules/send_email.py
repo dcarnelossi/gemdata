@@ -36,10 +36,10 @@ def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile
         print(response.body)
         print(response.headers)
     except Exception as e:
-        print(e)
+        raise e
 
 
-send_email_via_connection('gabriel.pereira.sousa@gmail.com',"teste aaa",'aaa',0)
+# send_email_via_connection('gabriel.pereira.sousa@gmail.com',"teste aaa",'aaa',0)
 
 
 
