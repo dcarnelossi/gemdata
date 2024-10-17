@@ -51,7 +51,7 @@ with DAG(
     def report_baixar_pdf(**kwargs):
         try:
             from modules import send_email
-            email=['gabriel.pereira.sousa@gmail.com,gabriel.sousa89@gmail.com']
+            email=['gabriel.pereira.sousa@gmail.com','gabriel.sousa89@gmail.com']
             send_email.send_email_via_connection(email,"teste aa","aaa",False) 
         except Exception as e:
             logging.exception(f"deu erro ao achar o caminho do blob para anexar - {e}")
