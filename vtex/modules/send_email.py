@@ -33,7 +33,10 @@ def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile
         from_email='tecnologia2@gemdata.com.br',
         to_emails=listaemail_recebido,
         subject=assunto,
-        html_content='<strong>and easy to do anywhere, even with Python</strong>')
+        html_content='<strong>and easy to do anywhere, even with Python</strong>',
+        is_multiple=True
+        
+        )
     try:
         #sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
 
