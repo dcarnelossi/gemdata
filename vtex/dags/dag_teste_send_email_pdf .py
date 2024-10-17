@@ -39,10 +39,7 @@ with DAG(
     default_args=default_args,
     tags=["vtex", "v1", "report"],
     render_template_as_native_obj=True,
-    params={
-        
-
-    },
+    params={},
 ) as dag:
     
 
