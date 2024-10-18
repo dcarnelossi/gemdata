@@ -314,16 +314,16 @@ class WriteJsonToPostgres:
                         ({', '.join(columns)}) = %s
                         RETURNING {self.table_key}
                     """
-                # print(upsert_query)
+                print(upsert_query)
 
-                # print(data_values)
-                # print(columns)    
+                print(data_values)
+                print(columns)    
 
                 # Use mogrify to safely substitute the values into the query
                 upsert_query = cursor.mogrify(
                     upsert_query, (tuple(data_values), tuple(data_values))
                 )
-
+                print(upsert_query)
                 # print("Upsert Query:", upsert_query.decode())
 
                 # Execute the UPSERT query and fetch the id

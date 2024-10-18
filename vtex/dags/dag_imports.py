@@ -237,4 +237,7 @@ with DAG(
     products_task = products()
     logfim=log_import_resumo(logini)
 
-    logini >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list >> logfim
+    # logini >> brands_task >> categories_task >> sku_task >> products_task >> logfim >> trigger_dag_orders_list  
+
+
+    logini >> logfim 
