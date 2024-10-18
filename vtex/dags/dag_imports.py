@@ -63,11 +63,16 @@ with DAG(
 ) as dag:
     
     @task(provide_context=True)
-    def log_import_resumo(**kwargs):
+    def log_import_resumo(report_id,**kwargs):
         try: 
-           
+            
             import uuid   
-            report_id = str(uuid.uuid4()) 
+            
+            if report_id:
+                report_id = str(uuid.uuid4()) 
+            else:
+                report_id = report_id
+                
             integration_id = kwargs["params"]["PGSCHEMA"]
             isdaily = kwargs["params"]["ISDAILY"]
             if isdaily:
@@ -91,6 +96,8 @@ with DAG(
             log_resumo_airflow.log_process(coorp_conection_info , data )
 
             logging.info(f"upserted do log diario successfully.")
+
+            return report_id
         except Exception as e:
             logging.error(f"Error inserting log diario: {e}")
             raise e  # Ensure failure is propagated to Airflow
@@ -200,10 +207,11 @@ with DAG(
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
-    log=log_import_resumo()
+    logini=log_import_resumo()
     brands_task = brands()
     categories_task = categories()
     sku_task = skus()
     products_task = products()
+    logfim=log_import_resumo(logini)
 
-    log >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
+    logini >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list >> logfim
