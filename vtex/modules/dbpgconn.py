@@ -314,10 +314,10 @@ class WriteJsonToPostgres:
                         ({', '.join(columns)}) = %s
                         RETURNING {self.table_key}
                     """
-                print(upsert_query)
+                # print(upsert_query)
 
-                print(data_values)
-                print(columns)    
+                # print(data_values)
+                # print(columns)    
 
                 # Use mogrify to safely substitute the values into the query
                 upsert_query = cursor.mogrify(
