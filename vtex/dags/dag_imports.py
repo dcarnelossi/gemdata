@@ -78,6 +78,7 @@ with DAG(
                     
                 data = {
                     'id':report_id ,
+                    'integration_id': integration_id,
                     'dag_run_id': dag_run_id,
                     'dag_finished_at': dag_finished_at,
                     'dag_last_status': dag_last_status   
