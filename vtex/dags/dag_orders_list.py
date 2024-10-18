@@ -86,8 +86,8 @@ with DAG(
                  
             else:
                 import uuid 
-                report_id= kwargs["params"]["IDREPORT"]
-                #print(kwargs["params"]["IDREPORT"])
+                report_id= kwargs["params"].get("IDREPORT")
+                print(kwargs["params"].get("IDREPORT"))
                 if not report_id:
                     report_id =  str(uuid.uuid4())
 
