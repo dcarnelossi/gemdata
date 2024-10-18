@@ -66,13 +66,11 @@ with DAG(
     def log_import_resumo(reportid=None,**kwargs):
         try: 
             
-            print("aaaaaaaaaaa")
-            print(kwargs["params"]["IDREPORT"])
-            
-            
             integration_id = kwargs["params"]["PGSCHEMA"]
             dag_run_id = kwargs['dag_run'].run_id  
             
+            print(kwargs["params"]["IDREPORT"])
+
             if reportid:
                 report_id = reportid
                 dag_finished_at = datetime.now()
@@ -88,7 +86,11 @@ with DAG(
                  
             else:
                 import uuid 
-                report_id = str(uuid.uuid4())
+                report_id= kwargs["params"]["IDREPORT"]
+                if not report_id:
+                    report_id =  str(uuid.uuid4())
+
+                
                 dataini = datetime.now()
                 dag_last_status = "EXECUTANDO"   
                 isdaily = kwargs["params"]["ISDAILY"]
