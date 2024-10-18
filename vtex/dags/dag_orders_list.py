@@ -60,6 +60,68 @@ with DAG(
         )
     },
 ) as dag:
+    
+    
+    @task(provide_context=True)
+    def log_import_resumo(reportid=None,**kwargs):
+        try: 
+            
+            print("aaaaaaaaaaa")
+            print(kwargs["params"]["IDREPORT"])
+            
+            
+            integration_id = kwargs["params"]["PGSCHEMA"]
+            dag_run_id = kwargs['dag_run'].run_id  
+            
+            if reportid:
+                report_id = reportid
+                dag_finished_at = datetime.now()
+                dag_last_status = "SUCESSO"
+                    
+                data = {
+                    'id':report_id ,
+                    'integration_id': integration_id,
+                    'dag_run_id': dag_run_id,
+                    'dag_finished_at': dag_finished_at,
+                    'dag_last_status': dag_last_status   
+                }
+                 
+            else:
+                import uuid 
+                report_id = str(uuid.uuid4())
+                dataini = datetime.now()
+                dag_last_status = "EXECUTANDO"   
+                isdaily = kwargs["params"]["ISDAILY"]
+                dag_name = kwargs['dag'].dag_id
+                if isdaily:
+                    nameprocess = "PROCESSO DIARIO"
+                else:    
+                    nameprocess = "PROCESSO HISTORICO"
+    
+                data = {
+                    'id':report_id ,
+                    'integration_id': integration_id,
+                    'nameprocess': nameprocess,
+                    'dag': dag_name,
+                    'dag_run_id': dag_run_id,
+                    'dag_started_at': dataini,
+                    'dag_last_status': dag_last_status
+                    
+                }
+
+
+            
+            coorp_conection_info = get_coorp_conection_info()
+            from modules import log_resumo_airflow
+            log_resumo_airflow.log_process(coorp_conection_info , data )
+
+            logging.info(f"upserted do log diario successfully.")
+
+            return report_id
+        except Exception as e:
+            logging.error(f"Error inserting log diario: {e}")
+            raise e  # Ensure failure is propagated to Airflow
+        
 
     @task(provide_context=True)
     def orders_list(**kwargs):
