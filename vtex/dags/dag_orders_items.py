@@ -84,7 +84,7 @@ with DAG(
                 
                 dataini = datetime.now()
                 dag_last_status = "EXECUTANDO"   
-                isdaily = kwargs["params"]["ISDAILY"]
+                isdaily = kwargs["params"].get("ISDAILY") 
                 dag_name = kwargs['dag'].dag_id
                 if isdaily:
                     nameprocess = "PROCESSO DIARIO"
@@ -147,7 +147,7 @@ with DAG(
             pass
 
     logini=log_import_resumo() 
-    
+
     trigger_dag_orders_totals = TriggerDagRunOperator(
         task_id="trigger_dag_orders_totals",
         trigger_dag_id="6-ImportVtex-Orders-Totals",  # Substitua pelo nome real da sua segunda DAG
