@@ -77,8 +77,6 @@ with DAG(
                 dag_last_status = "SUCESSO"
                     
                 data = {
-                    'id':report_id ,
-                    'dag_run_id': dag_run_id,
                     'dag_finished_at': dag_finished_at,
                     'dag_last_status': dag_last_status   
                 }
