@@ -13,7 +13,10 @@ class PostgresConnection:
 
         self.host = os.getenv(f"DATA_PGHOST")
         self.port = os.getenv("DATA_PGPORT")
-        self.database = os.getenv(f"CLIENT_DATA_PGDATABASE")
+        if(connection_info== "appgemdata-dev"): 
+            self.database = os.getenv(f"CORP_DATA_PGDATABASE")
+        else:
+            self.database = os.getenv(f"CLIENT_DATA_PGDATABASE")
         self.user = os.getenv("DATA_PGUSER")
         self.password =  os.getenv("DATA_PGPASSWORD")
         self.schema = "public"
@@ -278,12 +281,20 @@ class WriteJsonToPostgres:
             with self.connection.connect().cursor() as cursor:
                 columns = self.data.keys()
 
+                print(columns)
+
                 # Convert values to JSON for dictionary and list types
                 data_values = [
                     json.dumps(value) if isinstance(value, (dict, list)) else value
                     for value in self.data.values()
                 ]
 
+                print(data_values)
+
+                print(self.tablename)
+                print(self.table_key)
+                               
+                    
                 # Construct the UPSERT query using INSERT...ON CONFLICT
                 upsert_query = f"""
                     INSERT INTO {self.tablename} ({', '.join(columns)})
@@ -293,11 +304,12 @@ class WriteJsonToPostgres:
                     RETURNING {self.table_key}
                 """
 
+                print(upsert_query)
                 # Use mogrify to safely substitute the values into the query
                 upsert_query = cursor.mogrify(
                     upsert_query, (tuple(data_values), tuple(data_values))
                 )
-
+                print(upsert_query)
                 # print("Upsert Query:", upsert_query.decode())
 
                 # Execute the UPSERT query and fetch the id
