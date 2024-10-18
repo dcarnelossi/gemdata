@@ -69,7 +69,7 @@ with DAG(
             import uuid   
             report_id = str(uuid.uuid4()) 
             integration_id = kwargs["params"]["PGSCHEMA"]
-            isdaily = kwargs["params"]["isdaily"]
+            isdaily = kwargs["params"]["ISDAILY"]
             if isdaily:
                 nameprocess = "PROCESSO DIA"
             else:    
