@@ -8,7 +8,7 @@ def log_process(coorp_conection_info,value):
           
                        
             writer = WriteJsonToPostgres(coorp_conection_info , value , "log_import_import", "dag_run_id,id")
-            writer.upsert_data()
+            writer.upsert_data2()
             logging.info(f"upserted do log diario successfully.")
     except Exception as e:
             logging.error(f"Error inserting log diario: {e}")
