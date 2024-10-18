@@ -88,7 +88,7 @@ with DAG(
             }
             coorp_conection_info = get_coorp_conection_info()
             from modules import log_resumo_airflow
-            log_resumo_airflow.log_process(coorp_conection_info , data , "log_import_import", "dag_run_id")
+            log_resumo_airflow.log_process(coorp_conection_info , data )
 
             logging.info(f"upserted do log diario successfully.")
         except Exception as e:
