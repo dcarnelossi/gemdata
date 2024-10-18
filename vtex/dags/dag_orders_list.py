@@ -69,7 +69,7 @@ with DAG(
             integration_id = kwargs["params"]["PGSCHEMA"]
             dag_run_id = kwargs['dag_run'].run_id  
             
-            print(kwargs["params"]["IDREPORT"])
+           
 
             if reportid:
                 report_id = reportid
@@ -87,6 +87,7 @@ with DAG(
             else:
                 import uuid 
                 report_id= kwargs["params"]["IDREPORT"]
+                #print(kwargs["params"]["IDREPORT"])
                 if not report_id:
                     report_id =  str(uuid.uuid4())
 
