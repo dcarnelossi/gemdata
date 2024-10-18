@@ -63,12 +63,12 @@ with DAG(
 ) as dag:
     
     @task(provide_context=True)
-    def log_import_resumo(isfim,reportid,**kwargs):
+    def log_import_resumo(reportid,**kwargs):
         try: 
             
             import uuid   
             
-            if isfim:
+            if reportid:
                 report_id = reportid
                 dag_finished_at = datetime.now()
                 dag_last_status = "SUCESSO"
@@ -218,11 +218,11 @@ with DAG(
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
-    logini=log_import_resumo()
+    logini=log_import_resumo(None)
     brands_task = brands()
     categories_task = categories()
     sku_task = skus()
     products_task = products()
-    logfim=log_import_resumo(True,logini)
+    logfim=log_import_resumo(logini)
 
     logini >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list >> logfim
