@@ -63,7 +63,7 @@ with DAG(
 ) as dag:
     
     @task(provide_context=True)
-    def log_import_resumo(reportid,**kwargs):
+    def log_import_resumo(reportid=None,**kwargs):
         try: 
             
             import uuid   
@@ -218,7 +218,7 @@ with DAG(
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
-    logini=log_import_resumo(None)
+    logini=log_import_resumo()
     brands_task = brands()
     categories_task = categories()
     sku_task = skus()
