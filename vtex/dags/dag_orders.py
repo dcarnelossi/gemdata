@@ -83,7 +83,7 @@ with DAG(
                 
                 dataini = datetime.now()
                 dag_last_status = "EXECUTANDO"   
-                isdaily = kwargs["params"]["ISDAILY"]
+                isdaily =kwargs["params"].get("ISDAILY") 
                 dag_name = kwargs['dag'].dag_id
                 if isdaily:
                     nameprocess = "PROCESSO DIARIO"
@@ -149,7 +149,6 @@ with DAG(
         trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-            "ISDAILY": "{{ params.ISDAILY }}",
              "IDREPORT": logini,
         },  # Se precisar passar informações adicionais para a DAG_B
     )
