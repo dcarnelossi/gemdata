@@ -9,7 +9,9 @@ from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFiles
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from airflow.models.param import Param
 from airflow.operators.bash_operator import BashOperator
-
+from modules.dags_common_functions import (
+    get_coorp_conection_info,
+)
 from datetime import datetime
 import logging
 
@@ -186,6 +188,72 @@ with DAG(
         )
     },
 ) as dag:
+    
+
+    @task(provide_context=True)
+    def log_import_resumo(reportid=None,**kwargs):
+        try: 
+            
+            integration_id = kwargs["params"]["PGSCHEMA"]
+            dag_run_id = kwargs['dag_run'].run_id  
+            
+           
+
+            if reportid:
+                report_id = reportid
+                dag_finished_at = datetime.now()
+                dag_last_status = "SUCESSO"
+                    
+                data = {
+                    'id':report_id ,
+                    'integration_id': integration_id,
+                    'dag_run_id': dag_run_id,
+                    'dag_finished_at': dag_finished_at,
+                    'dag_last_status': dag_last_status   
+                }
+                 
+            else:
+                import uuid 
+                report_id= kwargs["params"].get("IDREPORT")
+                print(kwargs["params"].get("IDREPORT"))
+                if not report_id:
+                    report_id =  str(uuid.uuid4())
+
+                
+                dataini = datetime.now()
+                dag_last_status = "EXECUTANDO"   
+                isdaily = kwargs["params"]["ISDAILY"]
+                dag_name = kwargs['dag'].dag_id
+                if isdaily:
+                    nameprocess = "PROCESSO DIARIO"
+                else:    
+                    nameprocess = "PROCESSO HISTORICO"
+    
+                data = {
+                    'id':report_id ,
+                    'integration_id': integration_id,
+                    'nameprocess': nameprocess,
+                    'dag': dag_name,
+                    'dag_run_id': dag_run_id,
+                    'dag_started_at': dataini,
+                    'dag_last_status': dag_last_status
+                    
+                }
+
+
+            
+            coorp_conection_info = get_coorp_conection_info()
+            from modules import log_resumo_airflow
+            log_resumo_airflow.log_process(coorp_conection_info , data )
+
+            logging.info(f"upserted do log diario successfully.")
+
+            return report_id
+        except Exception as e:
+            logging.error(f"Error inserting log diario: {e}")
+            raise e  # Ensure failure is propagated to Airflow
+        
+
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
     #
@@ -215,7 +283,8 @@ with DAG(
             #provide_context=True
         )
 
-
+        logini=log_import_resumo()   
+        logfim=log_import_resumo(logini)
         # # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
         # upload_task = PythonOperator(
         #     task_id=f'upload_to_blob_directory_{chave}',
@@ -225,4 +294,4 @@ with DAG(
         # )
 
         # Definindo a ordem das tarefas no DAG
-        install_library >> extract_task >> log_update_corp
+        logini >> install_library >> extract_task >> log_update_corp >> logfim 

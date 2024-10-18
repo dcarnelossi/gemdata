@@ -192,4 +192,4 @@ with DAG(
     orders_list_task = orders_list()
     logfim=log_import_resumo(logini)
 
-    logini >> orders_list_task >> trigger_dag_update_orders_list >> logfim
+    logini >> orders_list_task >> logfim >> trigger_dag_update_orders_list 
