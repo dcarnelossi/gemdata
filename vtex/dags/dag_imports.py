@@ -205,4 +205,4 @@ with DAG(
     sku_task = skus()
     products_task = products()
 
-    brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
+    log_import_resumo >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
