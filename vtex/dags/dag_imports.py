@@ -63,15 +63,21 @@ with DAG(
 ) as dag:
     
     @task(provide_context=True)
-    def log_import_resumo(reportid,**kwargs):
+    def log_import_resumo(isfim,reportid,**kwargs):
         try: 
             
             import uuid   
-            print(reportid)
-            if reportid:
-                report_id = str(uuid.uuid4()) 
-            else:
+            
+            if isfim:
                 report_id = reportid
+                dag_finished_at = datetime.now()
+                dag_last_status = "SUCESSO"
+                 
+            else:
+                report_id = str(uuid.uuid4())
+                dataini = datetime.now()
+                dag_finished_at= None
+                dag_last_status = "EXECUTANDO"
 
             integration_id = kwargs["params"]["PGSCHEMA"]
             isdaily = kwargs["params"]["ISDAILY"]
@@ -81,7 +87,7 @@ with DAG(
                 nameprocess = "PROCESSO HISTORICO"
 
             dag_run_id = kwargs['dag_run'].run_id
-            dataini = datetime.now() 
+            
             data = {
                 'id':report_id ,
                 'integration_id': integration_id,
@@ -89,6 +95,8 @@ with DAG(
                 'dag': "teste",
                 'dag_run_id': dag_run_id,
                 'dag_started_at': dataini,
+                'dag_finished_at': dag_finished_at,
+                'dag_last_status': dag_last_status
                 
             }
             coorp_conection_info = get_coorp_conection_info()
@@ -97,10 +105,13 @@ with DAG(
 
             logging.info(f"upserted do log diario successfully.")
 
-            return report_id
+           
         except Exception as e:
             logging.error(f"Error inserting log diario: {e}")
             raise e  # Ensure failure is propagated to Airflow
+        
+        return report_id
+    
 
     @task(provide_context=True)
     def brands(**kwargs):
