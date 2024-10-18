@@ -86,8 +86,9 @@ with DAG(
                 'dag_started_at': dataini,
                 
             }
+            coorp_conection_info = get_coorp_conection_info()
             
-            writer = WriteJsonToPostgres("appgemdata-dev" , data , "log_import_import", "dag_run_id")
+            writer = WriteJsonToPostgres(coorp_conection_info , data , "log_import_import", "dag_run_id")
             writer.upsert_data()
             logging.info(f"upserted do log diario successfully.")
         except Exception as e:
