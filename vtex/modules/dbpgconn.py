@@ -18,7 +18,7 @@ class PostgresConnection:
 
         self.host = connection_info["host"]
         self.port = connection_info["port"]
-        self.database = connection_info
+        self.database = connection_info["database"]
         self.user = connection_info["user"]
         self.password = connection_info["password"]
         self.schema = connection_info["schema"]
