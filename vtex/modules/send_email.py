@@ -3,7 +3,7 @@ import subprocess
 import sys
 import os
 from airflow.models import Variable
-
+import base64
 
 # Função para instalar um pacote via pip
 def install(package):
@@ -12,23 +12,23 @@ def install(package):
 # Instalar matplotlib se não estiver instalado
 try:
     import sendgrid
-    from sendgrid.helpers.mail import Mail 
+    from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
 except ImportError:
     print("sendgrid não está instalado. Instalando agora...")
     install("sendgrid")
     import sendgrid
-    from sendgrid.helpers.mail import Mail 
+    from sendgrid.helpers.mail import (Mail, Attachment, FileContent, FileName, FileType, Disposition)
     
 
 
-def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile,filename = None):
+def send_email_via_connection(fromemail,listaemail_recebido,assunto,corpoemail,isexistfile,filename = None):
     # using SendGrid's Python Library
     # https://github.com/sendgrid/sendgrid-python
     message = Mail(
-        from_email='tecnologia2@gemdata.com.br',
+        from_email=fromemail,
         to_emails=listaemail_recebido,
         subject=assunto,
-        html_content='<strong>and easy to do anywhere, even with Python</strong>',
+        html_content=corpoemail,
         is_multiple=True
         
         )
@@ -37,6 +37,29 @@ def send_email_via_connection(listaemail_recebido,assunto,corpoemail,isexistfile
 
         sendgrid_api_key = Variable.get("SENDGRID_API_KEY")
         sg = sendgrid.SendGridAPIClient(api_key=sendgrid_api_key)
+
+        try: 
+            if(isexistfile):    
+                attachment_path = filename
+                print(attachment_path)
+                with open(attachment_path, 'rb') as f:
+                    data = f.read()
+                    f.close()
+                
+                namefile = os.path.basename(attachment_path)
+                print(namefile)
+                encoded_file = base64.b64encode(data).decode()
+
+                attachedFile = Attachment(
+                    FileContent(encoded_file),
+                    FileName(namefile),
+                    FileType('application/pdf'),
+                    Disposition('attachment')
+                )
+                message.attachment = attachedFile
+        except Exception as e:
+            raise e
+
 
         response = sg.send(message)
         print(response.status_code)

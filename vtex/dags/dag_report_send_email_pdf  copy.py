@@ -252,7 +252,7 @@ with DAG(
               
             from modules import send_email
             email=['gabriel.pereira.sousa@gmail.com','gabriel.sousa89@gmail.com']
-            send_email.send_email_via_connection(email,assunto,corpo_email,True,filepdf_recebido) 
+            send_email.send_email_via_connection('report@gemdata.com.br',email,assunto,corpo_email,True,filepdf_recebido) 
             
             #send_email.send_email_via_connection('gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
