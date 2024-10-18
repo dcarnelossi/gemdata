@@ -199,10 +199,10 @@ with DAG(
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
-
+    log=log_import_resumo()
     brands_task = brands()
     categories_task = categories()
     sku_task = skus()
     products_task = products()
 
-    log_import_resumo >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
+    log >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list
