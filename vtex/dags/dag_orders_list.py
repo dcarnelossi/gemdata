@@ -173,17 +173,20 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
-     
+    
+    logini=log_import_resumo() 
         
     trigger_dag_update_orders_list = TriggerDagRunOperator(
         task_id="trigger_dag_update_orders_list",
         trigger_dag_id="3-DagUpdate-Orders-List",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-             "ISDAILY": "{{ params.ISDAILY }}"
+             "ISDAILY": "{{ params.ISDAILY }}",
+             "IDREPORT": logini,
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 
     orders_list_task = orders_list()
-    
-    orders_list_task >> trigger_dag_update_orders_list
+    logfim=log_import_resumo(logini)
+
+    logini >> orders_list_task >> trigger_dag_update_orders_list >> logfim
