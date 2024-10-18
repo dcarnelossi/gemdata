@@ -63,16 +63,16 @@ with DAG(
 ) as dag:
     
     @task(provide_context=True)
-    def log_import_resumo(report_id,**kwargs):
+    def log_import_resumo(reportid,**kwargs):
         try: 
             
             import uuid   
-            
-            if report_id:
+            print(reportid)
+            if reportid:
                 report_id = str(uuid.uuid4()) 
             else:
-                report_id = report_id
-                
+                report_id = reportid
+
             integration_id = kwargs["params"]["PGSCHEMA"]
             isdaily = kwargs["params"]["ISDAILY"]
             if isdaily:
