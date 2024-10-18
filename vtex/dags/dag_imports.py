@@ -111,13 +111,14 @@ with DAG(
             log_resumo_airflow.log_process(coorp_conection_info , data )
 
             logging.info(f"upserted do log diario successfully.")
+            return report_id
 
            
         except Exception as e:
             logging.error(f"Error inserting log diario: {e}")
             raise e  # Ensure failure is propagated to Airflow
         
-        return report_id
+        
     
 
     @task(provide_context=True)
