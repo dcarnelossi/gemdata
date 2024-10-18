@@ -1,9 +1,9 @@
 import logging
 import time
 from datetime import datetime
-from modules.teste_dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
-def log_process(coorp_conection_info,value,tabela,dag_run_id):
+def log_process(coorp_conection_info,value):
     try: 
           
                        
