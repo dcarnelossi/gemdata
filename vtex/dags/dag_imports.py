@@ -61,7 +61,39 @@ with DAG(
         )
     },
 ) as dag:
- 
+    
+    @task(provide_context=True)
+    def log_import_resumo(**kwargs):
+        try: 
+            from modules.teste_dbpgconn import WriteJsonToPostgres
+            import uuid   
+            report_id = str(uuid.uuid4()) 
+            integration_id = kwargs["params"]["PGSCHEMA"]
+            isdaily = kwargs["params"]["isdaily"]
+            if isdaily:
+                nameprocess = "PROCESSO DIA"
+            else:    
+                nameprocess = "PROCESSO HISTORICO"
+
+            dag_run_id = kwargs['dag_run'].run_id
+            dataini = datetime.now() 
+            data = {
+                'id':report_id ,
+                'integration_id': integration_id,
+                'nameprocess': nameprocess,
+                'dag': "teste",
+                'dag_run_id': dag_run_id,
+                'dag_started_at': dataini,
+                
+            }
+            
+            writer = WriteJsonToPostgres("appgemdata-dev" , data , "log_import_import", "dag_run_id")
+            writer.upsert_data()
+            logging.info(f"upserted do log diario successfully.")
+        except Exception as e:
+            logging.error(f"Error inserting log diario: {e}")
+            raise e  # Ensure failure is propagated to Airflow
+
     @task(provide_context=True)
     def brands(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
