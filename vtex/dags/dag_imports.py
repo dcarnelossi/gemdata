@@ -223,6 +223,6 @@ with DAG(
     categories_task = categories()
     sku_task = skus()
     products_task = products()
-    logfim=log_import_resumo(logini)
+    logfim=log_import_resumo(True,logini)
 
     logini >> brands_task >> categories_task >> sku_task >> products_task >> trigger_dag_orders_list >> logfim
