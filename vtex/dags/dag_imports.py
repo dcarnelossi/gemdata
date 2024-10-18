@@ -65,7 +65,7 @@ with DAG(
     @task(provide_context=True)
     def log_import_resumo(**kwargs):
         try: 
-            from modules.teste_dbpgconn import WriteJsonToPostgres
+            from modules.log_resumo_airflow import log_process
             import uuid   
             report_id = str(uuid.uuid4()) 
             integration_id = kwargs["params"]["PGSCHEMA"]
@@ -88,8 +88,8 @@ with DAG(
             }
             coorp_conection_info = get_coorp_conection_info()
             
-            writer = WriteJsonToPostgres(coorp_conection_info , data , "log_import_import", "dag_run_id")
-            writer.upsert_data()
+            log_process(coorp_conection_info , data , "log_import_import", "dag_run_id")
+
             logging.info(f"upserted do log diario successfully.")
         except Exception as e:
             logging.error(f"Error inserting log diario: {e}")
