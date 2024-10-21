@@ -13,7 +13,7 @@ from airflow.operators.python_operator import PythonOperator
 from modules.dags_common_functions import (
     get_coorp_conection_info,
 )
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 
@@ -136,7 +136,10 @@ default_args = {
     "start_date": datetime(2024, 1, 1),
     "email_on_failure": False,
     "email_on_retry": False,
-    'on_failure_callback': log_error
+    "retries": 3,  # Tentativas de reexecução
+    "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
+    'on_failure_callback': log_error,
+
 }
 
 
