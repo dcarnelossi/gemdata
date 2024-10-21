@@ -151,7 +151,10 @@ with DAG(
             max_length=10,
         )
     },
+
 ) as dag:
+    
+    @task(provide_context=True)
     def gerar_reportid(**kwargs):
         import uuid 
         idreport = None # kwargs['params'].get('IDREPORT')
@@ -159,9 +162,11 @@ with DAG(
             report_id=idreport
         else:    
             report_id = str(uuid.uuid4())
+        
         return report_id
     
     report = gerar_reportid()
+
     log_import_task_ini = PythonOperator(
             task_id='log_import_task_ini',
             python_callable=log_import_pyhton,
@@ -309,19 +314,19 @@ with DAG(
         logging.error(f"Error inserting log diario: {e}")
         
          
-        # log_import_task_erro = PythonOperator(
-        #     task_id='log_import_task_fim',
-        #     python_callable=log_import_pyhton,
-        #     op_kwargs={
-        #         'isfirtline':False,
-        #         'reportid': report,  # Defina conforme necessário
-        #         'erro': str(e),
-        #     },
-        #     provide_context=True,  # Isso garante que o contexto da DAG seja passado
-        #     dag=dag
-        # )
+        log_import_task_erro = PythonOperator(
+            task_id='log_import_task_fim',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'isfirtline':False,
+                'reportid': report,  # Defina conforme necessário
+                'erro': str(e),
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
     
-        # log_import_task_erro
+        log_import_task_erro
    
         raise  # Ensure failure is propagated to Airflow
         
