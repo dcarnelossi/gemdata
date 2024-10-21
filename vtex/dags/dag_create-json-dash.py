@@ -17,109 +17,6 @@ from datetime import datetime, timedelta
 import logging
 
 
-
-def log_error(context):
-    task_instance = context.get('task_instance')
-    error_message = context.get('exception')
-    ti = context.get('task_instance')
-    id_report = ti.xcom_pull(task_ids='gerar_reportid')
-
-    print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
-    
-    # Aqui você pode chamar sua função de log
-    if id_report :
-        log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message) , **context)
-    else:
-        print("erro antes de inserir") 
-             
-
-
-def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
-            try: 
-                
-                integration_id = kwargs["params"]["PGSCHEMA"]
-                dag_run_id = kwargs['dag_run'].run_id  
-                
-                print(reportid)
-                report_id = reportid
-                if erro and not isfirtline:
-                    
-                    dag_finished_at = datetime.now()
-                    dag_last_status = "ERRO"
-                        
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'dag_run_id': dag_run_id,
-                        'dag_finished_at': dag_finished_at,
-                        'dag_last_status': dag_last_status,
-                        'log':  erro
-
-                    }
-                elif erro and isfirtline:
-                    dataini = datetime.now()
-                    dag_last_status = "ERRO"   
-                    dag_name = kwargs['dag'].dag_id
-                    dag_finished_at = datetime.now()
-                    nameprocess = "PROCESSO AIRFLOW"
-                    
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'nameprocess': nameprocess,
-                        'dag': dag_name,
-                        'dag_run_id': dag_run_id,
-                        'dag_started_at': dataini,
-                        'dag_last_status': dag_last_status,
-                        'dag_finished_at': dag_finished_at,
-                        'log':  erro
-                        
-                    }
-
-
-                elif not erro and not isfirtline:
-                    
-                    dag_finished_at = datetime.now()
-                    dag_last_status = "SUCESSO"
-                        
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'dag_run_id': dag_run_id,
-                        'dag_finished_at': dag_finished_at,
-                        'dag_last_status': dag_last_status   
-                    }
-                    
-                elif not erro and isfirtline:
-                    dataini = datetime.now()
-                    dag_last_status = "EXECUTANDO"   
-                    dag_name = kwargs['dag'].dag_id
-                    nameprocess = "PROCESSO AIRFLOW"
-                    
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'nameprocess': nameprocess,
-                        'dag': dag_name,
-                        'dag_run_id': dag_run_id,
-                        'dag_started_at': dataini,
-                        'dag_last_status': dag_last_status
-                        
-                    }
-
-
-                
-                coorp_conection_info = get_coorp_conection_info()
-                from modules import log_resumo_airflow
-                log_resumo_airflow.log_process(coorp_conection_info , data )
-
-                logging.info(f"upserted do log diario successfully.")
-
-                return report_id
-            except Exception as e:
-                logging.error(f"Error inserting log diario: {e}")
-                raise e  # Ensure failure is propagated to Airflow
-            
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -138,7 +35,6 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,  # Tentativas de reexecução
     "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
-    'on_failure_callback': log_error,
 
 }
 

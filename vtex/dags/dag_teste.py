@@ -144,7 +144,7 @@ default_args = {
 
 
 with DAG(
-    "8-ImportVtex-Client-Profile",
+    "teste-dag",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
