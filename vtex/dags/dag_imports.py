@@ -46,7 +46,7 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
                 print(reportid)
                 report_id = reportid
                 if erro and not isfirtline:
-                    print("entrou aqui")
+                    
                     dag_finished_at = datetime.now()
                     dag_last_status = "ERRO"
                         
@@ -301,14 +301,15 @@ with DAG(
             },  # Se precisar passar informações adicionais para a DAG_B
         )
         # Configurando a dependência entre as tasks
-        
-    brands_task = brands()
-    categories_task = categories()
-    sku_task = skus()
-    products_task = products()
 
-    try:
-       report >> log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >> log_import_task_fim >>  trigger_dag_orders_list  
+    try:    
+        brands_task = brands()
+        categories_task = categories()
+        sku_task = skus()
+        products_task = products()
+
+    
+        report >> log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >> log_import_task_fim >>  trigger_dag_orders_list  
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
