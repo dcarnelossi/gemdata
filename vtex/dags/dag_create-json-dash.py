@@ -333,48 +333,71 @@ with DAG(
         )
       
 
-    #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-    from modules.sqlscriptsjson import vtexsqlscriptjson
-    #
-
-    sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
     
     install_library = BashOperator(
         task_id='install_library',
         bash_command='pip install orjson',
     )
-    previous_pair = None  # Para armazenar o par de tarefas anterior
+
+
+
+    #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+    from modules.sqlscriptsjson import vtexsqlscriptjson
+    #
+
+    sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
+
+    previous_task = log_import_task_ini >> install_library
+
     try:  
-        previous_pair = None  # Para armazenar o par de tarefas anterior
         for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
             # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
             extract_task = PythonOperator(
                 task_id=f'extract_postgres_to_json_{chave}',
                 python_callable=extract_postgres_to_json,
                 op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
-                #provide_context=True
             )
             
             log_update_corp = PythonOperator(
                 task_id=f'log_daily_rum_data_update_{chave}',
                 python_callable=daily_run_date_update,
                 op_args=["{{ params.PGSCHEMA }}"]
-                #provide_context=True
             )
-        # Executa as tarefas 2 a 2, usando dependências
-            if previous_pair:
-                # Definindo dependências para garantir que o próximo par só comece após o anterior
-                previous_pair >> [extract_task, log_update_corp]
 
-            # Armazena o par atual como o "anterior" para a próxima iteração
-            previous_pair = [extract_task, log_update_corp]
-        
+            # Definindo a ordem das tarefas no DAG de forma sequencial
+            previous_task >> extract_task >> log_update_corp
+            previous_task = log_update_corp
 
-            # Definindo a ordem das tarefas no DAG
-            report >> log_import_task_ini >> install_library >> extract_task >> log_update_corp >> log_import_task_fim 
+        previous_task >> log_import_task_fim
     
     except Exception as e:
         logging.error(f"Error dag json dash: {e}")
+        raise
+
+    # try:  
+    #     for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+    #         # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
+    #         extract_task = PythonOperator(
+    #             task_id=f'extract_postgres_to_json_{chave}',
+    #             python_callable=extract_postgres_to_json,
+    #             op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
+    #             #provide_context=True
+    #         )
+            
+    #         log_update_corp = PythonOperator(
+    #             task_id=f'log_daily_rum_data_update_{chave}',
+    #             python_callable=daily_run_date_update,
+    #             op_args=["{{ params.PGSCHEMA }}"]
+    #             #provide_context=True
+    #         )
+
+        
+
+    #         # Definindo a ordem das tarefas no DAG
+    #         report >> log_import_task_ini >> install_library >> extract_task >> log_update_corp >> log_import_task_fim 
     
-        raise  # Ensure failure is propagated to Airflow
+    # except Exception as e:
+    #     logging.error(f"Error dag json dash: {e}")
+    
+    #     raise  # Ensure failure is propagated to Airflow
