@@ -154,7 +154,7 @@ with DAG(
 ) as dag:
     def gerar_reportid(**kwargs):
         import uuid 
-        idreport =  kwargs['params'].get('IDREPORT')
+        idreport = None # kwargs['params'].get('IDREPORT')
         if idreport:
             report_id=idreport
         else:    
