@@ -39,8 +39,15 @@ def log_import_resumo(reportid=None,iserro=None,erro=None,**kwargs):
                 
                 integration_id = kwargs["params"]["PGSCHEMA"]
                 dag_run_id = kwargs['dag_run'].run_id  
+
+                print(reportid)
+                print(iserro)
+                print(erro)
+               
+                
                 
                 if iserro and reportid:
+                    print("entrou aqui")
                     report_id = reportid
                     dag_finished_at = datetime.now()
                     dag_last_status = "ERRO"
