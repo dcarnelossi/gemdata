@@ -329,5 +329,5 @@ with DAG(
     
         log_import_task_erro
    
-        raise  # Ensure failure is propagated to Airflow
+        raise e # Ensure failure is propagated to Airflow
         
