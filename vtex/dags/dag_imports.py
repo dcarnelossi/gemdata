@@ -45,7 +45,6 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
                 
                 print(reportid)
                 report_id = reportid
-                
                 if erro and not isfirtline:
                     print("entrou aqui")
                     dag_finished_at = datetime.now()
@@ -194,7 +193,7 @@ with DAG(
 
             try:
                 query = """
-                UPDATE public.integrations_integratio
+                UPDATE public.integrations_integrati
                 SET daily_run_date_ini = %s,
                 isdaily_manual = false
                 WHERE id = %s;
