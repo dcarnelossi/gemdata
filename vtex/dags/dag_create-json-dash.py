@@ -344,8 +344,9 @@ with DAG(
         task_id='install_library',
         bash_command='pip install orjson',
     )
-    
+    previous_pair = None  # Para armazenar o par de tarefas anterior
     try:  
+        previous_pair = None  # Para armazenar o par de tarefas anterior
         for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
             # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
             extract_task = PythonOperator(
@@ -361,7 +362,13 @@ with DAG(
                 op_args=["{{ params.PGSCHEMA }}"]
                 #provide_context=True
             )
+        # Executa as tarefas 2 a 2, usando dependências
+            if previous_pair:
+                # Definindo dependências para garantir que o próximo par só comece após o anterior
+                previous_pair >> [extract_task, log_update_corp]
 
+            # Armazena o par atual como o "anterior" para a próxima iteração
+            previous_pair = [extract_task, log_update_corp]
         
 
             # Definindo a ordem das tarefas no DAG
