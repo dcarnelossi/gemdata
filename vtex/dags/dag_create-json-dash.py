@@ -345,8 +345,8 @@ with DAG(
         bash_command='pip install orjson',
     )
     
-
-    for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+    try:  
+        for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
             # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
             extract_task = PythonOperator(
                 task_id=f'extract_postgres_to_json_{chave}',
@@ -366,6 +366,8 @@ with DAG(
 
             # Definindo a ordem das tarefas no DAG
             report >> log_import_task_ini >> install_library >> extract_task >> log_update_corp >> log_import_task_fim 
-  
     
-     
+    except Exception as e:
+        logging.error(f"Error dag json dash: {e}")
+    
+        raise  # Ensure failure is propagated to Airflow
