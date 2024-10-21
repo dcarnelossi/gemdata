@@ -8,6 +8,7 @@ from airflow.models import Variable
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.operators.python_operator import PythonOperator
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -159,22 +160,21 @@ with DAG(
         )
     },
 ) as dag:
-    
-    
+
+
     try:
-        @task(provide_context=True)
-        def log_import_resumo(reportid=None):
-            try: 
-
-                report_id=log_import_pyhton(reportid)            
-
-                return report_id
-            except Exception as e:
-                logging.error(f"Error inserting log diario: {e}")
-                raise e  # Ensure failure is propagated to Airflow
-            
         
-        
+        log_import_task_ini = PythonOperator(
+            task_id='log_import_task',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'reportid': None,  # Defina conforme necessário
+                'iserro': False,
+                'erro': None,
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
 
         @task(provide_context=True)
         def brands(**kwargs):
@@ -272,7 +272,7 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
         
-        logini=log_import_resumo()    
+        logini=log_import_task_ini    
         
         trigger_dag_orders_list = TriggerDagRunOperator(
             task_id="trigger_dag_orders_list",
@@ -289,9 +289,9 @@ with DAG(
         categories_task = categories()
         sku_task = skus()
         products_task = products()
-        logfim=log_import_resumo(logini)
+        #logfim=log_import_resumo(logini)
 
-        logini >> brands_task >> categories_task >> sku_task >> products_task >> logfim >> trigger_dag_orders_list  
+        log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >>  trigger_dag_orders_list  
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
