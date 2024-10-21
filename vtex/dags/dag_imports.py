@@ -38,7 +38,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,  # Tentativas de reexecução
     "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
-    'on_failure_callback': log_error  # Define o callback em caso de falha
+
 
 }
 
