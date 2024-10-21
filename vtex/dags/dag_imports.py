@@ -10,7 +10,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from airflow.operators.python_operator import PythonOperator
-from airflow.models import XComArg
+
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
