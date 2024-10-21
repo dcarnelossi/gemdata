@@ -37,7 +37,7 @@ def log_error(context):
 def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
             try: 
                 
-                integration_id = kwargs["params"]["PGSCHEMA"]
+                integration_id = kwargs["params"]["PGSCHEM"]
                 dag_run_id = kwargs['dag_run'].run_id  
                 
                 print(reportid)
