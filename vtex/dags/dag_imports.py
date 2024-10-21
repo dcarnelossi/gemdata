@@ -29,7 +29,8 @@ def log_error(context):
     print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
     
     # Aqui você pode chamar sua função de log
-    log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message))
+    if id_report :
+        log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message))
 
 
 def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
