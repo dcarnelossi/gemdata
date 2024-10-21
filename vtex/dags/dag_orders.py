@@ -196,7 +196,7 @@ with DAG(
         
     @task(provide_context=True)
     def orders(**kwargs):
-        integration_id = kwargs["params"]["PGSCHEMA"]
+        integration_id = kwargs["params"]["PGSCHEM"]
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
