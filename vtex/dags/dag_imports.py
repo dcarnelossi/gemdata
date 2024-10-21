@@ -20,22 +20,14 @@ from modules.dags_common_functions import (
     get_import_last_rum_date,
 )
 
-# Lista de requisitos
-requirements = [
-    "openai==1.6.0",
-    "azure-core==1.29.6",
-    "azure-cosmos==4.5.1",
-    "azure-storage-blob==12.19.0",
-]
+def log_error(context):
+    task_instance = context.get('task_instance')
+    error_message = context.get('exception')
+    print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
+    
+    # Aqui você pode chamar sua função de log
+    log_import_pyhton(isfirtline=False, reportid=context['params']['IDREPORT'], erro=str(error_message))
 
-# Configuração padrão do DAG
-default_args = {
-    "owner": "Daniel",
-    "depends_on_past": False,
-    "start_date": datetime(2024, 1, 1),
-    "email_on_failure": False,
-    "email_on_retry": False,
-}
 
 def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
             try: 
@@ -124,6 +116,27 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
                 raise e  # Ensure failure is propagated to Airflow
             
         
+
+
+
+# Lista de requisitos
+requirements = [
+    "openai==1.6.0",
+    "azure-core==1.29.6",
+    "azure-cosmos==4.5.1",
+    "azure-storage-blob==12.19.0",
+]
+
+# Configuração padrão do DAG
+default_args = {
+    "owner": "Daniel",
+    "depends_on_past": False,
+    "start_date": datetime(2024, 1, 1),
+    "email_on_failure": False,
+    "email_on_retry": False,
+    'on_failure_callback': log_error  # Define o callback em caso de falha
+
+}
 
 
 with DAG(
@@ -313,21 +326,6 @@ with DAG(
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
-        
-         
-        log_import_task_erro = PythonOperator(
-            task_id='log_import_task_erro',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':False,
-                'reportid': report,  # Defina conforme necessário
-                'erro': str(e),
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
     
-        log_import_task_ini >> log_import_task_erro
-   
         raise  # Ensure failure is propagated to Airflow
         
