@@ -45,7 +45,7 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
                 
                 print(reportid)
                 report_id = reportid
-
+                
                 if erro and not isfirtline:
                     print("entrou aqui")
                     dag_finished_at = datetime.now()
@@ -194,7 +194,7 @@ with DAG(
 
             try:
                 query = """
-                UPDATE public.integrations_integration
+                UPDATE public.integrations_integratio
                 SET daily_run_date_ini = %s,
                 isdaily_manual = false
                 WHERE id = %s;
@@ -228,7 +228,7 @@ with DAG(
             # coorp_conection_info = ti.xcom_pull(
             #     task_ids="brands", key="coorp_conection_info"
             # )
-            data_conection_info = ti.xcom_pull(task_ids="brand", key="data_conection_info")
+            data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
             api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
             from modules import category_concurrent as category
