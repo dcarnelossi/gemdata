@@ -199,6 +199,18 @@ with DAG(
             dag=dag
         )
     
+    log_import_task_fim = PythonOperator(
+            task_id='log_import_task_fim',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'isfirtline':False,
+                'reportid': report,  # Defina conforme necessário
+                'erro': None,
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
+    
       
 
     @task(provide_context=True)
@@ -297,19 +309,7 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
         
-    log_import_task_fim = PythonOperator(
-            task_id='log_import_task_fim',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':False,
-                'reportid': report,  # Defina conforme necessário
-                'erro': None,
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
-    
-      
+
         
     trigger_dag_orders_list = TriggerDagRunOperator(
             task_id="trigger_dag_orders_list",
