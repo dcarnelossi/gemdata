@@ -8,7 +8,9 @@ from airflow.models import Variable
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+
 from airflow.operators.python_operator import PythonOperator
+from airflow.models import XComArg
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -161,10 +163,8 @@ with DAG(
     },
 ) as dag:
 
-
-    try:
-        
-        log_import_task_ini = PythonOperator(
+       
+    log_import_task_ini = PythonOperator(
             task_id='log_import_task',
             python_callable=log_import_pyhton,
             op_kwargs={
@@ -175,9 +175,10 @@ with DAG(
             provide_context=True,  # Isso garante que o contexto da DAG seja passado
             dag=dag
         )
+    logini= XComArg(log_import_task_ini)   
 
-        @task(provide_context=True)
-        def brands(**kwargs):
+    @task(provide_context=True)
+    def brands(**kwargs):
             integration_id = kwargs["params"]["PGSCHEMA"]
 
             coorp_conection_info = get_coorp_conection_info()
@@ -215,8 +216,8 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
 
-        @task(provide_context=True)
-        def categories(**kwargs):
+    @task(provide_context=True)
+    def categories(**kwargs):
             ti = kwargs["ti"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
             # coorp_conection_info = ti.xcom_pull(
@@ -234,8 +235,8 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
 
-        @task(provide_context=True)
-        def skus(**kwargs):
+    @task(provide_context=True)
+    def skus(**kwargs):
             ti = kwargs["ti"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
             # coorp_conection_info = ti.xcom_pull(
@@ -253,8 +254,8 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
 
-        @task
-        def products(**kwargs):
+    @task
+    def products(**kwargs):
             ti = kwargs["ti"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
             # coorp_conection_info = ti.xcom_pull(
@@ -272,9 +273,21 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
         
-        logini=log_import_task_ini    
+      
+
+    log_import_task_fim = PythonOperator(
+            task_id='log_import_task',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'reportid': logini,  # Defina conforme necessário
+                'iserro': False,
+                'erro': None,
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
         
-        trigger_dag_orders_list = TriggerDagRunOperator(
+    trigger_dag_orders_list = TriggerDagRunOperator(
             task_id="trigger_dag_orders_list",
             trigger_dag_id="2-ImportVtex-Orders-List",  # Substitua pelo nome real da sua segunda DAG
             conf={
@@ -285,16 +298,30 @@ with DAG(
         )
         # Configurando a dependência entre as tasks
         
-        brands_task = brands()
-        categories_task = categories()
-        sku_task = skus()
-        products_task = products()
-        #logfim=log_import_resumo(logini)
+    brands_task = brands()
+    categories_task = categories()
+    sku_task = skus()
+    products_task = products()
 
-        log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >>  trigger_dag_orders_list  
+    try:
+        log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >> log_import_task_fim >>  trigger_dag_orders_list  
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
-       # log_import_resumo(logini,iserro=True,erro=e)
-        raise   # Ensure failure is propagated to Airflow
+        
+        logini= XComArg(log_import_task_ini) 
+        
+        PythonOperator(
+            task_id='log_import_task',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'reportid': logini,  # Defina conforme necessário
+                'iserro': True,
+                'erro': str(e),
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
+      
+        raise  # Ensure failure is propagated to Airflow
         
