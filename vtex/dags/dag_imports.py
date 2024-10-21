@@ -21,6 +21,8 @@ from modules.dags_common_functions import (
 )
 
 
+
+
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -38,8 +40,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,  # Tentativas de reexecução
     "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
-
-
+    
 }
 
 
