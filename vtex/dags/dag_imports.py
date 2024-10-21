@@ -309,19 +309,19 @@ with DAG(
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
         
-        logini= XComArg(log_import_task_ini) 
+        # logini= XComArg(log_import_task_ini) 
         
-        PythonOperator(
-            task_id='log_import_task',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'reportid': logini,  # Defina conforme necessário
-                'iserro': True,
-                'erro': str(e),
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
+        # PythonOperator(
+        #     task_id='log_import_task',
+        #     python_callable=log_import_pyhton,
+        #     op_kwargs={
+        #         'reportid': logini,  # Defina conforme necessário
+        #         'iserro': True,
+        #         'erro': str(e),
+        #     },
+        #     provide_context=True,  # Isso garante que o contexto da DAG seja passado
+        #     dag=dag
+        # )
       
         raise  # Ensure failure is propagated to Airflow
         
