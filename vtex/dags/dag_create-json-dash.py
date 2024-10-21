@@ -195,44 +195,6 @@ with DAG(
 ) as dag:
     
 
-    @task(provide_context=True)
-    def gerar_reportid(**kwargs):
-        import uuid 
-        idreport = kwargs['params'].get('IDREPORT')
-        if idreport:
-            report_id=idreport
-        else:    
-            report_id = str(uuid.uuid4())
-        
-        return report_id
-    
-    report = gerar_reportid()
-
-    log_import_task_ini = PythonOperator(
-            task_id='log_import_task_ini',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':True,
-                'reportid': report,  # Defina conforme necessário
-                'erro': None,
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
-    log_import_task_fim = PythonOperator(
-            task_id='log_import_task_fim',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':False,
-                'reportid': report,  # Defina conforme necessário
-                'erro': None,
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
-      
-
-
     
     install_library = BashOperator(
         task_id='install_library',
@@ -247,7 +209,7 @@ with DAG(
 
     sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
 
-    previous_task = log_import_task_ini >> install_library
+    previous_task =  install_library
 
     try:  
         for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
@@ -268,7 +230,7 @@ with DAG(
             previous_task >> extract_task >> log_update_corp
             previous_task = log_update_corp
 
-        previous_task >> log_import_task_fim
+        previous_task 
     
     except Exception as e:
         logging.error(f"Error dag json dash: {e}")
