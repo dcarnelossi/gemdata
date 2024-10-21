@@ -34,7 +34,7 @@ default_args = {
     "email_on_retry": False,
 }
 
-def log_import_resumo(reportid=None,iserro=None,erro=None,**kwargs):
+def log_import_pyhton(reportid=None,iserro=None,erro=None,**kwargs):
             try: 
                 
                 integration_id = kwargs["params"]["PGSCHEMA"]
@@ -163,10 +163,10 @@ with DAG(
     
     try:
         @task(provide_context=True)
-        def log_import_resumo(reportid=None,**kwargs):
+        def log_import_resumo(reportid=None):
             try: 
 
-                report_id=log_import_resumo(reportid)            
+                report_id=log_import_pyhton(reportid)            
 
                 return report_id
             except Exception as e:
@@ -188,7 +188,7 @@ with DAG(
 
             try:
                 query = """
-                UPDATE public.integrations_integratio
+                UPDATE public.integrations_integration
                 SET daily_run_date_ini = %s,
                 isdaily_manual = false
                 WHERE id = %s;
