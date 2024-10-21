@@ -18,109 +18,6 @@ from modules.dags_common_functions import (
 )
 
 
-def log_error(context):
-    task_instance = context.get('task_instance')
-    error_message = context.get('exception')
-    ti = context.get('task_instance')
-    id_report = ti.xcom_pull(task_ids='gerar_reportid')
-
-    print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
-    
-    # Aqui você pode chamar sua função de log
-    if id_report :
-        log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message) , **context)
-    else:
-        print("erro antes de inserir") 
-             
-
-
-def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
-            try: 
-                
-                integration_id = kwargs["params"]["PGSCHEMA"]
-                dag_run_id = kwargs['dag_run'].run_id  
-                
-                print(reportid)
-                report_id = reportid
-                if erro and not isfirtline:
-                    
-                    dag_finished_at = datetime.now()
-                    dag_last_status = "ERRO"
-                        
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'dag_run_id': dag_run_id,
-                        'dag_finished_at': dag_finished_at,
-                        'dag_last_status': dag_last_status,
-                        'log':  erro
-
-                    }
-                elif erro and isfirtline:
-                    dataini = datetime.now()
-                    dag_last_status = "ERRO"   
-                    dag_name = kwargs['dag'].dag_id
-                    dag_finished_at = datetime.now()
-                    nameprocess = "PROCESSO AIRFLOW"
-                    
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'nameprocess': nameprocess,
-                        'dag': dag_name,
-                        'dag_run_id': dag_run_id,
-                        'dag_started_at': dataini,
-                        'dag_last_status': dag_last_status,
-                        'dag_finished_at': dag_finished_at,
-                        'log':  erro
-                        
-                    }
-
-
-                elif not erro and not isfirtline:
-                    
-                    dag_finished_at = datetime.now()
-                    dag_last_status = "SUCESSO"
-                        
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'dag_run_id': dag_run_id,
-                        'dag_finished_at': dag_finished_at,
-                        'dag_last_status': dag_last_status   
-                    }
-                    
-                elif not erro and isfirtline:
-                    dataini = datetime.now()
-                    dag_last_status = "EXECUTANDO"   
-                    dag_name = kwargs['dag'].dag_id
-                    nameprocess = "PROCESSO AIRFLOW"
-                    
-                    data = {
-                        'id':report_id ,
-                        'integration_id': integration_id,
-                        'nameprocess': nameprocess,
-                        'dag': dag_name,
-                        'dag_run_id': dag_run_id,
-                        'dag_started_at': dataini,
-                        'dag_last_status': dag_last_status
-                        
-                    }
-
-
-                
-                coorp_conection_info = get_coorp_conection_info()
-                from modules import log_resumo_airflow
-                log_resumo_airflow.log_process(coorp_conection_info , data )
-
-                logging.info(f"upserted do log diario successfully.")
-
-                return report_id
-            except Exception as e:
-                logging.error(f"Error inserting log diario: {e}")
-                raise e  # Ensure failure is propagated to Airflow
-            
-        
 # Lista de requisitos
 requirements = [
     "openai==1.40.1",
@@ -138,8 +35,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 3,  # Tentativas de reexecução
     "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
-    
-    'on_failure_callback': log_error
+
 }
 
 
@@ -161,42 +57,6 @@ with DAG(
     },
 ) as dag:
   
-    @task(provide_context=True)
-    def gerar_reportid(**kwargs):
-        import uuid 
-        idreport = kwargs['params'].get('IDREPORT')
-        if idreport:
-            report_id=idreport
-        else:    
-            report_id = str(uuid.uuid4())
-        
-        return report_id
-    
-    report = gerar_reportid()
-
-    log_import_task_ini = PythonOperator(
-            task_id='log_import_task_ini',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':True,
-                'reportid': report,  # Defina conforme necessário
-                'erro': None,
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
-    log_import_task_fim = PythonOperator(
-            task_id='log_import_task_fim',
-            python_callable=log_import_pyhton,
-            op_kwargs={
-                'isfirtline':False,
-                'reportid': report,  # Defina conforme necessário
-                'erro': None,
-            },
-            provide_context=True,  # Isso garante que o contexto da DAG seja passado
-            dag=dag
-        )
-      
     @task(provide_context=True)
     def client_profile(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
@@ -247,7 +107,7 @@ with DAG(
         trigger_dag_id="9-create-table-client",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-             "IDREPORT": report,
+           
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 
@@ -257,7 +117,7 @@ with DAG(
             
         client_profile_task = client_profile()
 
-        report >> log_import_task_ini >> client_profile_task >> log_import_task_fim >> trigger_dag_create_tab
+        client_profile_task >>  trigger_dag_create_tab
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
