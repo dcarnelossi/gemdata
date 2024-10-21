@@ -43,10 +43,11 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
                 integration_id = kwargs["params"]["PGSCHEMA"]
                 dag_run_id = kwargs['dag_run'].run_id  
                 
+                print(reportid)
+                report_id = reportid
                 
                 if erro and not isfirtline:
                     print("entrou aqui")
-                    report_id = reportid
                     dag_finished_at = datetime.now()
                     dag_last_status = "ERRO"
                         
@@ -81,7 +82,7 @@ def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
 
 
                 elif not erro and not isfirtline:
-                    report_id = reportid
+                    
                     dag_finished_at = datetime.now()
                     dag_last_status = "SUCESSO"
                         
