@@ -218,7 +218,7 @@ with DAG(
                     return True
                 except Exception as e:
                     logging.exception(f"An unexpected error occurred during DAG - {e}")
-                    raise e
+                    raise 
 
         @task(provide_context=True)
         def categories(**kwargs):
