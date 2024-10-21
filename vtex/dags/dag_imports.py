@@ -181,7 +181,7 @@ with DAG(
 
             try:
                 query = """
-                UPDATE public.integrations_integration
+                UPDATE public.integrations_integratio
                 SET daily_run_date_ini = %s,
                 isdaily_manual = false
                 WHERE id = %s;
@@ -235,7 +235,7 @@ with DAG(
             #     task_ids="brands", key="coorp_conection_info"
             # )
             data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
-            api_conection_info = ti.xcom_pull(task_ids="brand", key="api_conection_info")
+            api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
             from modules import sku
 
@@ -288,6 +288,6 @@ with DAG(
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
-        log_import_resumo(logini,iserro=True,erro=e)
+       # log_import_resumo(logini,iserro=True,erro=e)
         raise   # Ensure failure is propagated to Airflow
         
