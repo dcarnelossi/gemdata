@@ -165,7 +165,7 @@ with DAG(
 
        
     log_import_task_ini = PythonOperator(
-            task_id='log_import_task',
+            task_id='log_import_task_ini',
             python_callable=log_import_pyhton,
             op_kwargs={
                 'reportid': None,  # Defina conforme necessário
@@ -276,7 +276,7 @@ with DAG(
         
       
     logini= XComArg(log_import_task_ini) 
-    
+
     log_import_task_fim = PythonOperator(
             task_id='log_import_task',
             python_callable=log_import_pyhton,
