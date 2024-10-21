@@ -31,6 +31,9 @@ def log_error(context):
     # Aqui você pode chamar sua função de log
     if id_report :
         log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message))
+    else:
+        print("erro antes de inserir") 
+             
 
 
 def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
