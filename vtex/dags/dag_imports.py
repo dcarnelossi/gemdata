@@ -23,10 +23,13 @@ from modules.dags_common_functions import (
 def log_error(context):
     task_instance = context.get('task_instance')
     error_message = context.get('exception')
+    ti = context.get('task_instance')
+    id_report = ti.xcom_pull(task_ids='gerar_reportid')
+
     print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
     
     # Aqui você pode chamar sua função de log
-    log_import_pyhton(isfirtline=False, reportid=context['params']['IDREPORT'], erro=str(error_message))
+    log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message))
 
 
 def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
@@ -167,7 +170,7 @@ with DAG(
 
 ) as dag:
     
-    @task
+    @task(provide_context=True)
     def gerar_reportid(**kwargs):
         import uuid 
         idreport = None # kwargs['params'].get('IDREPORT')
@@ -188,13 +191,13 @@ with DAG(
                 'reportid': report,  # Defina conforme necessário
                 'erro': None,
             },
-           # provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
             dag=dag
         )
     
       
 
-    @task
+    @task(provide_context=True)
     def brands(**kwargs):
             integration_id = kwargs["params"]["PGSCHEMA"]
 
@@ -233,7 +236,7 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
 
-    @task
+    @task(provide_context=True)
     def categories(**kwargs):
             ti = kwargs["ti"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
@@ -252,7 +255,7 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
 
-    @task
+    @task(provide_context=True)
     def skus(**kwargs):
             ti = kwargs["ti"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
@@ -298,7 +301,7 @@ with DAG(
                 'reportid': report,  # Defina conforme necessário
                 'erro': None,
             },
-         #   provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
             dag=dag
         )
     
