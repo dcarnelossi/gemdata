@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.decorators import task
@@ -131,6 +131,9 @@ default_args = {
     "start_date": datetime(2024, 1, 1),
     "email_on_failure": False,
     "email_on_retry": False,
+    "retries": 3,  # Tentativas de reexecução
+    "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
+    
     'on_failure_callback': log_error
 }
 
