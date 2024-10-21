@@ -37,19 +37,14 @@ default_args = {
     "email_on_retry": False,
 }
 
-def log_import_pyhton(reportid=None,iserro=None,erro=None,**kwargs):
+def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
             try: 
                 
                 integration_id = kwargs["params"]["PGSCHEMA"]
                 dag_run_id = kwargs['dag_run'].run_id  
-
-                print(reportid)
-                print(iserro)
-                print(erro)
-               
                 
                 
-                if iserro and reportid:
+                if erro and not isfirtline:
                     print("entrou aqui")
                     report_id = reportid
                     dag_finished_at = datetime.now()
@@ -64,9 +59,7 @@ def log_import_pyhton(reportid=None,iserro=None,erro=None,**kwargs):
                         'log':  erro
 
                     }
-                elif iserro and not reportid:
-                    import uuid 
-                    report_id = str(uuid.uuid4())
+                elif erro and isfirtline:
                     dataini = datetime.now()
                     dag_last_status = "ERRO"   
                     dag_name = kwargs['dag'].dag_id
@@ -87,7 +80,7 @@ def log_import_pyhton(reportid=None,iserro=None,erro=None,**kwargs):
                     }
 
 
-                elif not iserro and reportid:
+                elif not erro and not isfirtline:
                     report_id = reportid
                     dag_finished_at = datetime.now()
                     dag_last_status = "SUCESSO"
@@ -100,12 +93,9 @@ def log_import_pyhton(reportid=None,iserro=None,erro=None,**kwargs):
                         'dag_last_status': dag_last_status   
                     }
                     
-                elif not iserro and not reportid:
-                    import uuid 
-                    report_id = str(uuid.uuid4())
+                elif not erro and isfirtline:
                     dataini = datetime.now()
                     dag_last_status = "EXECUTANDO"   
-                    isdaily = kwargs["params"]["ISDAILY"]
                     dag_name = kwargs['dag'].dag_id
                     nameprocess = "PROCESSO AIRFLOW"
                     
@@ -162,14 +152,22 @@ with DAG(
         )
     },
 ) as dag:
-
-       
+    def gerar_reportid(**kwargs):
+        import uuid 
+        idreport = kwargs["params"]["IDREPORT"]
+        if idreport:
+            report_id=idreport
+        else:    
+            report_id = str(uuid.uuid4())
+        return report_id
+    
+    report = gerar_reportid()
     log_import_task_ini = PythonOperator(
             task_id='log_import_task_ini',
             python_callable=log_import_pyhton,
             op_kwargs={
-                'reportid': None,  # Defina conforme necessário
-                'iserro': False,
+                'isfirtline':True,
+                'reportid': report,  # Defina conforme necessário
                 'erro': None,
             },
             provide_context=True,  # Isso garante que o contexto da DAG seja passado
@@ -274,20 +272,19 @@ with DAG(
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
         
-      
-    logini= XComArg(log_import_task_ini) 
-
     log_import_task_fim = PythonOperator(
-            task_id='log_import_task',
+            task_id='log_import_task_fim',
             python_callable=log_import_pyhton,
             op_kwargs={
-                'reportid': logini,  # Defina conforme necessário
-                'iserro': False,
+                'isfirtline':False,
+                'reportid': report,  # Defina conforme necessário
                 'erro': None,
             },
             provide_context=True,  # Isso garante que o contexto da DAG seja passado
             dag=dag
         )
+    
+      
         
     trigger_dag_orders_list = TriggerDagRunOperator(
             task_id="trigger_dag_orders_list",
@@ -295,7 +292,7 @@ with DAG(
             conf={
                 "PGSCHEMA": "{{ params.PGSCHEMA }}",
                 "ISDAILY": "{{ params.ISDAILY }}",
-                "IDREPORT": logini,
+                "IDREPORT": report,
             },  # Se precisar passar informações adicionais para a DAG_B
         )
         # Configurando a dependência entre as tasks
@@ -306,24 +303,25 @@ with DAG(
     products_task = products()
 
     try:
-        log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >> log_import_task_fim >>  trigger_dag_orders_list  
+       report >> log_import_task_ini >> brands_task >> categories_task >> sku_task >> products_task >> log_import_task_fim >>  trigger_dag_orders_list  
 
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
         
-        # logini= XComArg(log_import_task_ini) 
-        
-        # PythonOperator(
-        #     task_id='log_import_task',
-        #     python_callable=log_import_pyhton,
-        #     op_kwargs={
-        #         'reportid': logini,  # Defina conforme necessário
-        #         'iserro': True,
-        #         'erro': str(e),
-        #     },
-        #     provide_context=True,  # Isso garante que o contexto da DAG seja passado
-        #     dag=dag
-        # )
-      
+         
+        log_import_task_erro = PythonOperator(
+            task_id='log_import_task_fim',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'isfirtline':False,
+                'reportid': report,  # Defina conforme necessário
+                'erro': str(e),
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
+    
+        log_import_task_erro
+   
         raise  # Ensure failure is propagated to Airflow
         
