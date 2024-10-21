@@ -9,12 +9,117 @@ from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFiles
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from airflow.models.param import Param
 from airflow.operators.bash_operator import BashOperator
+from airflow.operators.python_operator import PythonOperator
 from modules.dags_common_functions import (
     get_coorp_conection_info,
 )
 from datetime import datetime
 import logging
 
+
+
+def log_error(context):
+    task_instance = context.get('task_instance')
+    error_message = context.get('exception')
+    ti = context.get('task_instance')
+    id_report = ti.xcom_pull(task_ids='gerar_reportid')
+
+    print(f"Tarefa {task_instance.task_id} falhou com o erro: {error_message}")
+    
+    # Aqui você pode chamar sua função de log
+    if id_report :
+        log_import_pyhton(isfirtline=False, reportid=id_report, erro=str(error_message) , **context)
+    else:
+        print("erro antes de inserir") 
+             
+
+
+def log_import_pyhton(isfirtline,reportid=None,erro=None,**kwargs):
+            try: 
+                
+                integration_id = kwargs["params"]["PGSCHEMA"]
+                dag_run_id = kwargs['dag_run'].run_id  
+                
+                print(reportid)
+                report_id = reportid
+                if erro and not isfirtline:
+                    
+                    dag_finished_at = datetime.now()
+                    dag_last_status = "ERRO"
+                        
+                    data = {
+                        'id':report_id ,
+                        'integration_id': integration_id,
+                        'dag_run_id': dag_run_id,
+                        'dag_finished_at': dag_finished_at,
+                        'dag_last_status': dag_last_status,
+                        'log':  erro
+
+                    }
+                elif erro and isfirtline:
+                    dataini = datetime.now()
+                    dag_last_status = "ERRO"   
+                    dag_name = kwargs['dag'].dag_id
+                    dag_finished_at = datetime.now()
+                    nameprocess = "PROCESSO AIRFLOW"
+                    
+                    data = {
+                        'id':report_id ,
+                        'integration_id': integration_id,
+                        'nameprocess': nameprocess,
+                        'dag': dag_name,
+                        'dag_run_id': dag_run_id,
+                        'dag_started_at': dataini,
+                        'dag_last_status': dag_last_status,
+                        'dag_finished_at': dag_finished_at,
+                        'log':  erro
+                        
+                    }
+
+
+                elif not erro and not isfirtline:
+                    
+                    dag_finished_at = datetime.now()
+                    dag_last_status = "SUCESSO"
+                        
+                    data = {
+                        'id':report_id ,
+                        'integration_id': integration_id,
+                        'dag_run_id': dag_run_id,
+                        'dag_finished_at': dag_finished_at,
+                        'dag_last_status': dag_last_status   
+                    }
+                    
+                elif not erro and isfirtline:
+                    dataini = datetime.now()
+                    dag_last_status = "EXECUTANDO"   
+                    dag_name = kwargs['dag'].dag_id
+                    nameprocess = "PROCESSO AIRFLOW"
+                    
+                    data = {
+                        'id':report_id ,
+                        'integration_id': integration_id,
+                        'nameprocess': nameprocess,
+                        'dag': dag_name,
+                        'dag_run_id': dag_run_id,
+                        'dag_started_at': dataini,
+                        'dag_last_status': dag_last_status
+                        
+                    }
+
+
+                
+                coorp_conection_info = get_coorp_conection_info()
+                from modules import log_resumo_airflow
+                log_resumo_airflow.log_process(coorp_conection_info , data )
+
+                logging.info(f"upserted do log diario successfully.")
+
+                return report_id
+            except Exception as e:
+                logging.error(f"Error inserting log diario: {e}")
+                raise e  # Ensure failure is propagated to Airflow
+            
 # Lista de requisitos
 requirements = [
     "openai==1.6.0",
@@ -31,6 +136,7 @@ default_args = {
     "start_date": datetime(2024, 1, 1),
     "email_on_failure": False,
     "email_on_retry": False,
+    'on_failure_callback': log_error
 }
 
 
@@ -191,68 +297,41 @@ with DAG(
     
 
     @task(provide_context=True)
-    def log_import_resumo(reportid=None,**kwargs):
-        try: 
-            
-            integration_id = kwargs["params"]["PGSCHEMA"]
-            dag_run_id = kwargs['dag_run'].run_id  
-            
-           
-
-            if reportid:
-                report_id = reportid
-                dag_finished_at = datetime.now()
-                dag_last_status = "SUCESSO"
-                    
-                data = {
-                    'id':report_id ,
-                    'integration_id': integration_id,
-                    'dag_run_id': dag_run_id,
-                    'dag_finished_at': dag_finished_at,
-                    'dag_last_status': dag_last_status   
-                }
-                 
-            else:
-                import uuid 
-                report_id= kwargs["params"].get("IDREPORT")
-                print(kwargs["params"].get("IDREPORT"))
-                if not report_id:
-                    report_id =  str(uuid.uuid4())
-
-                
-                dataini = datetime.now()
-                dag_last_status = "EXECUTANDO"   
-                isdaily = kwargs["params"].get("ISDAILY") 
-                dag_name = kwargs['dag'].dag_id
-                if isdaily:
-                    nameprocess = "PROCESSO DIARIO"
-                else:    
-                    nameprocess = "PROCESSO HISTORICO"
-    
-                data = {
-                    'id':report_id ,
-                    'integration_id': integration_id,
-                    'nameprocess': nameprocess,
-                    'dag': dag_name,
-                    'dag_run_id': dag_run_id,
-                    'dag_started_at': dataini,
-                    'dag_last_status': dag_last_status
-                    
-                }
-
-
-            
-            coorp_conection_info = get_coorp_conection_info()
-            from modules import log_resumo_airflow
-            log_resumo_airflow.log_process(coorp_conection_info , data )
-
-            logging.info(f"upserted do log diario successfully.")
-
-            return report_id
-        except Exception as e:
-            logging.error(f"Error inserting log diario: {e}")
-            raise e  # Ensure failure is propagated to Airflow
+    def gerar_reportid(**kwargs):
+        import uuid 
+        idreport = kwargs['params'].get('IDREPORT')
+        if idreport:
+            report_id=idreport
+        else:    
+            report_id = str(uuid.uuid4())
         
+        return report_id
+    
+    report = gerar_reportid()
+
+    log_import_task_ini = PythonOperator(
+            task_id='log_import_task_ini',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'isfirtline':True,
+                'reportid': report,  # Defina conforme necessário
+                'erro': None,
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
+    log_import_task_fim = PythonOperator(
+            task_id='log_import_task_fim',
+            python_callable=log_import_pyhton,
+            op_kwargs={
+                'isfirtline':False,
+                'reportid': report,  # Defina conforme necessário
+                'erro': None,
+            },
+            provide_context=True,  # Isso garante que o contexto da DAG seja passado
+            dag=dag
+        )
+      
 
     #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
     from modules.sqlscriptsjson import vtexsqlscriptjson
@@ -266,32 +345,29 @@ with DAG(
         bash_command='pip install orjson',
     )
     
-    
-    for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
-        # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
-        extract_task = PythonOperator(
-            task_id=f'extract_postgres_to_json_{chave}',
-            python_callable=extract_postgres_to_json,
-            op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
-            #provide_context=True
-        )
+    try:  
+        for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+            # Tarefa para extrair dados do PostgreSQL e transformá-los em JSON
+            extract_task = PythonOperator(
+                task_id=f'extract_postgres_to_json_{chave}',
+                python_callable=extract_postgres_to_json,
+                op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
+                #provide_context=True
+            )
+            
+            log_update_corp = PythonOperator(
+                task_id=f'log_daily_rum_data_update_{chave}',
+                python_callable=daily_run_date_update,
+                op_args=["{{ params.PGSCHEMA }}"]
+                #provide_context=True
+            )
+
         
-        log_update_corp = PythonOperator(
-            task_id=f'log_daily_rum_data_update_{chave}',
-            python_callable=daily_run_date_update,
-            op_args=["{{ params.PGSCHEMA }}"]
-            #provide_context=True
-        )
 
-        logini=log_import_resumo()   
-        logfim=log_import_resumo(logini)
-        # # Tarefa para verificar/criar o diretório no Azure Blob Storage e fazer o upload do arquivo JSON
-        # upload_task = PythonOperator(
-        #     task_id=f'upload_to_blob_directory_{chave}',
-        #     python_callable=upload_to_blob_directory,
-        #     op_kwargs={'file_name': chave, 'pg_schema': "{{ params.PGSCHEMA }}"},
-        #     provide_context=True
-        # )
-
-        # Definindo a ordem das tarefas no DAG
-        logini >> install_library >> extract_task >> log_update_corp >> logfim 
+            # Definindo a ordem das tarefas no DAG
+            report >> log_import_task_ini >> install_library >> extract_task >> log_update_corp >> log_import_task_fim 
+    
+    except Exception as e:
+        logging.error(f"Error inserting log diario: {e}")
+    
+        raise  # Ensure failure is propagated to Airflow
