@@ -94,6 +94,8 @@ with DAG(
         trigger_dag_id="6-ImportVtex-Orders-Totals",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY":"{{ params.ISDAILY }}"
+
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 

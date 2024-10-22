@@ -53,6 +53,7 @@ with DAG(
         )
     },
 ) as dag:
+    
 
     @task(provide_context=True)
     def orders(**kwargs):
@@ -89,6 +90,7 @@ with DAG(
         trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY":"{{ params.ISDAILY }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks
