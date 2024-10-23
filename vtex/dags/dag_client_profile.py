@@ -34,7 +34,7 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 3,  # Tentativas de reexecução
-    "retry_delay": timedelta(minutes=5),  # Intervalo entre tentativas
+    "retry_delay": timedelta(minutes=1),  # Intervalo entre tentativas
 
 }
 
@@ -107,6 +107,7 @@ with DAG(
         trigger_dag_id="9-create-table-client",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY":"{{ params.ISDAILY }}"
            
         },  # Se precisar passar informações adicionais para a DAG_B
     )
