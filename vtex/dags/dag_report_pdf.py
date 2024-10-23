@@ -95,7 +95,7 @@ def get_informacao_pg(integration_id,canal,celular,email):
                     where 
                     ii.id = '{integration_id}'
                     and
-                    us.cell_phone = '+{celular}'
+                    us.cell_phone = '{celular}'
                     and 
                     us.is_active is true
                     and 
@@ -292,10 +292,17 @@ with DAG(
             print(email_prin)
             print(dag_run_id)
 
+            if len(celphone) == 12:
+            # Pega os últimos 8 caracteres e insere '9' na posição desejada
+                celularajustado ='+' + celphone[:-8] + '9' + celphone[-8:]
+            else:
+                celularajustado = '+' + celphone
+
+
         except Exception as e:
             logging.exception(f"erro nos paramentos - {e}")
             raise
-        infos_user=get_informacao_pg(integration_id,canal,celphone,email_prin)
+        infos_user=get_informacao_pg(integration_id,canal,celularajustado,email_prin)
         #team_id=infos_user[0]
         team_logo=infos_user[1]
         #user_id=infos_user[2]    
