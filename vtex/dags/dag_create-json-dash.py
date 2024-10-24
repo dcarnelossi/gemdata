@@ -187,6 +187,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["jsonblob", "v1", "vtex"],
+     render_template_as_native_obj=True,
      params={
         "PGSCHEMA": Param(
             type="string",

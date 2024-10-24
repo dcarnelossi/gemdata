@@ -44,6 +44,7 @@ with DAG(
     catchup=False,
     default_args=default_args,
     tags=["vtex", "orders-shipping", "PROCESS"],
+     render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
             type="string",
