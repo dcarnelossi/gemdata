@@ -74,7 +74,7 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
-            SELECT DISTINCT us.username,,te."name"  as nameteam
+            SELECT DISTINCT us.username,te."name"  as nameteam
             FROM integrations_integration ii 
             INNER JOIN public.teams_team te ON te.ID = ii.team_id
             INNER JOIN public.teams_membership ms ON ms.team_id = te.id
