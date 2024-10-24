@@ -7,6 +7,9 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.models.param import Param
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.operators.dummy import DummyOperator
+
+from airflow.operators.python import BranchPythonOperator
 
 
 
@@ -66,79 +69,72 @@ with DAG(
     @task(provide_context=True)
     def report_baixar_email(**kwargs):
         try:
-    
             integration_id = kwargs["params"]["PGSCHEMA"]
       
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
- 
-            select distinct 
-            
-            us.username
-           
-            from integrations_integration ii 
-
-            inner join public.teams_team te on 
-            te.ID = ii.team_id
-
-            inner join  public.teams_membership ms on 
-            ms.team_id=  te.id
-            
-            inner join public.users_customuser us on 
-            us.id = ms.user_id 
-
-            where 
-            ii .id = '{integration_id}'
-            and 
-            us.is_active is true
-            and 
-            ii.infra_create_status =  true 
-            and 
-            ii.is_active = true 
-                """
+            SELECT DISTINCT us.username
+            FROM integrations_integration ii 
+            INNER JOIN public.teams_team te ON te.ID = ii.team_id
+            INNER JOIN public.teams_membership ms ON ms.team_id = te.id
+            INNER JOIN public.users_customuser us ON us.id = ms.user_id 
+            WHERE ii.id = '{integration_id}'
+              AND us.is_active = TRUE
+              AND ii.infra_create_status = TRUE 
+              AND ii.is_active = TRUE
+            """
         
             resultado_emails = hook.get_records(query)
-            # Extrair os e-mails e transformar em uma lista de strings
             emails_list = [email[0] for email in resultado_emails]
-            # Juntar os e-mails em uma única string separada por vírgulas
             emails_string = ", ".join(emails_list)
-            # Adicionar aspas simples no início e no fim da string
-            #emails_string = f"'{emails_string}'"
-            
-           # kwargs['ti'].xcom_push(key='lista_string', value=emails_string)
-            return   emails_string
+            return emails_string
             
         except Exception as e:
-        
-            logging.exception(f"deu erro ao achar o caminho do logo - {e}")
+            logging.exception(f"Erro ao achar o caminho do logo - {e}")
             raise
-               
+
     @task(provide_context=True)
     def enviar_email(listaemail):
         try:
-          
-            listaemail=report_baixar_email()
-            
-            assunto="Dados Processados e Disponíveis para Acesso"
-            corpo_email="Gostaria de informar que os dados solicitados foram processados com sucesso e estão agora disponíveis na plataforma e whatsapp.<\n> Toda a operação foi conduzida dentro dos parâmetros estabelecidos, e os arquivos foram armazenados de acordo com as diretrizes de segurança e compliance." 
+            assunto = "Dados Processados e Disponíveis para Acesso"
+            corpo_email = (
+                "Gostaria de informar que os dados solicitados foram processados com sucesso "
+                "e estão agora disponíveis na plataforma e WhatsApp.\n"
+                "Toda a operação foi conduzida dentro dos parâmetros estabelecidos, e os arquivos foram armazenados "
+                "de acordo com as diretrizes de segurança e compliance."
+            )
               
             from modules import send_email
-           
-            send_email.send_email_via_connection('tecnologia@gemdata.com.br','gabriel.pereira.sousa@gmail.com',assunto,corpo_email) 
+            send_email.send_email_via_connection('tecnologia@gemdata.com.br', "gabriel.pereira.sousa@gmail.com", assunto, corpo_email,False)
             
-            #send_email.send_email_via_connection('gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
-           
-            logging.exception(f"deu erro ao achar ao enviar email - {e}")
+            logging.exception(f"Erro ao enviar o e-mail - {e}")
             raise
-    
-    
-    listaemail_recebido=report_baixar_email() 
-    disparar_email=enviar_email(listaemail_recebido)
 
+    # Branch para verificar se ISDAILY é True
+    def check_isdaily(**kwargs):
+        is_daily = kwargs['params'].get('ISDAILY', False)
+        if is_daily:
+            return 'report_baixar_email'
+        else:
+            return 'stop_task'
+
+    branch_task = BranchPythonOperator(
+        task_id='check_isdaily',
+        provide_context=True,
+        python_callable=check_isdaily
+    )
+
+    # Dummy task para não fazer nada quando ISDAILY for False
+    stop_task = DummyOperator(
+        task_id='stop_task'
+    )
+
+    # Fluxo de e-mails
+    listaemail_recebido = report_baixar_email()
+    disparar_email = enviar_email(listaemail_recebido)
+
+    # Definir o fluxo de decisão
+    branch_task >> [listaemail_recebido, stop_task]
     listaemail_recebido >> disparar_email
-
-    
-
-      
