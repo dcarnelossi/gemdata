@@ -74,7 +74,7 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-dev")
             query = f"""
-            SELECT DISTINCT us.username
+            SELECT DISTINCT us.username,,te."name"  as nameteam
             FROM integrations_integration ii 
             INNER JOIN public.teams_team te ON te.ID = ii.team_id
             INNER JOIN public.teams_membership ms ON ms.team_id = te.id
@@ -86,23 +86,22 @@ with DAG(
             """
         
             resultado_emails = hook.get_records(query)
+            nome_team = resultado_emails[0][1]
             emails_list = [email[0] for email in resultado_emails]
             emails_string = ", ".join(emails_list)
-            return emails_string
+            return emails_string,nome_team
             
         except Exception as e:
             logging.exception(f"Erro ao achar o caminho do logo - {e}")
             raise
 
     @task(provide_context=True)
-    def enviar_email(listaemail):
+    def enviar_email(listaemail,nome_team):
         try:
-            assunto = "Dados Processados e Disponíveis para Acesso"
+            assunto = "nome_team - dados processados e disponíveis para acesso"
             corpo_email = (
-                "Gostaria de informar que os dados solicitados foram processados com sucesso "
-                "e estão agora disponíveis na plataforma e WhatsApp.\n"
-                "Toda a operação foi conduzida dentro dos parâmetros estabelecidos, e os arquivos foram armazenados "
-                "de acordo com as diretrizes de segurança e compliance."
+                "Gostaria de informar que os dados {nome_team} foram processados com sucesso "
+                "e estão disponíveis na plataforma e WhatsApp."
             )
               
             from modules import send_email
@@ -116,9 +115,9 @@ with DAG(
     def check_isdaily(**kwargs):
         is_daily = kwargs['params'].get('ISDAILY', False)
         if is_daily:
-            return 'report_baixar_email'
-        else:
             return 'stop_task'
+        else:
+            return 'report_baixar_email'
 
     branch_task = BranchPythonOperator(
         task_id='check_isdaily',
