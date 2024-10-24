@@ -100,10 +100,12 @@ with DAG(
         
         try:
             emails_string, nome_team = lista
-            assunto = "{nome_team} - dados processados e disponíveis para acesso"
+            assunto = f"{nome_team} - dados processados e disponíveis para acesso"
             corpo_email = (
-                "Gostaria de informar que os dados {nome_team} foram processados com sucesso "
-                "e estão disponíveis na plataforma e WhatsApp."
+                f"Gostaria de informar que os dados {nome_team} foram processados com sucesso "
+                "e estão disponíveis na plataforma e WhatsApp." 
+                "\n\n Em caso de qualquer dúvida ou problema, entre em contato pelo e-mail suporte@gemdata.com.br."
+
             )
               
             from modules import send_email
