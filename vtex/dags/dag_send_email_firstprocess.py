@@ -96,9 +96,11 @@ with DAG(
             raise
 
     @task(provide_context=True)
-    def enviar_email(listaemail,nome_team):
+    def enviar_email(lista):
+        
         try:
-            assunto = "nome_team - dados processados e disponíveis para acesso"
+            emails_string, nome_team = lista
+            assunto = "{nome_team} - dados processados e disponíveis para acesso"
             corpo_email = (
                 "Gostaria de informar que os dados {nome_team} foram processados com sucesso "
                 "e estão disponíveis na plataforma e WhatsApp."
