@@ -103,8 +103,8 @@ with DAG(
             assunto = f"{nome_team} - dados processados e disponíveis para acesso"
             corpo_email = (
                 f"Gostaria de informar que os dados {nome_team} foram processados com sucesso "
-                "e estão disponíveis na plataforma e WhatsApp." 
-                "\n\n Em caso de qualquer dúvida ou problema, entre em contato pelo e-mail suporte@gemdata.com.br."
+                "e estão disponíveis na plataforma e WhatsApp.<br>" 
+                "Em caso de qualquer dúvida ou problema, entre em contato pelo e-mail suporte@gemdata.com.br.<br><br>"
 
             )
               
