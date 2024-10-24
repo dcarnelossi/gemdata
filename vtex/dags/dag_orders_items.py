@@ -52,6 +52,14 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=200,
+        ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
         )
     },
 ) as dag:

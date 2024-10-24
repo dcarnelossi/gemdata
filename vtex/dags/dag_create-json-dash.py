@@ -11,8 +11,10 @@ from airflow.models.param import Param
 from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
-from airflow.operators.python import BranchPythonOperator
 from airflow.operators.dummy import DummyOperator
+from airflow.utils.task_group import TaskGroup
+# Importação dos módulos deve ser feita fora do contexto do DAG
+from modules.sqlscriptsjson import vtexsqlscriptjson
 
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -193,92 +195,73 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=200,
+        ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
         )
     },
 ) as dag:
-    
-
-    # Operador de instalação da biblioteca
+        
+    # Task para instalar a biblioteca
     install_library = BashOperator(
         task_id='install_library',
         bash_command='pip install orjson',
     )
 
-    # Importando o script SQL
-    from modules.sqlscriptsjson import vtexsqlscriptjson
-
-    # Tentando executar o script SQL com try-except
+    # Carregar o script SQL usando o módulo importado
     try:
         sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
     except Exception as e:
         logging.error(f"Erro ao carregar o script SQL: {e}")
-        raise  # Relevanta o erro para que o DAG pare
+        raise
 
-    previous_task = install_library
+    # Grupo de tarefas para extração de dados
+    with TaskGroup("extract_tasks") as extract_tasks:
+        previous_task = install_library
 
-    # Função para decidir se devemos acionar a próxima DAG ou parar
-    @task
-    def check_isdaily(**kwargs):
-        try:
-            is_daily = kwargs['params'].get('ISDAILY', 'False')
-            if is_daily == 'True':
-                return 'stop_dag'  # Parar a execução nesta DAG
-            else:
-                return 'trigger_dag_email'  # Continuar para o próximo DAG
-        except Exception as e:
-            logging.error(f"Erro ao verificar ISDAILY: {e}")
-            raise
-
-    # Operador condicional Branch
-    
-    branch_task = BranchPythonOperator(
-        task_id='check_isdaily',
-        provide_context=True,
-        python_callable=check_isdaily,
-        params={
-            'ISDAILY': "{{ params.ISDAILY }}",
-            'PGSCHEMA': "{{ params.PGSCHEMA }}"
-        }
-    )
-
-    # Definindo as tarefas de extração e atualização do log com try-except
-    try:
-        for indice, (chave, valor) in enumerate(sql_script.items(), start=1):
+        # Definir tasks de extração dentro do loop
+        for chave, valor in sql_script.items():
             extract_task = PythonOperator(
                 task_id=f'extract_postgres_to_json_{chave}',
                 python_callable=extract_postgres_to_json,
                 op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
             )
 
-            log_update_corp = PythonOperator(
-                task_id=f'log_daily_rum_data_update_{chave}',
-                python_callable=daily_run_date_update,
-                op_args=["{{ params.PGSCHEMA }}"]
-            )
+            previous_task >> extract_task
+            previous_task = extract_task
 
-            previous_task >> extract_task >> log_update_corp
-            previous_task = log_update_corp
-    except Exception as e:
-        logging.error(f"Erro ao criar as tarefas de extração ou log: {e}")
-        raise
+    # Task de sincronização que será executada após todas as extrações
+    sync_tasks = DummyOperator(
+        task_id='sync_all_extractions',
+    )
 
-    # Adicionando a task de verificação do ISDAILY
-    previous_task >> branch_task
+    # Configurar que a task de sincronização deve ser executada após todas as extrações
+    extract_tasks >> sync_tasks
 
-    # Definir a task para acionar a próxima DAG se ISDAILY for False
-    trigger_dag_disparo_email= TriggerDagRunOperator(
+    # Task para atualizar a data de execução do log
+    log_update_corp = PythonOperator(
+        task_id='log_daily_run_data_update',
+        python_callable=daily_run_date_update,
+        op_args=["{{ params.PGSCHEMA }}"]
+    )
+
+    # Garantir que a atualização de log será executada após todas as extrações
+    sync_tasks >> log_update_corp
+
+    # Task para acionar o próximo DAG se ISDAILY for False
+    trigger_dag_disparo_email = TriggerDagRunOperator(
         task_id="trigger_dag_email",
         trigger_dag_id="a11-send-email-firstprocess",
         conf={
-            "PGSCHEMA": "{{ params.PGSCHEMA }}"
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY": "{{ params.ISDAILY }}"
         }
     )
 
-    # Task de parada para quando ISDAILY for True
-    stop_task = DummyOperator(
-        task_id="stop_dag"
-    )
-
-    # Configurando o BranchPythonOperator
-    branch_task >> trigger_dag_disparo_email
-    branch_task >> stop_task
+    # Configurar que o trigger será executado após a atualização do log
+    log_update_corp >> trigger_dag_disparo_email
