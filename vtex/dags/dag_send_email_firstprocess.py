@@ -51,6 +51,14 @@ with DAG(
             max_length=200,
                        
         ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
+        )
     },
 ) as dag:
     
@@ -117,7 +125,7 @@ with DAG(
               
             from modules import send_email
            
-            send_email.send_email_via_connection('tecnologia@gemdata.com.br',listaemail,assunto,corpo_email) 
+            send_email.send_email_via_connection('tecnologia@gemdata.com.br','gabriel.pereira.sousa@gmail.com',assunto,corpo_email) 
             
             #send_email.send_email_via_connection('gabriel.pereira.sousa@gmail.com',assunto,corpo_email,True,filepdf_recebido)
         except Exception as e:
