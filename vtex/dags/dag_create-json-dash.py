@@ -217,18 +217,20 @@ with DAG(
     previous_task = install_library
 
     # Função para decidir se devemos acionar a próxima DAG ou parar
+    @task
     def check_isdaily(**kwargs):
         try:
             is_daily = kwargs['params'].get('ISDAILY', 'False')
             if is_daily == 'True':
                 return 'stop_dag'  # Parar a execução nesta DAG
             else:
-                return 'trigger_dag_create_json'  # Continuar para o próximo DAG
+                return 'trigger_dag_email'  # Continuar para o próximo DAG
         except Exception as e:
             logging.error(f"Erro ao verificar ISDAILY: {e}")
             raise
 
     # Operador condicional Branch
+    
     branch_task = BranchPythonOperator(
         task_id='check_isdaily',
         provide_context=True,
@@ -264,8 +266,8 @@ with DAG(
     previous_task >> branch_task
 
     # Definir a task para acionar a próxima DAG se ISDAILY for False
-    trigger_dag_create_json = TriggerDagRunOperator(
-        task_id="trigger_dag_",
+    trigger_dag_disparo_email= TriggerDagRunOperator(
+        task_id="trigger_dag_email",
         trigger_dag_id="a11-send-email-firstprocess",
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}"
@@ -278,5 +280,5 @@ with DAG(
     )
 
     # Configurando o BranchPythonOperator
-    branch_task >> trigger_dag_create_json
+    branch_task >> trigger_dag_disparo_email
     branch_task >> stop_task
