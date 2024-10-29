@@ -2,11 +2,12 @@
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
     scripts ={ 'faturamento_ecommerce':f""" 
-                                        DROP TABLE IF EXISTS tempdata;
+                                        										
+									DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
                                         SELECT generate_series as dategenerate FROM generate_series(
                                             '2022-01-01 00:00:00'::timestamp,
-                                            '2025-01-01 00:00:00'::timestamp,
+                                            (DATE_TRUNC('month', CURRENT_DATE + INTERVAL '7 months') - INTERVAL '1 day')::timestamp,
                                             '1 day'::interval
                                         )
                                         );
@@ -25,38 +26,20 @@ def vtexsqlscriptjson(schema):
 
                                         );
 
-
-                                        DROP TABLE IF EXISTS tempdataprojetado;
-                                        create temp table  tempdataprojetado  as (
-                                        SELECT generate_series as dategenerate, to_char(generate_series,'mm-dd') as mesdia FROM generate_series(
-                                            '1900-01-01 00:00:00'::timestamp,
-                                            '1900-12-31 00:00:00'::timestamp,
-                                            '1 day'::interval
-                                        )
-                                        );
-
-
-                                        
+                  
                                         DROP TABLE IF EXISTS faturamentoprojetado;
                                         create temp table  faturamentoprojetado  as (
 
                                         select 
-                                        cast(concat(to_char(CURRENT_TIMESTAMP ,'yyyy'),
-                                        	to_char(ia.dategenerate,'-mm-dd')) as timestamp)  as dateprojecao,
-                                        cast(round(cast(SUM(faturamento)*1.14 as numeric),2) as float)   as faturamento
+                                        DATE_TRUNC('day',  creationdateforecast)   as dateprojecao,
+                                        cast(SUM(predicted_revenue) as float)   as faturamento
 
-                                        from faturamentodiario ia 
-                                        cross join tempdataprojetado 
-                                        where 
-                                        mesdia = to_char(ia.dategenerate,'mm-dd')
-                                        and 
-                                        DATE_TRUNC('day',  ia.dategenerate) >= '2023-01-01'
-                                        and 
-                                        DATE_TRUNC('day',  ia.dategenerate) < '2023-12-01'
+                                        from "{schema}".orders_ia_forecast ia 
                                         group by 1
 
-                                        );
+                                        
 
+                                        
 
                                         select 
                                         cast(td.dategenerate as varchar(20)) as datadiaria,
