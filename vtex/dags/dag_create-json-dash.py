@@ -206,38 +206,42 @@ with DAG(
         )
     },
 ) as dag:
-        
-    # Task para instalar a biblioteca
-    install_library = BashOperator(
-        task_id='install_library',
-        bash_command='pip install orjson',
-    )
 
     # Carregar o script SQL usando o módulo importado
     try:
         sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
+        print ("{{ params.PGSCHEMA }}")
     except Exception as e:
         logging.error(f"Erro ao carregar o script SQL: {e}")
         raise
 
+    # Task inicial para definir `previous_task`
+    initial_task = DummyOperator(
+        task_id='start',
+        dag=dag
+    )
+
     # Grupo de tarefas para extração de dados
-    with TaskGroup("extract_tasks") as extract_tasks:
-        previous_task = install_library
+    with TaskGroup("extract_tasks", dag=dag) as extract_tasks:
+        previous_task = initial_task  # Define o DummyOperator como inicial
 
         # Definir tasks de extração dentro do loop
         for chave, valor in sql_script.items():
             extract_task = PythonOperator(
                 task_id=f'extract_postgres_to_json_{chave}',
                 python_callable=extract_postgres_to_json,
-                op_args=[valor, chave, "{{ params.PGSCHEMA }}"]
+                op_args=[valor, chave, "{{ params.PGSCHEMA }}"],
+                dag=dag
             )
 
+            # Define dependência entre as tasks
             previous_task >> extract_task
-            previous_task = extract_task
+            previous_task = extract_task  # Atualiza `previous_task` para a próxima iteração
 
     # Task de sincronização que será executada após todas as extrações
     sync_tasks = DummyOperator(
         task_id='sync_all_extractions',
+        dag=dag
     )
 
     # Configurar que a task de sincronização deve ser executada após todas as extrações
@@ -247,7 +251,8 @@ with DAG(
     log_update_corp = PythonOperator(
         task_id='log_daily_run_data_update',
         python_callable=daily_run_date_update,
-        op_args=["{{ params.PGSCHEMA }}"]
+        op_args=["{{ params.PGSCHEMA }}"],
+        dag=dag
     )
 
     # Garantir que a atualização de log será executada após todas as extrações
@@ -260,7 +265,8 @@ with DAG(
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}"
-        }
+        },
+        dag=dag
     )
 
     # Configurar que o trigger será executado após a atualização do log
