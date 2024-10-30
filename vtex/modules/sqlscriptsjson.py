@@ -36,7 +36,7 @@ def vtexsqlscriptjson(schema):
 
                                         from "{schema}".orders_ia_forecast ia 
                                         group by 1
-
+										);
                                         
 
                                         
