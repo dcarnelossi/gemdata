@@ -87,7 +87,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             with open(output_filepath, 'w') as outfile:
                 outfile.write(json_str)
 
-            wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
+            wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
             ###   Verifica se o arquivo já existe
             if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=f"{pg_schema}/{file_name}.json"):
                 wasb_hook.delete_file(container_name="jsondashboard", blob_name=f"{pg_schema}/{file_name}.json")
@@ -98,7 +98,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
                 container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
             #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
                 blob_name= f"{pg_schema}/{file_name}.json",
-                wasb_conn_id='azure_blob_storage_json'
+                wasb_conn_id='appgemdata-storage-prod'
             )
             upload_task.execute(file_name)  # Executa a tarefa de upload
 
@@ -152,7 +152,7 @@ def daily_run_date_update(pg_schema):
 # Função para mover o arquivo JSON para o diretório no Blob Storage
 def upload_to_blob_directory(file_name,pg_schema):
     try: 
-        wasb_hook = WasbHook(wasb_conn_id='azure_blob_storage_json')
+        wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
         blob_name=f"{pg_schema}/{file_name}.json" 
         output_filepath = f"/tmp/{blob_name}"
 
@@ -166,7 +166,7 @@ def upload_to_blob_directory(file_name,pg_schema):
             container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
         #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
             blob_name= blob_name,
-            wasb_conn_id='azure_blob_storage_json'
+            wasb_conn_id='appgemdata-storage-prod'
         )
         upload_task.execute(file_name)  # Executa a tarefa de upload
 
