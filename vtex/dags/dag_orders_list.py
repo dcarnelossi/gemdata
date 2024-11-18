@@ -87,7 +87,7 @@ with DAG(
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
                 start_date = datetime.now() - timedelta(days=90)
                 query = f"""truncate table "{team_id}".orders_list_daily;""" 
-                hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 hook.run(query)
                 
 

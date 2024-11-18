@@ -64,7 +64,7 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
             # não pode estar cravada aqui no codigo
-            hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook.run(sql_script)
             
             query = """

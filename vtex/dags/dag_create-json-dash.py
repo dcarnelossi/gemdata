@@ -55,7 +55,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             
             
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()

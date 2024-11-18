@@ -142,7 +142,7 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        # _, result = WriteJsonToPostgres("integrations-data-prod", query, "orders_items_ia").query()
+        # _, result = WriteJsonToPostgres("integrations-pgserver-prod", query, "orders_items_ia").query()
         df_ticket=WriteJsonToPostgres(data_conection_info,query).query_dataframe()
 
         if len(df_ticket)==0:
@@ -162,7 +162,7 @@ def getbase(celular,integration,diretorio):
                     """
        
         
-        # _, result_pedidos = WriteJsonToPostgres("integrations-data-prod", query_pedidos, "orders_items_ia").query()
+        # _, result_pedidos = WriteJsonToPostgres("integrations-pgserver-prod", query_pedidos, "orders_items_ia").query()
 
         df_pedidos=WriteJsonToPostgres(data_conection_info,query_pedidos).query_dataframe()
         if len(df_pedidos) ==0 :
