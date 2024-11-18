@@ -59,7 +59,7 @@ with DAG(
 
         try:
             # Defina o código SQL para criar a tabela
-            sql_script = vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            sql_script = vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
             # Conecte-se ao PostgreSQL e execute o script
             # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
