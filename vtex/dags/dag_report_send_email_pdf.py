@@ -62,7 +62,7 @@ def update_report_pg(report_id,listaemail,iserro):
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook3 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook3 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
             UPDATE public.reports_report
             SET updated_at =  %s,
@@ -127,7 +127,7 @@ with DAG(
         
        
               # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = f"""
  
             select distinct 
@@ -173,7 +173,7 @@ with DAG(
             integration_id = kwargs["params"]["PGSCHEMA"]
       
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = f"""
  
             select distinct 

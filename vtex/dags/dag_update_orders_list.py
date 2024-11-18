@@ -86,7 +86,7 @@ with DAG(
             WHERE id = %s;
             """
             # Initialize the PostgresHook
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
 
             # Execute the query with parameters
             hook2.run(query, parameters=(datetime.now(), PGSCHEMA))

@@ -73,7 +73,7 @@ with DAG(
             integration_id = kwargs["params"]["PGSCHEMA"]
       
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = f"""
             SELECT DISTINCT us.username,te."name"  as nameteam
             FROM integrations_integration ii 

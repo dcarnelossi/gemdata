@@ -52,7 +52,7 @@ with DAG(
     def get_integration_ids():
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
                      
                 select id from public.integrations_integration

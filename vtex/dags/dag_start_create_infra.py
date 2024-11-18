@@ -31,7 +31,7 @@ with DAG(
     def get_integration_id(**context):
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
             select distinct id from public.integrations_integration
             where is_active = true 

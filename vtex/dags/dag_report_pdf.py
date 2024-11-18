@@ -39,7 +39,7 @@ def get_informacao_pg(integration_id,canal,celular,email):
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             
             if canal != 'whatsapp':
                 query = f"""
@@ -132,7 +132,7 @@ def insert_report_pg(report_id,integration_id,tiporela,canal,infos_user,dag_run_
 
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
             INSERT INTO public.reports_report
             (created_at,updated_at, id,channel,"name", "type", dag, dag_started_at, dag_run_id, dag_last_status, integration_id, team_id, user_id)
@@ -166,7 +166,7 @@ def update_report_pg(report_id,integration_id,filename,canal,iserro):
 
         
             # Conecte-se ao PostgreSQL e execute o script
-            hook3 = PostgresHook(postgres_conn_id="appgemdata-dev")
+            hook3 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
             UPDATE public.reports_report
             SET updated_at =  %s,

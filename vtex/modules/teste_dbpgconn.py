@@ -13,7 +13,7 @@ class PostgresConnection:
 
         self.host = os.getenv(f"DATA_PGHOST")
         self.port = os.getenv("DATA_PGPORT")
-        if(connection_info== "appgemdata-dev"): 
+        if(connection_info== "appgemdata-pgserver-prod"): 
             self.database = os.getenv(f"CORP_DATA_PGDATABASE")
         else:
             self.database = os.getenv(f"CLIENT_DATA_PGDATABASE")
