@@ -87,7 +87,7 @@ with DAG(
             where is_change = true;
             """
             # Initialize the PostgresHook
-            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+            hook = PostgresHook(postgres_conn_id="integrations-data-prod")
 
             # Execute the query with parameters
             hook.run(query)
