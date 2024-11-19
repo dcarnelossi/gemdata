@@ -386,11 +386,11 @@ def grafico_mapa(diretorio,nm_imagem,titulografico,dataframe,abreviacao):
     # open_sans = FontProperties(fname=font_path)
     # plt.rcParams['font.family'] = open_sans.get_family()
     try:
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.shx") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.cpg",f"{diretorio}/BR_UF_2022.cpg") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.dbf",f"{diretorio}/BR_UF_2022.dbf") 
-        ExecuteBlob().get_file("appgemdata","arquivos-sistemicos/BR_UF_2022.prj",f"{diretorio}/BR_UF_2022.prj") 
+        ExecuteBlob().get_file("appgemdata-prod","arquivos-sistemicos/BR_UF_2022.shp",f"{diretorio}/BR_UF_2022.shp") 
+        ExecuteBlob().get_file("appgemdata-prod","arquivos-sistemicos/BR_UF_2022.shx",f"{diretorio}/BR_UF_2022.shx") 
+        ExecuteBlob().get_file("appgemdata-prod","arquivos-sistemicos/BR_UF_2022.cpg",f"{diretorio}/BR_UF_2022.cpg") 
+        ExecuteBlob().get_file("appgemdata-prod","arquivos-sistemicos/BR_UF_2022.dbf",f"{diretorio}/BR_UF_2022.dbf") 
+        ExecuteBlob().get_file("appgemdata-prod","arquivos-sistemicos/BR_UF_2022.prj",f"{diretorio}/BR_UF_2022.prj") 
     except Exception as e:
         print(f"Erro ao puxar o mapa{e}")
           
@@ -1085,12 +1085,12 @@ def get_logo(logo,celular, diretorio):
 
     if(logo == ""):
         extensao = '.png'
-        ExecuteBlob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
+        ExecuteBlob().get_file("appgemdata-prod","teams-pictures/Logo_GD_preto.png",f"{diretorio}/logo_{celular}{extensao}") 
        
     else:   
             start_index = logo.rfind(".")
             extensao = logo[start_index:] 
-            ExecuteBlob().get_file("appgemdata",logo,f"{diretorio}/logo_{celular}{extensao}") 
+            ExecuteBlob().get_file("appgemdata-prod",logo,f"{diretorio}/logo_{celular}{extensao}") 
        
     return extensao
 

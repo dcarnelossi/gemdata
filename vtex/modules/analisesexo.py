@@ -57,7 +57,7 @@ def prever_sexo(nome, model, vectorizer):
 def get_base_sexo_treino():
     
     try:
-        execute_blob().get_file("appgemdata","teams-pictures/Logo_GD_preto.png","./relatorio_semanal/logo_"+celular+extensao) 
+        execute_blob().get_file("appgemdata-prod","teams-pictures/Logo_GD_preto.png","./relatorio_semanal/logo_"+celular+extensao) 
     
     except Exception as e:
         logging.error(f"erro ao pegar a base de sexo para treino {e}")
