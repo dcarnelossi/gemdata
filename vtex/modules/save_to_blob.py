@@ -4,7 +4,7 @@ from azure.storage.blob import BlobServiceClient
 class ExecuteBlob:
     def __init__(self):
         # Obter a conexão cadastrada no Airflow
-        connection = BaseHook.get_connection('Blob_Store_Geral')
+        connection = BaseHook.get_connection('azure_blob_storage_json')
 
         # Obter a connection string da conexão cadastrada
         connection_string = connection.extra_dejson.get('connection_string')
