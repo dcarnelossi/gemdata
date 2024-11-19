@@ -142,6 +142,82 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
                 
        
+                DO $$
+                BEGIN
+                   
+                    IF EXISTS (
+                        SELECT 1
+                        FROM pg_catalog.pg_tables
+                        WHERE schemaname = '{schema}'
+                        AND tablename = 'orders_ia_forecast'
+                    ) THEN
+                        RAISE NOTICE 'A tabela forecast já existe. Código não será executado.';
+                    else
+                        CREATE TABLE "{schema}".orders_ia_forecast (
+                                creationdateforecast timestamp NOT NULL,
+                                predicted_revenue numeric NOT NULL,
+                                CONSTRAINT constraint_orders_forecast UNIQUE (creationdateforecast)
+                        );
+                        
+                                
+                        DROP TABLE IF EXISTS realforecast;
+                        CREATE TEMP TABLE realforecast AS (
+                            SELECT 
+                                creationdate::date AS creationdate,
+                                SUM(revenue) AS revenue
+                            FROM "{schema}".orders_ia
+                            GROUP BY creationdate::date
+                        );
+                        
+                        WITH faturamento_base AS (
+                            SELECT
+                                creationdate as data,
+                                revenue as faturamento,
+                                EXTRACT(DOW FROM creationdate) AS dia_semana  -- Extrai o dia da semana (0 = domingo, 6 = sábado)
+                            FROM
+                                realforecast
+                        ),
+                        ajuste_sazonal AS (
+                            SELECT
+                                dia_semana,
+                                AVG(faturamento) AS ajuste_sazonal
+                            FROM
+                                faturamento_base
+                            GROUP BY
+                                dia_semana
+                        ),
+                        datas_futuras AS (
+                            SELECT
+                                generate_series(
+                                    (SELECT MAX(data) + INTERVAL '1 day' FROM faturamento_base),
+                                    (SELECT DATE_TRUNC('month', MAX(data)) + INTERVAL '2 months' - INTERVAL '1 day' FROM faturamento_base),
+                                    '1 day'::interval
+                                ) AS data
+                        ),
+                        datas_com_sazonalidade AS (
+                            SELECT
+                                d.data,
+                                EXTRACT(DOW FROM d.data) AS dia_semana
+                            FROM
+                                datas_futuras d
+                        )
+
+                        insert into "{schema}".orders_ia_forecast
+                        SELECT
+                            dcs.data,
+                            asz.ajuste_sazonal AS faturamento_projetado
+                        FROM
+                            datas_com_sazonalidade dcs
+                        LEFT JOIN
+                            ajuste_sazonal asz
+                        ON
+                            dcs.dia_semana = asz.dia_semana
+                        ORDER BY
+                            dcs.data;
+                        
+                    END IF;
+                END $$;
+
                 
 
     """
