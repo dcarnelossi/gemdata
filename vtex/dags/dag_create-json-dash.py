@@ -89,13 +89,13 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 
             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
             ###   Verifica se o arquivo já existe
-            if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=f"{pg_schema}/{file_name}.json"):
-                wasb_hook.delete_file(container_name="jsondashboard", blob_name=f"{pg_schema}/{file_name}.json")
+            if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json"):
+                wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json")
                 
             upload_task = LocalFilesystemToWasbOperator(
                 task_id=f'upload_to_blob_grafico',
                 file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
-                container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
+                container_name='jsondashboard-prod',  # Substitua pelo nome do seu container no Azure Blob Storage
             #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
                 blob_name= f"{pg_schema}/{file_name}.json",
                 wasb_conn_id='appgemdata-storage-prod'
@@ -157,13 +157,13 @@ def upload_to_blob_directory(file_name,pg_schema):
         output_filepath = f"/tmp/{blob_name}"
 
         ###   Verifica se o arquivo já existe
-        if wasb_hook.check_for_blob(container_name="jsondashboard", blob_name=blob_name):
-            wasb_hook.delete_file(container_name="jsondashboard", blob_name=blob_name)
+        if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=blob_name):
+            wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=blob_name)
         #print(f"testando::: {output_filepath}")
         upload_task = LocalFilesystemToWasbOperator(
             task_id=f'upload_to_blob_grafico',
             file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
-            container_name='jsondashboard',  # Substitua pelo nome do seu container no Azure Blob Storage
+            container_name='jsondashboard-prod',  # Substitua pelo nome do seu container no Azure Blob Storage
         #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
             blob_name= blob_name,
             wasb_conn_id='appgemdata-storage-prod'

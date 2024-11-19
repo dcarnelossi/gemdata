@@ -129,7 +129,7 @@ def getbase(schema):
                     """
        
         
-        _, result = WriteJsonToPostgres("integrations-data-dev", query, "orders_items_ia").query()
+        _, result = WriteJsonToPostgres("integrations-pgserver-prod", query, "orders_items_ia").query()
         if not result:
             logging.warning("No skus found in the database.")
             return False
@@ -147,7 +147,7 @@ def getbase(schema):
                     """
        
         
-        _, result_pedidos = WriteJsonToPostgres("integrations-data-dev", query_pedidos, "orders_items_ia").query()
+        _, result_pedidos = WriteJsonToPostgres("integrations-pgserver-prod", query_pedidos, "orders_items_ia").query()
         if not result_pedidos:
             logging.warning("No skus found in the database.")
             return False
@@ -262,7 +262,7 @@ def getbase(schema):
                     """
        
         
-        _, tend = WriteJsonToPostgres("integrations-data-dev", query_item, "orders_items_ia").query()
+        _, tend = WriteJsonToPostgres("integrations-pgserver-prod", query_item, "orders_items_ia").query()
         if not result:
             logging.warning("Sem resultado da segunda query ")
             return False
@@ -478,10 +478,10 @@ def getbase(schema):
 
 
         
-        grafico_dispersao('./pdf_analise/positivo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao('./pdf_analise/positivo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao('./pdf_analise/negativo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
-        grafico_dispersao('./pdf_analise/negativo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        # grafico_dispersao('./pdf_analise/positivo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        # grafico_dispersao('./pdf_analise/positivo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        # grafico_dispersao('./pdf_analise/negativo_grupo1','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
+        # grafico_dispersao('./pdf_analise/negativo_grupo2','Oportunidade Produtos',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
 
 
 
@@ -649,7 +649,7 @@ def tabela_detalhada(nm_imagem,dataframe):
    
 
     # Plotting the table using matplotlib
-    fig, ax = plt.subplots(figsize=(12, len(df)*0.3))   # Adjust size according to your needs
+    fig, ax = plt.subplots(figsize=(18, 19))   # Adjust size according to your needs
     ax.axis('off')  # Hide axes
 
     # Create the table in the figure
@@ -687,16 +687,21 @@ def tabela_detalhada(nm_imagem,dataframe):
                 id_color = '#696969'  # Cor padrão
 
             # Definir o novo texto com o ID colorido e o nome em preto
+            cell.set_fontsize(12)
             cell_text = f"{id_part}-{name_part}"
             cell.set_text_props(ha='left')  # Alinhar à esquerda
             cell.get_text().set_text(cell_text)
             cell.get_text().set_color(id_color if j == 0 else 'black') 
 
+        if j == 1 and i > 0:  # faturamento 
+            cell.set_fontsize(12)
+            cell.set_text_props(color='black')
+
         if j == 2 and i > 0:  # Avaliações de Ticket Médio
-            cell.set_fontsize(14)
+            cell.set_fontsize(12)
             cell.set_text_props(color='#47346a')
         if j == 3 and i > 0:  # Avaliações de Receita Incremental
-            cell.set_fontsize(14)
+            cell.set_fontsize(12)
             cell.set_text_props(color='#0a5c0a')
         if j == 4 and i > 0:  # Avaliações de Tendência
             if '⬆️' in cell.get_text().get_text():  # Verificar se tem setas para cima
@@ -704,7 +709,7 @@ def tabela_detalhada(nm_imagem,dataframe):
             elif '⬇️' in cell.get_text().get_text():  # Verificar se tem setas para baixo
                 cell.set_text_props(color='#B2003B')
 
-            
+                  
                 
 
     table.auto_set_column_width([0,1,2,3,4])  #autoajuste para faturamento,ticket medio, receita incremental e tendencia
@@ -713,8 +718,8 @@ def tabela_detalhada(nm_imagem,dataframe):
 
     # # Display the saved image using PIL
     # image = Image.open('styled_table_image.png')
-    # image.show()
-    plt.savefig(nm_imagem, dpi=300,bbox_inches='tight', pad_inches=0)
+    #plt.show()
+    plt.savefig("teste.png", dpi=300, pad_inches=0)
 
 
 
@@ -812,7 +817,7 @@ def gerar_pdf_analise(schema):
     pdf.ln(10)
 
 
-        # Configurar a fonte
+    # Configurar a fonte
     pdf.set_font('Helvetica', '', 10)
 
     # Adicionar o texto principal
@@ -822,7 +827,7 @@ def gerar_pdf_analise(schema):
     # Inserir um espaço
     pdf.ln(215)
 
-    pdf.image(f'./pdf_analise/tabela_detalhada.png', x = 7,y= 50,w=195)
+    
 
 
   
@@ -837,5 +842,5 @@ def gerar_pdf_analise(schema):
 
 
 
-gerar_pdf_analise('2dd03eaf-cf56-4a5b-bc99-3a06b237ded8')
+getbase('2dd03eaf-cf56-4a5b-bc99-3a06b237ded8')
 

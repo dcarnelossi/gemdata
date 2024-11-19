@@ -155,7 +155,7 @@ with DAG(
 
             print(filename)
            
-            save_to_blob.ExecuteBlob().get_file("jsondashboard",f"{filename}",f"{diretorio}") 
+            save_to_blob.ExecuteBlob().get_file("jsondashboard-prod",f"{filename}",f"{diretorio}") 
             
         except Exception as e:
             update_report_pg(report_id,'erro',1)
