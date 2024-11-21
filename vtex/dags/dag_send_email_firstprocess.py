@@ -110,7 +110,7 @@ with DAG(
             )
               
             from modules import send_email
-            send_email.send_email_via_connection('tecnologia@gemdata.com.br', "gabriel.pereira.sousa@gmail.com", assunto, corpo_email,False)
+            send_email.send_email_via_connection('tecnologia@gemdata.com.br', emails_string, assunto, corpo_email,False)
             
         except Exception as e:
             logging.exception(f"Erro ao enviar o e-mail - {e}")
