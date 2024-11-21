@@ -100,9 +100,10 @@ with DAG(
     def enviar_email(lista):
         
         try:
+           
+            emails_string, nome_team = lista
             print("AQUIIII")
             print(emails_string)
-            emails_string, nome_team = lista
             assunto = f"{nome_team} - dados processados e disponíveis para acesso"
             corpo_email = (
                 f"Gostaria de informar que os dados {nome_team} foram processados com sucesso "
