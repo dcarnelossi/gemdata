@@ -89,8 +89,9 @@ with DAG(
             resultado_emails = hook.get_records(query)
             nome_team = resultado_emails[0][1]
             emails_list = [email[0] for email in resultado_emails]
-            emails_string = ", ".join(emails_list)
-            return emails_string,nome_team
+            print(emails_list)
+           # emails_string = ", ".join(emails_list)
+            return emails_list,nome_team
             
         except Exception as e:
             logging.exception(f"Erro ao achar o caminho do logo - {e}")
