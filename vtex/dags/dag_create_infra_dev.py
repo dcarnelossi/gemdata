@@ -141,7 +141,8 @@ with DAG(
 
     # Configurando a dependência entre as tarefas
     create_postgres_infra_task = create_postgres_infra()
+    choose_trigger_dag_task = choose_trigger_dag()
 
-    create_postgres_infra_task >> branch_task
-    branch_task >> [trigger_vtex_import, trigger_shopify_orders_import]
+
+    create_postgres_infra_task >> choose_trigger_dag_task >>  [trigger_vtex_import, trigger_shopify_orders_import]
 
