@@ -342,7 +342,7 @@ def process_orders_lists(start_date, end_date,minimum_date):
     try:
         data_inicial, data_final = validate_and_convert_dates(start_date, end_date)
 
-        minimum_date= datetime.strptime(minimum_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        minimum_date = datetime.strptime(minimum_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
         print(minimum_date)
         while data_inicial < data_final:
 
