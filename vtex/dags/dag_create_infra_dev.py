@@ -128,7 +128,7 @@ with DAG(
     # Trigger para Shopify
     trigger_shopify_orders_import = TriggerDagRunOperator(
         task_id="trigger_shopify_orders_import",
-        trigger_dag_id="1-Orders-Shopify",
+        trigger_dag_id="shopify-1-Orders",
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}",

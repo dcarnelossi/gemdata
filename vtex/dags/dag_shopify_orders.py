@@ -39,7 +39,7 @@ default_args = {
 
 
 with DAG(
-    "1-Orders-Shopify",
+    "shopify-1-Orders",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
