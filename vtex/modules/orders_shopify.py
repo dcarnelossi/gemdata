@@ -20,25 +20,6 @@ data_conection_info = None
 coorp_conection_info = None
 
 
-
-
-# def get_orders_list_pages(query_params):
-#     try:
-#         return make_request(
-#             api_conection_info["Domain"],
-#             "soprata.myshopify.com",
-#             "GET",
-#             "admin/api/2024-10/graphql.json",
-#           #  params=query_params,
-#             json={'query': query_params},
-#             #headers=api_conection_info["headers"],
-#             headers = headers
-#         )
-#     except Exception as e:
-#         logging.error(f"Failed to retrieve orders list pages: {e}")
-#         raise  # Rethrow the exception to signal the Airflow task failure
-
-
 def get_orders_list_pages(query_params):
     try:
         return make_request(

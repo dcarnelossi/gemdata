@@ -32,7 +32,7 @@ with DAG(
         def get_integration_id():
             try:
                 # Conecte-se ao PostgreSQL e execute o script
-                hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+                hook = PostgresHook(postgres_conn_id="appgemdata-homol")
                 query = """
                 SELECT DISTINCT id, hosting 
                 FROM public.integrations_integration
@@ -103,7 +103,7 @@ with DAG(
     # def get_integration_id(**context):
     #     try:
     #         # Conecte-se ao PostgreSQL e execute o script
-    #         hook = PostgresHook(postgres_conn_id="appgemdata-dev")
+    #         hook = PostgresHook(postgres_conn_id="appgemdata-homol")
     #         query = """
     #         select distinct id,hosting from public.integrations_integration
     #         where is_active = true 

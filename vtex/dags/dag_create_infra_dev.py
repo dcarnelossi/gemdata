@@ -73,9 +73,9 @@ with DAG(
             
             # Defina o código SQL para criar a tabela
             if(HOSTING == 'vtex'):
-                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "appgemdata-dev")
+                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
             else:
-                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "appgemdata-dev")
+                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
 
            
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
@@ -88,7 +88,7 @@ with DAG(
             """
 
             # Initialize the PostgresHook
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-homol")
 
             # Execute the query with parameters
             hook2.run(query, parameters=(datetime.now(), PGSCHEMA))
