@@ -84,23 +84,23 @@ def get_api_conection_info(integration_id):
             headers = {
                 "Accept": "application/json",
                 "Content-Type": "application/json",
-                "X-VTEX-API-AppKey": api_conection_info["api_appkey"],
-                "X-VTEX-API-AppToken": api_conection_info["api_apptoken"],
+                "X-VTEX-API-AppKey": api_conection_info["vtex_api_appkey"],
+                "X-VTEX-API-AppToken": api_conection_info["vtex_api_apptoken"],
             }
 
             apicliente = {
-                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com.br",
+                "Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
                 "headers": headers,
             }
         else:
             #shopify    
             headers = {
                 "Content-Type": "application/json",
-                'X-Shopify-Access-Token': api_conection_info["api_apptoken"],
+                'X-Shopify-Access-Token': api_conection_info["vtex_api_apptoken"],
             }
 
             apicliente = {
-                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com",
+                "Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com",
                 "headers": headers,
             }
 
