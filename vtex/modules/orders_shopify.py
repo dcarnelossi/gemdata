@@ -392,6 +392,8 @@ def set_globals(api_info, data_conection, coorp_conection,start_date,end_date,mi
     global coorp_conection_info
     coorp_conection_info = coorp_conection
 
+    print(minimum_date)
+
   
     try:
         execute_process_orders(start_date,end_date, minimum_date)
