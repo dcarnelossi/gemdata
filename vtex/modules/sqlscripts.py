@@ -590,7 +590,7 @@ def shopifysqlscripts(schema, user):
     subchannelname VARCHAR(150),
     data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
     CONSTRAINT constraint_orders_shopifyorderid UNIQUE (orderid)
-    );
+    )
 
     TABLESPACE pg_default;
 
@@ -620,7 +620,7 @@ def shopifysqlscripts(schema, user):
         totaldiscountamount NUMERIC(10, 2),
         data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
     	CONSTRAINT constraint_shopify_orders_items_id UNIQUE (iditemshopify)
-    );
+    )
 
     TABLESPACE pg_default;
 
@@ -647,7 +647,7 @@ def shopifysqlscripts(schema, user):
     createdat TIMESTAMP,                  
     data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
     CONSTRAINT constraint_shopify_orders_payment_id UNIQUE (idpaymentshopify)
-        );
+        )
 
     TABLESPACE pg_default;
 
