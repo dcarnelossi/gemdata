@@ -85,8 +85,8 @@ with DAG(
 
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
             if not isdaily :
-                start_date = end_date - timedelta(days=730)
-                min_date = end_date - timedelta(days=730)
+                start_date = end_date - timedelta(days=2)
+                min_date = end_date - timedelta(days=5)
 
             else:
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)

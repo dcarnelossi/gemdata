@@ -309,7 +309,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
                         raise  # Propaga a exceção para falhar a tarefa do Airflow
 
             # Sucesso no processamento, reseta contador de tentativas
-            veri=verificar_contagem(start_date, end_date)
+            veri=verificar_contagem(start_date, end_date,minimum_date)
 
             if veri==0: 
               countloop = countloop +1
@@ -323,7 +323,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
     if countloop == 4:
       logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
       raise Exception(f"Erro ao processar pedidos após {5} tentativas. Intervalo: {start_date} a {end_date} ")  
-
+      
 
 
 
