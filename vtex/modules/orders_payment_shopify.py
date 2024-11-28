@@ -2,14 +2,15 @@ import concurrent.futures
 import logging
 import time
 from datetime import datetime, timedelta
-import requests
-import pandas as pd
-from teste_dbpgconn import WriteJsonToPostgres
-import json
-from api_conection import make_request
 import concurrent.futures
 import logging
-from helpers import increment_one_day_shopify
+
+
+from modules.api_conection import make_request
+from modules.dbpgconn import WriteJsonToPostgres
+from modules.helpers import increment_one_day_shopify
+
+
 
 # Variáveis globais
 api_conection_info = None
