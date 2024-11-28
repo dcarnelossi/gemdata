@@ -147,7 +147,7 @@ def get_orders_query(start_date, end_date,minimum_date, cursor=None):
 def orders_count_from_db(start_date, end_date,minimum_date):
     try:
         query = f"""     select count(1) from shopify_orders so 
-                        WHERE updatedat >=  '{start_date}' and  updatedat <'{end_date} and  createdat >='{minimum_date} '
+                        WHERE updatedat >=  '{start_date}' and  updatedat <'{end_date}' and  createdat >='{minimum_date}'
      
                            """
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders")
