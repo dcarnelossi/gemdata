@@ -114,10 +114,11 @@ with DAG(
             raise ValueError("HOSTING must be 'vtex' or 'shopify'.")
 
 
+
     # Trigger para VTEX
     trigger_vtex_import = TriggerDagRunOperator(
         task_id="trigger_vtex_import",
-        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
+        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products2",
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}",
@@ -134,17 +135,10 @@ with DAG(
         },
     )
 
+    # Configurando a dependência entre as tarefas
+    create_postgres_infra_task = create_postgres_infra()
+    choose_trigger_dag_task = choose_trigger_dag()
 
-        # Configurando as tarefas
-    create_postgres_infra_task = BranchPythonOperator(
-        task_id="create_postgres_infra",
-        python_callable=create_postgres_infra,
-    )
 
-    branch_task = BranchPythonOperator(
-        task_id="choose_trigger_dag",
-        python_callable=choose_trigger_dag,
-    )
-    # Configuração de dependências
-    create_postgres_infra_task >> branch_task
-    branch_task >> [trigger_vtex_import, trigger_shopify_orders_import]
+    create_postgres_infra_task >> choose_trigger_dag_task >> [trigger_vtex_import, trigger_shopify_orders_import]
+
