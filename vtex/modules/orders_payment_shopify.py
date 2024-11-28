@@ -42,23 +42,25 @@ def get_order_transactions_query(order_id):
     """
 
 
-
-
 def get_orders_list_pages(query_params):
     try:
         return make_request(
             api_conection_info["Domain"],
-            "soprata.myshopify.com",
-            "GET",
+            "POST",
             "admin/api/2024-10/graphql.json",
-          #  params=query_params,
-            json={'query': query_params},
+            params=None,
+            headers = api_conection_info["headers"],
+            json={'query': query_params}
             #headers=api_conection_info["headers"],
-            headers = headers
+           
         )
     except Exception as e:
         logging.error(f"Failed to retrieve orders list pages: {e}")
         raise  # Rethrow the exception to signal the Airflow task failure
+
+
+    
+
 def fetch_order_transactions_list(order_id):
     """
     Busca as transações de um pedido específico e transforma os dados para inserção na tabela orders_payment.
@@ -67,12 +69,11 @@ def fetch_order_transactions_list(order_id):
 
     # Construir a consulta para as transações do pedido
     query = get_order_transactions_query(order_id)
-    response = requests.post(url, headers=headers, json={'query': query})
+    response = get_orders_list_pages(query) 
 
-    if response.status_code == 200:
-        try:
+    try:
             # Extrai os dados do GraphQL
-            response_data = response.json()
+            response_data = response
             data = response_data.get('data', {}).get('order', {})
             #print(response.json())
             if not data:
@@ -101,13 +102,10 @@ def fetch_order_transactions_list(order_id):
                 }
                 transactions.append(transformed_transaction)
 
-        except Exception as e:
+    except Exception as e:
             logging.error(f"Erro ao processar transações do pedido {order_id}: {str(e)}")
             raise
-    else:
-        logging.error(f"Erro na requisição: {response.status_code} - {response.text}")
-        raise Exception(f"Erro ao buscar transações do pedido {order_id}")
-
+    
     # Retorna a lista de transações no formato esperado
     return {"list": transactions}
 
@@ -118,19 +116,19 @@ def get_orders_ids_from_db(start_date=None):
           #  print(start_date)
             query = f"""    
             select so.orderid  
-            from "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders so
+            from shopify_orders so
             where updatedat >= '{start_date}' ;
             """
         else:
             query = f"""    
                 select  so.orderid
-                FROM "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders so
-                LEFT JOIN "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders_payment oi
+                FROM shopify_orders so
+                LEFT JOIN shopify_orders_payment oi
                 ON  oi.orderid = so.orderid
                 where oi.orderid is null 
                 """ 
         
-        result = WriteJsonToPostgres(data_conection_info, query, f""""e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders_payment""")
+        result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders_payment")
         result = result.query()
         return result
 
@@ -148,8 +146,6 @@ def process_orders(start_date):
         if not orders_ids[0]:
                 logging.info("Nenhum item para ser processado")
                 return
-
-
 
         veri=[]
         countloop = 0  # Número máximo de tentativas
@@ -221,15 +217,15 @@ def process_order_item_save(order):
         # Salvar dados no PostgreSQL ou em arquivo
         if not isdaily:
             writer = WriteJsonToPostgres(
-                "integrations-data-prod", 
+                data_conection_info, 
                 order,  # Encapsular os dados em um objeto JSON
-                f""""e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders_payment""", 
+                "shopify_orders_payment", 
                 "idpaymentshopify"
             )
         # else:
         #     writer = WriteJsonToPostgres(data_conection_info, orders_data, "orders_list_daily", "id")
 
-        writer.upsert_data()
+        writer.upsert_data(isdatainsercao=1)
         logging.info(f"Order {order['idpaymentshopify']} upserted successfully.")
     
     except Exception as e:
@@ -263,3 +259,18 @@ def execute_process_orders(data_inicial):
         logging.info(f"Tempo total de execução: {time.time() - start_time:.2f} segundos.")
 
 
+def set_globals(api_info, data_conection, coorp_conection,start_date,**kwargs):
+    global api_conection_info
+    api_conection_info = api_info
+
+    global data_conection_info
+    data_conection_info = data_conection
+
+    global coorp_conection_info
+    coorp_conection_info = coorp_conection
+
+  
+    try:
+        execute_process_orders(start_date)
+    except Exception as e:
+        raise e
