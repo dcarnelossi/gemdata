@@ -110,18 +110,20 @@ with DAG(
             raise e
     
         
-    trigger_dag_update_orders_list = TriggerDagRunOperator(
+    trigger_dag_orders_item_shopy = TriggerDagRunOperator(
         task_id="trigger_dag_orders_items_shopify",
-        trigger_dag_id="2-Orders-items-shopify",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="shopify-2-Orders-items",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
+             "ISDAILY": "{{ params.ISDAILY }}",
+
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     try:
-        orders_list_task = orders_shopify()
+        orders_task = orders_shopify()
 
 
-        orders_list_task >>  trigger_dag_update_orders_list 
+        orders_task >>  trigger_dag_orders_item_shopy 
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")

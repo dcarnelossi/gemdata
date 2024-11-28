@@ -1,21 +1,41 @@
 import concurrent.futures
 import logging
 import time
-from datetime import datetime, timedelta
-import requests
-import pandas as pd
-from teste_dbpgconn import WriteJsonToPostgres
-import json
-from api_conection import make_request
+from datetime import datetime
 import concurrent.futures
 import logging
-from helpers import increment_one_day_shopify
+
+
+from modules.api_conection import make_request
+from modules.dbpgconn import WriteJsonToPostgres
+from modules.helpers import increment_one_day_shopify
+
 
 # Variáveis globais
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 isdaily = None
+
+
+
+
+def get_orders_list_pages(query_params):
+    try:
+        return make_request(
+            api_conection_info["Domain"],
+            "POST",
+            "admin/api/2024-10/graphql.json",
+            params=None,
+            headers = api_conection_info["headers"],
+            json={'query': query_params}
+            #headers=api_conection_info["headers"],
+           
+        )
+    except Exception as e:
+        logging.error(f"Failed to retrieve orders list pages: {e}")
+        raise  # Rethrow the exception to signal the Airflow task failure
+
 
 # Função para construir a consulta GraphQL para itens do pedido
 def get_order_line_items_query(order_id, cursor=None):
@@ -69,21 +89,6 @@ def get_order_line_items_query(order_id, cursor=None):
 
 
 
-def get_orders_list_pages(query_params):
-    try:
-        return make_request(
-            api_conection_info["Domain"],
-            "soprata.myshopify.com",
-            "GET",
-            "admin/api/2024-10/graphql.json",
-          #  params=query_params,
-            json={'query': query_params},
-            #headers=api_conection_info["headers"],
-            headers = headers
-        )
-    except Exception as e:
-        logging.error(f"Failed to retrieve orders list pages: {e}")
-        raise  # Rethrow the exception to signal the Airflow task failure
 
 def fetch_order_items_list(order_id):
     """
@@ -95,12 +100,12 @@ def fetch_order_items_list(order_id):
 
     while has_next_page:
         # Construir a consulta para os itens do pedido
-        query = get_order_line_items_query(order_id, cursor)
-        response = requests.post(url, headers=headers, json={'query': query})
+            query = get_order_line_items_query(order_id, cursor)
+            response = get_orders_list_pages(query) 
         
-        if response.status_code == 200:
+       
             # Extrai os dados do GraphQL
-            data = response.json().get('data', {}).get('order', {})
+            data = response.get('data', {}).get('order', {})
             
             if not data:
                 logging.warning(f"Nenhum dado encontrado para o pedido {order_id}")
@@ -149,9 +154,7 @@ def fetch_order_items_list(order_id):
             # Controle de paginação
             has_next_page = data.get('lineItems', {}).get('pageInfo', {}).get('hasNextPage', False)
             cursor = data.get('lineItems', {}).get('pageInfo', {}).get('endCursor', None)
-        else:
-            logging.error(f"Erro na requisição: {response.status_code} - {response.text}")
-            raise Exception(f"Erro ao buscar itens do pedido {order_id}")
+        
 
     # Retorna a lista de itens no formato esperado
     return {"list": items}
@@ -163,21 +166,21 @@ def get_orders_ids_from_db(start_date=None):
           #  print(start_date)
             query = f"""    
             select so.orderid  
-            from "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders so
+            from shopify_orders so
             where updatedat >= '{start_date}' ;
             """
         else:
             query = f"""    
                 select  so.orderid
-                FROM "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders so
-                LEFT JOIN "e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders_items oi
+                FROM shopify_orders so
+                LEFT JOIN shopify_orders_items oi
                 ON  oi.orderid = so.orderid
                 where cancelreason is null and so.currentsubtotalprice <>0
                 GROUP BY so.orderid
                 HAVING max(so.currentsubtotalprice +so.currenttotaldiscounts  ) <> COALESCE(SUM(oi.originalunitprice*oi.quantity),0.00);  
                 """ 
         
-        result = WriteJsonToPostgres(data_conection_info, query, f""""e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders""")
+        result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders" )
         result = result.query()
         return result
 
@@ -264,15 +267,15 @@ def process_order_item_save(order):
         # Salvar dados no PostgreSQL ou em arquivo
         if not isdaily:
             writer = WriteJsonToPostgres(
-                "integrations-data-prod", 
+                data_conection_info, 
                 order,  # Encapsular os dados em um objeto JSON
-                f""""e7217b31-b471-4d59-957b-fb06b1e9f8fd".shopify_orders_items""", 
+                "shopify_orders_items", 
                 "iditemshopify"
             )
         # else:
         #     writer = WriteJsonToPostgres(data_conection_info, orders_data, "orders_list_daily", "id")
 
-        writer.upsert_data()
+        writer.upsert_data(isdatainsercao=1)
         logging.info(f"Order{order['orderid']} - item: {order['iditemshopify']} upserted successfully.")
     
     except Exception as e:
@@ -304,3 +307,20 @@ def execute_process_orders(data_inicial):
         raise
     finally:
         logging.info(f"Tempo total de execução: {time.time() - start_time:.2f} segundos.")
+
+
+def set_globals(api_info, data_conection, coorp_conection,start_date,**kwargs):
+    global api_conection_info
+    api_conection_info = api_info
+
+    global data_conection_info
+    data_conection_info = data_conection
+
+    global coorp_conection_info
+    coorp_conection_info = coorp_conection
+
+  
+    try:
+        execute_process_orders(start_date)
+    except Exception as e:
+        raise e
