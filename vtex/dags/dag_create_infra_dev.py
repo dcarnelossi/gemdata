@@ -115,7 +115,6 @@ with DAG(
     branch_task = BranchPythonOperator(
         task_id="branch_based_on_hosting",
         python_callable=choose_trigger_dag,
-        provide_context=True,
     )
 
     # Trigger para VTEX
