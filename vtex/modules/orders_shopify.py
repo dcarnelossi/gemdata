@@ -341,8 +341,8 @@ def validate_and_convert_dates(start_date, end_date):
 def process_orders_lists(start_date, end_date,minimum_date):
     try:
         data_inicial, data_final = validate_and_convert_dates(start_date, end_date)
-
-        minimum_date = datetime.strptime(minimum_date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        min_date = (minimum_date.replace(hour=00, minute=00, second=00, microsecond=000000)).strftime(
+        "%Y-%m-%dT%H:%M:%S.%fZ")
         print(minimum_date)
         while data_inicial < data_final:
 
@@ -351,7 +351,7 @@ def process_orders_lists(start_date, end_date,minimum_date):
             
            
             logging.info(f"Processing orders from {start_date} to {end_date}.")
-            process_orders_and_save(start_date, end_date,minimum_date)
+            process_orders_and_save(start_date, end_date,min_date)
             data_inicial += timedelta(days=1)
 
     except Exception as e:
