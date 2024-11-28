@@ -104,6 +104,8 @@ with DAG(
     @task(provide_context=True)
     def choose_trigger_dag(**kwargs):
         hosting = kwargs["params"]["HOSTING"]
+          # Adicione o log aqui
+        logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
         if hosting.lower() == "vtex":
             return "trigger_vtex_import"
         elif hosting.lower() == "shopify":
