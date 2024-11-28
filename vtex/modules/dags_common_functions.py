@@ -8,11 +8,11 @@ from modules.dbpgconn import WriteJsonToPostgres
 
 def get_coorp_conection_info():
     coorp_conection_info = {
-        "host": Variable.get("DEV_COORP_PGHOST"),
-        "user": Variable.get("DEV_COORP_PGUSER"),
+        "host": Variable.get("COORP_PGHOST"),
+        "user": Variable.get("COORP_PGUSER"),
         "port": 5432,
-        "database": Variable.get("DEV_COORP_PGDATABASE"),
-        "password": Variable.get("DEV_COORP_PGPASSWORD"),
+        "database": Variable.get("COORP_PGDATABASE"),
+        "password": Variable.get("COORP_PGPASSWORD"),
         "schema": "public",
     }
 
@@ -21,11 +21,11 @@ def get_coorp_conection_info():
 
 def get_data_conection_info(integration_id):
     data_conection_info = {
-        "host": Variable.get("DEV_DATA_PGHOST"),
-        "user": Variable.get("DEV_DATA_PGUSER"),
+        "host": Variable.get("DATA_PGHOST"),
+        "user": Variable.get("DATA_PGUSER"),
         "port": 5432,
-        "database": Variable.get("DEV_DATA_PGDATABASE"),
-        "password": Variable.get("DEV_DATA_PGPASSWORD"),
+        "database": Variable.get("DATA_PGDATABASE"),
+        "password": Variable.get("DATA_PGPASSWORD"),
         "schema": integration_id,
     }
 

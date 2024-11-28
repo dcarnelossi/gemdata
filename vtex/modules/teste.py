@@ -26,7 +26,7 @@ def get_orders_ids_from_db():
 
 def get_order_by_id(orderId):
     return make_request(
-        api_conection_info["VTEX_Domain"],
+        api_conection_info["Domain"],
         "GET",
         f"api/oms/pvt/orders/{orderId[0]}",
         params=None,
