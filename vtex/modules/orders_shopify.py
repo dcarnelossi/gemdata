@@ -341,9 +341,10 @@ def validate_and_convert_dates(start_date, end_date):
 def process_orders_lists(start_date, end_date,minimum_date):
     try:
         data_inicial, data_final = validate_and_convert_dates(start_date, end_date)
+        minimum_date = datetime.strptime(minimum_date, "%Y-%m-%dT%H:%M:%S.%fZ")
         min_date = (minimum_date.replace(hour=00, minute=00, second=00, microsecond=000000)).strftime(
         "%Y-%m-%dT%H:%M:%S.%fZ")
-        print(minimum_date)
+        print(f"o minimo da data é :{minimum_date}")
         while data_inicial < data_final:
 
             start_date, end_date = increment_one_day_shopify(data_inicial)
