@@ -43,12 +43,12 @@ with DAG(
                 print("Nenhuma integração para criar infraestrutura")
                 return None
 
-            integration_id = integration_ids[0][0]
-            hosting = integration_ids[0][1]
+            integration_id = integration_ids[0]
+            #hosting = integration_ids[0][1]
             print(f"Iniciando criação de infraestrutura para integração: {integration_id} do hosting {hosting}")
             
            
-            return integration_id,hosting
+            return integration_id #,hosting
 
         except Exception as e:
             logging.exception(
@@ -73,19 +73,19 @@ with DAG(
             },
         ).execute(context=context)
 
-    integration_id,hosting = get_integration_id()
+    integration_id = get_integration_id()
 
     next_step = BranchPythonOperator(
         task_id="check_integration_id",
         python_callable=choose_next_step,
-        op_args=[integration_id],
+        op_args=[integration_id[0][0]],
         provide_context=True,
     )
 
     trigger_dag = PythonOperator(
         task_id="trigger_dag_crete_infra",
         python_callable=trigger_dag_run,
-        op_args=[integration_id,hosting],
+        op_args=[integration_id[0][0],integration_id[0][1]],
         provide_context=True,
     )
 
