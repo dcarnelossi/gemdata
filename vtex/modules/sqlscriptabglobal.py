@@ -212,6 +212,207 @@ def vtexsqlscriptscreatetabglobal(schema):
     # print(scripts)
     return scripts
 
+
+def shopifysqlscriptscreatetabglobal(schema):
+    scripts = f"""
+            	DROP TABLE IF EXISTS orderspayment;
+                CREATE TEMPORARY TABLE orderspayment as	
+                SELECT DISTINCT ON (orderid) orderid, gateway
+				FROM "{schema}".shopify_orders_payment
+				ORDER BY orderid, amount DESC;
+				
+				DROP TABLE IF EXISTS ordersfretegratis;
+                CREATE TEMPORARY TABLE ordersfretegratis as
+                select distinct  so.orderid,case when cast(so.totalshippingprice as numeric) =0 then  'true' else  'false' end  isFreeShipping  
+                from  "{schema}".shopify_orders so  ;  
+
+                DROP TABLE IF EXISTS "{schema}".orders_items_ia;
+                create TABLE "{schema}".orders_items_ia
+                as
+                select 
+                date_trunc('hour',so.createdat AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate ,
+                so.orderid,
+                --tem mas é diferente do vtex
+                coalesce( substring(si.title FROM '- ([0-9]+)$'),'999999') as idprod ,
+                LOWER(coalesce(si.title,'Não informado')) as namesku,
+                --não tem no shopify
+                coalesce(null,'999999') as idcat,
+                LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END) as namecategory,
+                0 as tax,
+                0 as taxcode,
+                cast(1 as float) as quantityorder,
+                cast(si.quantity as float) as quantityitems ,
+                cast(si.originalunitprice as float) as price,
+                cast(si.originalunitprice as float)  as costprice,
+                cast(si.originalunitprice as float) as listprice,
+                cast(0.00 as float)/100 as commission,
+                --cast(oi.shippingprice as numeric)/100 as shippingprice,
+                cast(cast(si.originalunitprice as float) - cast(si.totaldiscountamount as float) as float) as sellingprice,
+                cast(si.totaldiscountamount as float)  as totaldiscounts,
+                cast((cast(cast(si.originalunitprice as float)*cast(si.quantity as float) as float)) - cast(si.totaldiscountamount as float) as float)  as revenue_without_shipping ,
+                false as isgift,
+                LOWER(coalesce(so.shippingcity,so.billingcity)) as selectedaddresses_0_city,
+                LOWER(coalesce(so.shippingprovincecode,so.billingprovincecode)) as selectedaddresses_0_state,
+                LOWER(coalesce(so.shippingcountrycode,so.billingcountrycode)) as selectedaddresses_0_country,
+                so.email as userprofileid,
+                coalesce(LOWER(op.gateway),'nao informado') as paymentnames,
+                --,oi.saleschannel as saleschannel
+                LOWER(so.displayfinancialstatus) as statusdescription,
+                LOWER(coalesce(so.channelname,'nao informado')) as origin,
+                fg.isFreeShipping,
+                (cast(so.totalprice as float))-(cast(so.totalshippingprice as float)) as revenue_orders_out_ship
+
+
+                from "{schema}".shopify_orders_items si 
+
+                inner join "{schema}".shopify_orders so  on 
+                so.orderid = si.orderid
+				
+                left join orderspayment op on 
+                op.orderid = so.orderid
+               
+
+                left join ordersfretegratis fg 
+                on fg.orderid = si.orderid
+
+     
+               where 
+                LOWER(so.displayfinancialstatus)  in  ('paid') and so.cancelledat is null;
+
+
+               --COMECANDO AQUI 
+               --------------------------------------------------------------------------------
+                DROP TABLE IF EXISTS qtditemorder;
+                CREATE TEMPORARY TABLE qtditemorder as
+                select oi.orderid, sum(cast(oi.quantity as numeric)) as quantityitems  
+                from "{schema}".shopify_orders_items  oi 
+                group by orderid;
+
+
+                DROP TABLE IF EXISTS "{schema}".orders_ia;
+
+                create table "{schema}".orders_ia
+                as
+                select 
+                date_trunc('hour',o.createdat AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate  
+                ,o.orderid as orderid
+                ,LOWER('NAO INFORMADO') as origin
+                ,LOWER(coalesce(o.channelname,'nao informado')) as saleschannel
+                ,LOWER(o.displayfinancialstatus) as statusdescription
+                ,cast(qt.quantityitems as float) as quantityitems
+                ,cast(1 as float) as quantityorder
+                --,cast(o.items as float) as itemsPriceDar 
+                ,cast(o.currenttotaldiscounts as float) as DiscountsPrice
+                ,cast(o.totalshippingprice as float) as ShippingPrice
+                ,cast(o.totaltax as float) as tax
+                ,cast(o.totalprice as float)  as revenue
+                ,(cast(o.totalprice as float))-(cast(o.totalshippingprice as float))   as revenue_without_shipping
+                --IMPORTANTE 
+                ,coalesce(LOWER(op.gateway),'nao informado') as paymentnames
+                ,LOWER(coalesce(o.shippingcity,o.billingcity)) as selectedaddresses_0_city
+                ,LOWER(coalesce(o.shippingprovincecode,o.billingprovincecode)) as selectedaddresses_0_state
+                ,LOWER(coalesce(o.shippingcountrycode,o.billingcountrycode)) as selectedaddresses_0_country
+                ,o.email as userprofileid
+                ,case when cast(o.totalshippingprice as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
+                ,case when cast(o.totalshippingprice as numeric) =0 then  'true' else  'false' end  isFreeShipping 
+                ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
+
+
+                from "{schema}".shopify_orders o
+                
+                left join orderspayment op on 
+                op.orderid = o.orderid
+               
+                left join qtditemorder qt on 
+                qt.orderid = o.orderid
+
+                where 
+                LOWER(o.displayfinancialstatus)  in  ('paid') and o.cancelledat is null;
+
+               
+                DO $$
+                BEGIN
+                   
+                    IF EXISTS (
+                        SELECT 1
+                        FROM pg_catalog.pg_tables
+                        WHERE schemaname = '{schema}'
+                        AND tablename = 'orders_ia_forecast'
+                    ) THEN
+                        RAISE NOTICE 'A tabela forecast já existe. Código não será executado.';
+                    else
+                        CREATE TABLE "{schema}".orders_ia_forecast (
+                                creationdateforecast timestamp NOT NULL,
+                                predicted_revenue numeric NOT NULL,
+                                CONSTRAINT constraint_orders_forecast UNIQUE (creationdateforecast)
+                        );
+                        
+                                
+                        DROP TABLE IF EXISTS realforecast;
+                        CREATE TEMP TABLE realforecast AS (
+                            SELECT 
+                                creationdate::date AS creationdate,
+                                SUM(revenue) AS revenue
+                            FROM "{schema}".orders_ia
+                            GROUP BY creationdate::date
+                        );
+                        
+                        WITH faturamento_base AS (
+                            SELECT
+                                creationdate as data,
+                                revenue as faturamento,
+                                EXTRACT(DOW FROM creationdate) AS dia_semana  -- Extrai o dia da semana (0 = domingo, 6 = sábado)
+                            FROM
+                                realforecast
+                        ),
+                        ajuste_sazonal AS (
+                            SELECT
+                                dia_semana,
+                                AVG(faturamento) AS ajuste_sazonal
+                            FROM
+                                faturamento_base
+                            GROUP BY
+                                dia_semana
+                        ),
+                        datas_futuras AS (
+                            SELECT
+                                generate_series(
+                                    (SELECT MAX(data) + INTERVAL '1 day' FROM faturamento_base),
+                                    (SELECT DATE_TRUNC('month', MAX(data)) + INTERVAL '2 months' - INTERVAL '1 day' FROM faturamento_base),
+                                    '1 day'::interval
+                                ) AS data
+                        ),
+                        datas_com_sazonalidade AS (
+                            SELECT
+                                d.data,
+                                EXTRACT(DOW FROM d.data) AS dia_semana
+                            FROM
+                                datas_futuras d
+                        )
+
+                        insert into "{schema}".orders_ia_forecast
+                        SELECT
+                            dcs.data,
+                            asz.ajuste_sazonal AS faturamento_projetado
+                        FROM
+                            datas_com_sazonalidade dcs
+                        LEFT JOIN
+                            ajuste_sazonal asz
+                        ON
+                            dcs.dia_semana = asz.dia_semana
+                        ORDER BY
+                            dcs.data;
+                        
+                    END IF;
+                END $$;
+    
+                 
+
+
+    """
+    # print(scripts)
+    return scripts
+
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:
 #         text_file.write(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))

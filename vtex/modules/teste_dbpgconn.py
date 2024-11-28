@@ -281,7 +281,7 @@ class WriteJsonToPostgres:
             with self.connection.connect().cursor() as cursor:
                 columns = self.data.keys()
 
-                print(columns)
+              #  print(columns)
 
                 # Convert values to JSON for dictionary and list types
                 data_values = [
@@ -289,10 +289,10 @@ class WriteJsonToPostgres:
                     for value in self.data.values()
                 ]
 
-                print(data_values)
+               # print(data_values)
 
-                print(self.tablename)
-                print(self.table_key)
+               # print(self.tablename)
+               # print(self.table_key)
                                
                     
                 # Construct the UPSERT query using INSERT...ON CONFLICT
@@ -304,12 +304,12 @@ class WriteJsonToPostgres:
                     RETURNING {self.table_key}
                 """
 
-                print(upsert_query)
+              #  print(upsert_query)
                 # Use mogrify to safely substitute the values into the query
                 upsert_query = cursor.mogrify(
                     upsert_query, (tuple(data_values), tuple(data_values))
                 )
-                print(upsert_query)
+               # print(upsert_query)
                 # print("Upsert Query:", upsert_query.decode())
 
                 # Execute the UPSERT query and fetch the id

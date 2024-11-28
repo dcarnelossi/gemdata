@@ -8,11 +8,11 @@ from modules.dbpgconn import WriteJsonToPostgres
 
 def get_coorp_conection_info():
     coorp_conection_info = {
-        "host": Variable.get("COORP_PGHOST"),
-        "user": Variable.get("COORP_PGUSER"),
+        "host": Variable.get("DEV_COORP_PGHOST"),
+        "user": Variable.get("DEV_COORP_PGUSER"),
         "port": 5432,
-        "database": Variable.get("COORP_PGDATABASE"),
-        "password": Variable.get("COORP_PGPASSWORD"),
+        "database": Variable.get("DEV_COORP_PGDATABASE"),
+        "password": Variable.get("DEV_COORP_PGPASSWORD"),
         "schema": "public",
     }
 
@@ -21,11 +21,11 @@ def get_coorp_conection_info():
 
 def get_data_conection_info(integration_id):
     data_conection_info = {
-        "host": Variable.get("DATA_PGHOST"),
-        "user": Variable.get("DATA_PGUSER"),
+        "host": Variable.get("DEV_DATA_PGHOST"),
+        "user": Variable.get("DEV_DATA_PGUSER"),
         "port": 5432,
-        "database": Variable.get("DATA_PGDATABASE"),
-        "password": Variable.get("DATA_PGPASSWORD"),
+        "database": Variable.get("DEV_DATA_PGDATABASE"),
+        "password": Variable.get("DEV_DATA_PGPASSWORD"),
         "schema": integration_id,
     }
 
@@ -80,20 +80,32 @@ def get_api_conection_info(integration_id):
 
         print(api_conection_info)
         # VTEX_API_AppKey = api_conection_info['vtex_api_appkey']
+        if(api_conection_info["hosting"]=='vtex'):
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-VTEX-API-AppKey": api_conection_info["api_appkey"],
+                "X-VTEX-API-AppToken": api_conection_info["api_apptoken"],
+            }
 
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "X-VTEX-API-AppKey": api_conection_info["vtex_api_appkey"],
-            "X-VTEX-API-AppToken": api_conection_info["vtex_api_apptoken"],
-        }
+            apicliente = {
+                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com.br",
+                "headers": headers,
+            }
+        else:
+            #shopify    
+            headers = {
+                "Content-Type": "application/json",
+                'X-Shopify-Access-Token': api_conection_info["api_apptoken"],
+            }
 
-        vtexapi = {
-            "VTEX_Domain": f"{api_conection_info['vtex_api_accountname']}.{api_conection_info['vtex_api_environment']}.com.br",
-            "headers": headers,
-        }
+            apicliente = {
+                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com",
+                "headers": headers,
+            }
 
-        return vtexapi
+        return apicliente
+
 
     except Exception as e:
         logging.exception(f"An unexpected error occurred during DAG - {e}")

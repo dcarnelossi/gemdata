@@ -17,7 +17,7 @@ isdaily = None
 def get_orders_list_pages(query_params):
     try:
         return make_request(
-            api_conection_info["VTEX_Domain"],
+            api_conection_info["Domain"],
             "GET",
             "api/oms/pvt/orders",
             params=query_params,

@@ -543,7 +543,130 @@ def vtexsqlscripts(schema, user):
     return scripts
 
 
-if __name__ == "__main__":
-    with open("Output.txt", "w") as text_file:
-        text_file.write(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
-        print(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
+def shopifysqlscripts(schema, user):
+    scripts = f"""
+
+    CREATE SCHEMA IF NOT EXISTS  "{schema}";
+   
+ 
+    CREATE TABLE IF NOT EXISTS  "{schema}".shopify_orders
+    (
+    id SERIAL PRIMARY key,
+    orderid bigint,
+    idshopify VARCHAR(200) , 
+    name VARCHAR(150),
+    email VARCHAR(200),
+    createdat TIMESTAMP,
+    updatedat TIMESTAMP,
+    closedat TIMESTAMP,
+    cancelledat TIMESTAMP,
+    cancelreason VARCHAR(50),
+    currencycode VARCHAR(10),
+    currentsubtotalprice NUMERIC(10, 2),
+    currenttotaldiscounts NUMERIC(10, 2),
+    currenttotalprice NUMERIC(10, 2),
+    currenttotaltax NUMERIC(10, 2),
+    customerlocale VARCHAR(30),
+    displayfinancialstatus VARCHAR(50),
+    totalweight INTEGER,
+    totalshippingprice NUMERIC(10, 2),
+    totaltax NUMERIC(10, 2),
+    totalprice NUMERIC(10, 2),
+    shippingfirstname VARCHAR(150),
+    --shippinglastname VARCHAR(255),
+   -- shippingcompany VARCHAR(50),
+    shippingcity VARCHAR(150),
+    shippingzip VARCHAR(50),
+    shippingprovincecode VARCHAR(10),
+    shippingcountrycode VARCHAR(10),
+    --billingcompany VARCHAR(50),
+    --billingaddress1 VARCHAR(50),
+    --billingaddress2 TEXT,
+    billingcity VARCHAR(100),
+    billingzip VARCHAR(50),
+    billingprovincecode VARCHAR(10),
+    billingcountrycode VARCHAR(10),
+    channelname VARCHAR(150),
+    subchannelname VARCHAR(150),
+    data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+    CONSTRAINT constraint_orders_shopifyorderid UNIQUE (orderid)
+    );
+
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS  "{schema}".shopify_orders
+        OWNER to {user};
+
+    CREATE INDEX IF NOT EXISTS idx_shopify_orders_orderid ON  "{schema}".shopify_orders USING btree (orderid);
+
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".shopify_orders_items
+    (
+    	id SERIAL PRIMARY key,
+        orderid BIGINT ,
+        iditemshopify VARCHAR(200),
+        title VARCHAR(255),
+        quantity INTEGER,
+        originalunitprice NUMERIC(10, 2),
+        originalunitcurrencycode VARCHAR(50),
+        variantid VARCHAR(255),
+        varianttitle TEXT,
+        variantsku VARCHAR(200),
+        variantprice NUMERIC(10, 2),
+        productid VARCHAR(200),
+        producttitle TEXT,
+        productvendor VARCHAR(100),
+        producttype VARCHAR(200),
+        totaldiscountamount NUMERIC(10, 2),
+        data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+    	CONSTRAINT constraint_shopify_orders_items_id UNIQUE (iditemshopify)
+    );
+
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS  "{schema}".shopify_orders_items
+        OWNER to {user};
+
+
+    CREATE INDEX idx_orders_item_combined ON "{schema}".shopify_orders_items USING btree (orderid,iditemshopify);
+  
+   
+   
+    CREATE TABLE  "{schema}".shopify_orders_payment
+    (
+	id SERIAL PRIMARY KEY,                 
+	orderid bigint, 
+	idpaymentshopify VARCHAR(255)  ,  
+	transactionid VARCHAR(255),           
+    kind VARCHAR(50),
+    paymentMethod varchar(50),                   
+    status VARCHAR(50),                    
+    amount NUMERIC(10, 2),                
+    currencycode VARCHAR(10),             
+    gateway VARCHAR(100),                  
+    createdat TIMESTAMP,                  
+    data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+    CONSTRAINT constraint_shopify_orders_payment_id UNIQUE (idpaymentshopify)
+        );
+
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS  "{schema}".shopify_orders_payment
+        OWNER to {user};
+       
+    CREATE INDEX idx_orders_payment_combined ON "{schema}".shopify_orders_payment USING btree (orderid,idpaymentshopify);
+  
+
+
+    """
+
+    return scripts
+
+
+
+
+
+# if __name__ == "__main__":
+#     with open("Output.txt", "w") as text_file:
+#         text_file.write(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
+#         print(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))

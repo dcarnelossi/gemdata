@@ -33,10 +33,12 @@ def vtex_test_conection(domain, method, path, params=None, headers=None):
 session = requests.Session()
 
 
-def make_request(domain, method, path, params=None, headers=None):
+def make_request(domain, method, path, params=None, headers=None,json=None):
     try:
+        
+        
         response = session.request(
-            method, f"https://{domain}/{path}", params=params, headers=headers
+            method, f"https://{domain}/{path}", params=params, headers=headers,json=json
         )
         # print(response)
         # print (response.json())

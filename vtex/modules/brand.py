@@ -8,7 +8,7 @@ from modules.dbpgconn import WriteJsonToPostgres
 
 def get_brands_list(api_conection_info):
     try:
-        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
+        conn = http.client.HTTPSConnection(api_conection_info["Domain"])
 
         conn.request(
             "GET",
@@ -43,7 +43,7 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
     try:
         print("brand")
 
-        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
+        conn = http.client.HTTPSConnection(api_conection_info["Domain"])
 
         conn.request(
             "GET",
@@ -111,7 +111,7 @@ def get_brands_list_parallel(api_conection_info, data_conection_info):
 
 def get_brand_id(api_conection_info, data_conection_info, brand_id):
     try:
-        conn = http.client.HTTPSConnection(api_conection_info["VTEX_Domain"])
+        conn = http.client.HTTPSConnection(api_conection_info["Domain"])
 
         conn.request(
             "GET",

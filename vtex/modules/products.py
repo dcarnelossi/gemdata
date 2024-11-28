@@ -22,7 +22,7 @@ def get_categories_id_from_db():
 def get_product_by_id(product_id):
     try:
         return make_request(
-            api_conection_info["VTEX_Domain"],
+            api_conection_info["Domain"],
             "GET",
             f"api/catalog/pvt/product/{product_id}",
             headers=api_conection_info["headers"],

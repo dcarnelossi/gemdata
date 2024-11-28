@@ -32,7 +32,7 @@ def get_products_by_category(category_id):
         query_params = {"categoryId": category_id}
 
         data = make_request(
-            api_conection_info["VTEX_Domain"],
+            api_conection_info["Domain"],
             "GET",
             "api/catalog_system/pvt/products/GetProductAndSkuIds?",
             params=query_params,
@@ -47,7 +47,7 @@ def get_product_by_id(product_id):
     try:   
   
         return make_request(
-            api_conection_info["VTEX_Domain"],
+            api_conection_info["Domain"],
             "GET",
             f"api/catalog/pvt/product/{product_id}",
             headers=api_conection_info["headers"],
