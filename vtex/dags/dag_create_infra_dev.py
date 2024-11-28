@@ -130,7 +130,7 @@ with DAG(
     )
 
     # Trigger para Shopify
-    trigger_shopify_import = TriggerDagRunOperator(
+    trigger_shopify_orders_import = TriggerDagRunOperator(
         task_id="trigger_shopify_orders_import",
         trigger_dag_id="1-Orders-Shopify",
         conf={
@@ -143,5 +143,5 @@ with DAG(
     create_postgres_infra_task = create_postgres_infra()
 
     create_postgres_infra_task >> branch_task
-    branch_task >> [trigger_vtex_import, trigger_shopify_import]
+    branch_task >> [trigger_vtex_import, trigger_shopify_orders_import]
 
