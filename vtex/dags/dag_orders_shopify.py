@@ -86,11 +86,12 @@ with DAG(
             #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
             if not isdaily :
                 start_date = end_date - timedelta(days=730)
-                start_update_date= start_date
+                min_date = end_date - timedelta(days=730)
+
             else:
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
                 start_date = end_date - timedelta(days=10)
-                minimum_date = end_date - timedelta(days=360)
+                min_date = end_date - timedelta(days=360)
 
                 
             orders_shopify.set_globals(
@@ -99,7 +100,7 @@ with DAG(
                 coorp_conection_info,
                 start_date=start_date,
                 end_date=end_date,
-                minimum_date = minimum_date
+                minimum_date = min_date
                 
             )
 
