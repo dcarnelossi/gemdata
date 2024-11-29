@@ -220,10 +220,9 @@ def process_orders(start_date):
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
             
-            if not veri[0]: 
+            if veri[0]: 
               countloop = countloop +1
               orders_ids=veri
-             
             else:
               countloop =10
               return 
