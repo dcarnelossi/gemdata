@@ -27,32 +27,6 @@ def increment_one_day(d1):
 
 
 
-def increment_one_day_shopify(d1):
-    if not isinstance(d1, datetime):
-        try:
-            print("A variável é do tipo datetime.")
-            d1 = datetime.strptime(d1, "%Y-%m-%d")
-        except Exception as e:
-            print(d1)
-            print(f"Não foi possivel converter a data - {e}")
-            return False
-
-        d1 = datetime.strptime(d1, "%Y-%m-%dT%H:%M:%S.%fZ")
-
-    # Obtém a data de início como a data atual com a hora T01:59:59.999Z
-    end_date = (
-        d1.replace(hour=3, minute=00, second=00, microsecond=000000) + timedelta(days=1)
-    ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    start_date = (d1.replace(hour=3, minute=00, second=00, microsecond=000000)).strftime(
-        "%Y-%m-%dT%H:%M:%S.%fZ"
-    )
-
-    print(start_date, end_date)
-
-    return start_date, end_date
-
-
-
 def flatten_json(json_data, sep="_", parent_key=""):
     """
     Flatten a nested JSON object by concatenating keys with specified separator.

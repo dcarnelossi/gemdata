@@ -10,7 +10,7 @@ import time
 
 from modules.api_conection import make_request
 from modules.dbpgconn import WriteJsonToPostgres
-from modules.helpers import increment_one_day_shopify
+from modules.helpers import increment_one_day
 
 
 
@@ -40,7 +40,7 @@ def get_orders_list_pages(query_params):
 def get_orders_count_query(start_date, end_date,minimum_date):
     return f"""
     {{
-      ordersCount(query: "updated_at:>={start_date} AND updated_at:<{end_date} and created_at:>={minimum_date}") {{
+      ordersCount(query: "updated_at:>='{start_date}' AND updated_at:<'{end_date}' AND created_at:>='{minimum_date}'") {{
         count
       }}
     }}
@@ -51,7 +51,7 @@ def get_orders_query(start_date, end_date,minimum_date, cursor=None):
     pagination = f', after: "{cursor}"' if cursor else ""
     return f"""
     {{
-      orders(first: 100, query: "updated_at:>={start_date} AND updated_at:<{end_date} and created_at:>={minimum_date}") {{
+      orders(first: 100{pagination}, query: "updated_at:>='{start_date}' AND updated_at:<'{end_date}' AND created_at:>='{minimum_date}'") {{
         edges {{
           cursor
           node {{
@@ -346,7 +346,7 @@ def process_orders_lists(start_date, end_date,minimum_date):
         print(f"o minimo da data é :{minimum_date}")
         while data_inicial < data_final:
 
-            start_date, end_date = increment_one_day_shopify(data_inicial)
+            start_date, end_date = increment_one_day(data_inicial)
 
             
            

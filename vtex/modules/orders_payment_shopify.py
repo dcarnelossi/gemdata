@@ -8,7 +8,7 @@ import logging
 
 from modules.api_conection import make_request
 from modules.dbpgconn import WriteJsonToPostgres
-from modules.helpers import increment_one_day_shopify
+from modules.helpers import increment_one_day
 
 
 
@@ -249,7 +249,7 @@ def execute_process_orders(data_inicial):
         start_time = time.time()
 
         data_inicial, _=validate_and_convert_dates(data_inicial,data_inicial)    
-        start_date,_ = increment_one_day_shopify(data_inicial)
+        start_date,_ = increment_one_day(data_inicial)
 
         process_orders(start_date)
         logging.info("Processamento concluído com sucesso.")
