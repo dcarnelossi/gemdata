@@ -70,6 +70,7 @@ with DAG(
     def orders_item_shopy(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
+        start_date = kwargs["params"]["START_DATE"]
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(team_id)
@@ -82,16 +83,16 @@ with DAG(
 
         try:
             end_date = datetime.now() + timedelta(days=1)
+            if start_date is None:
+                #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
+                if not isdaily :
+                    start_date = end_date - timedelta(days=360)
+                    #min_date = end_date - timedelta(days=5)
 
-            #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
-            if not isdaily :
-                start_date = end_date - timedelta(days=2)
-                #min_date = end_date - timedelta(days=5)
-
-            else:
-                #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                start_date = end_date - timedelta(days=10)
-                #min_date = end_date - timedelta(days=360)
+                else:
+                    #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+                    start_date = end_date - timedelta(days=10)
+                    #min_date = end_date - timedelta(days=360)
 
                 
             orders_item_shopify.set_globals(
