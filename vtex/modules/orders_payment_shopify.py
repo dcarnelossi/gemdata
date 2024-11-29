@@ -171,6 +171,8 @@ def process_orders(start_date):
             if veri[0]: 
               countloop = countloop +1
               orders_ids=veri
+              erroid=veri[0]
+              time.sleep(60)
             else:
               countloop =10
               return 
@@ -180,7 +182,7 @@ def process_orders(start_date):
         raise e    
     
     if countloop == 4:
-      logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
+      logging.error(f"Limite de tentativas alcançado. Interrompendo a execução.{erroid}")
       raise Exception(f"Erro ao processar pedidos após {5} tentativas. Intervalos ")      
         
 # Função para processar e salvar os dados no banco

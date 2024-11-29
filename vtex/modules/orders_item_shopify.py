@@ -225,7 +225,7 @@ def process_orders(start_date):
               countloop = countloop +1
               orders_ids=veri
               erroid=veri[0]
-              
+              time.sleep(60)
             else:
               countloop =10
               return 
