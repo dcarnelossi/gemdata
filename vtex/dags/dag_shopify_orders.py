@@ -103,7 +103,7 @@ with DAG(
                 minimum_date = min_date
                 
             )
-
+            print(start_date)
             return start_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
@@ -118,7 +118,7 @@ with DAG(
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}",
-            "START_DATE": orders_task,
+            "START_DATE": str(orders_task),
 
         },  # Se precisar passar informações adicionais para a DAG_B
     )
