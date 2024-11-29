@@ -108,6 +108,7 @@ def fetch_order_transactions_list(order_id):
             raise
     
     # Retorna a lista de transações no formato esperado
+    print(transactions)
     return {"list": transactions}
 
 
@@ -168,8 +169,8 @@ def process_orders(start_date):
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
             
-            print(f"AQUIII: {veri[0]}")
-            if veri: 
+            
+            if veri[0]: 
               countloop = countloop +1
               orders_ids=veri
               erroid=veri[0]
