@@ -104,7 +104,8 @@ with DAG(
                 
             )
             print(start_date)
-            return start_date.isoformat()
+            start_date = start_date.strftime("%Y-%m-%d")
+            return start_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
