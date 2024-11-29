@@ -68,9 +68,10 @@ with DAG(
      
     @task(provide_context=True)
     def orders_payment_shopy(**kwargs):
+        conf = kwargs.get("dag_run").conf or {}
         team_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
-        start_date =str( kwargs["params"]["START_DATE"])
+        start_date = conf.get("START_DATE", None)
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(team_id)

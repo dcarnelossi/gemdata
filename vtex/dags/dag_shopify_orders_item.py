@@ -92,13 +92,17 @@ with DAG(
                 #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
                 if not isdaily :
                     start_date = end_date - timedelta(days=360)
+                   
                     #min_date = end_date - timedelta(days=5)
 
                 else:
                     #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
                     start_date = end_date - timedelta(days=10)
                     #min_date = end_date - timedelta(days=360)
-  
+                
+                parsed_date = datetime.strptime(start_date, "%Y-%m-%d %H:%M:%S.%f")
+                parsed_date=parsed_date.strftime("%Y-%m-%d")
+
             orders_item_shopify.set_globals(
                 api_conection_info,
                 data_conection_info,
@@ -107,9 +111,8 @@ with DAG(
                 
             )
 
-            print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
 
-            return start_date
+            return parsed_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
