@@ -201,9 +201,7 @@ def process_orders(start_date):
         if not orders_ids[0]:
             logging.info("Nenhum item para ser processado")
             return
-        print("primeiro")
-        print(orders_ids)
-
+       
         veri=[]
         countloop = 0  # Número máximo de tentativas
         while  countloop < 4 :
@@ -221,14 +219,11 @@ def process_orders(start_date):
             
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
-            print("eeeeeee")
-            print(veri)
-            print(veri[0])
             
-            if not veri: 
+            if not veri[0]: 
               countloop = countloop +1
               orders_ids=veri
-              print("entrouu aqui ")
+             
             else:
               countloop =10
               return 
