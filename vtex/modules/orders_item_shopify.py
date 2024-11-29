@@ -217,7 +217,7 @@ def process_orders(start_date):
                     except Exception as e:
                         logging.error(f"Order {order_id} generated an exception: {e}")
                         raise e  # Raise the exception to ensure task failure
-            
+                    time.sleep(5) 
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
             

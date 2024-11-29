@@ -307,7 +307,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
                     except Exception as e:
                         logging.error(f"Erro ao processar pedido {order.get('orderId')}: {e}")
                         raise  # Propaga a exceção para falhar a tarefa do Airflow
-
+                    time.sleep(5)            
             # Sucesso no processamento, reseta contador de tentativas
             veri=verificar_contagem(start_date, end_date,minimum_date)
 

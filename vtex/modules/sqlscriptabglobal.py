@@ -214,7 +214,16 @@ def vtexsqlscriptscreatetabglobal(schema):
 
 def shopifysqlscriptscreatetabglobal(schema):
     scripts = f"""
-            		DROP TABLE IF EXISTS orderspayment;
+                INSERT INTO "{schema}".shopify_gemdata_categoria(nomecategoria)
+                select distinct  
+                (LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END)) as nomecategoria
+                from "{schema}".shopify_orders_items si 
+                where 
+                (LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
+                not in  
+                (select oi.nomecategoria from  "{schema}".shopify_gemdata_categoria oi)
+
+            	DROP TABLE IF EXISTS orderspayment;
                 CREATE TEMPORARY TABLE orderspayment as	
                 SELECT DISTINCT ON (orderid) orderid, gateway
 				FROM "{schema}".shopify_orders_payment
@@ -235,7 +244,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 coalesce( substring(si.title FROM '- ([0-9]+)$'),'999999') as idprod ,
                 LOWER(coalesce(si.title,'Não informado')) as namesku,
                 --não tem no shopify
-                coalesce(null,'999999') as idcat,
+                coalesce(ca.idcategoriagemdata,'999999') as idcat,
                 LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END) as namecategory,
                 0 as tax,
                 0 as taxcode,
@@ -267,6 +276,10 @@ def shopifysqlscriptscreatetabglobal(schema):
                 inner join "{schema}".shopify_orders so  on 
                 so.orderid = si.orderid
 				
+                left join "{schema}".shopify_gemdata_categoria ca on 
+                ca.nomecategoria = 
+                LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END)
+
                 left join orderspayment op on 
                 op.orderid = so.orderid
                

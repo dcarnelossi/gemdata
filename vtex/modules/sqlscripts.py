@@ -656,6 +656,21 @@ def shopifysqlscripts(schema, user):
        
     CREATE INDEX IF NOT EXISTS idx_orders_payment_combined ON "{schema}".shopify_orders_payment USING btree (orderid,idpaymentshopify);
   
+    
+    CREATE TABLE IF NOT EXISTS "{schema}".shopify_gemdata_categoria(
+        idcategoriagemdata serial4 NOT NULL,
+        nomecategoria varchar(200) NULL,
+        data_insercao timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+        CONSTRAINT shopify_gemdata_categoria_pkey PRIMARY KEY (idcategoriagemdata)
+    )
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS  "{schema}".shopify_gemdata_categoria
+    OWNER to {user};
+
+    CREATE INDEX IF NOT EXISTS  idx_shopify_gemdata_categoria_name ON "{schema}".shopify_gemdata_categoria USING btree (nomecategoria);	
+
+
 
 
     """
