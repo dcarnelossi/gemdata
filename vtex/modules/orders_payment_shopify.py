@@ -67,7 +67,7 @@ def fetch_order_transactions_list(order_id):
     Busca as transações de um pedido específico e transforma os dados para inserção na tabela orders_payment.
     """
     transactions = []
-
+    print(order_id)
     # Construir a consulta para as transações do pedido
     query = get_order_transactions_query(order_id)
     response = get_orders_list_pages(query) 
