@@ -67,7 +67,6 @@ def fetch_order_transactions_list(order_id):
     Busca as transações de um pedido específico e transforma os dados para inserção na tabela orders_payment.
     """
     transactions = []
-    print(order_id)
     # Construir a consulta para as transações do pedido
     query = get_order_transactions_query(order_id)
     response = get_orders_list_pages(query) 
@@ -82,9 +81,22 @@ def fetch_order_transactions_list(order_id):
                 return {"list": []}
 
             transaction_list = data.get('transactions', [])
-            # if not transaction_list:
-            #     logging.info(f"Nenhuma transação encontrada para o pedido {order_id}")
-            #     return {"list": []}
+            if not transaction_list:
+                logging.info(f"Nenhuma transação encontrada para o pedido {order_id}")
+                transactions.append({
+                    "orderid": int(order_id),
+                    "idpaymentshopify": f"GEMDATA-order_id",
+                    "transactionid": None,
+                    "kind": None,
+                    "paymentMethod": None,
+                    "status": None,
+                    "amount": None,
+                    "currencycode": None,
+                    "gateway": None,
+                    "createdat": None,
+                })
+                return {"list": transactions}
+                
 
             # Processar os dados das transações
             for transaction_data in transaction_list:
