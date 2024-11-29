@@ -82,9 +82,9 @@ def fetch_order_transactions_list(order_id):
                 return {"list": []}
 
             transaction_list = data.get('transactions', [])
-            if not transaction_list:
-                logging.info(f"Nenhuma transação encontrada para o pedido {order_id}")
-                return {"list": []}
+            # if not transaction_list:
+            #     logging.info(f"Nenhuma transação encontrada para o pedido {order_id}")
+            #     return {"list": []}
 
             # Processar os dados das transações
             for transaction_data in transaction_list:
