@@ -109,7 +109,7 @@ with DAG(
                 
             )
 
-            return start_date.isoformat()
+            return start_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
