@@ -68,9 +68,10 @@ with DAG(
      
     @task(provide_context=True)
     def orders_item_shopy(**kwargs):
+        conf = kwargs.get("dag_run").conf or {}
         team_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
-        start_date = params.get("START_DATE", None) 
+        start_date = conf.get("START_DATE", None)
 
         
         coorp_conection_info = get_coorp_conection_info()
