@@ -57,12 +57,12 @@ def integrationInfo(connection_info, integration_id):
             return result[1]
         else:
             logging.error(
-                f"Importação das BRANDS deu pau. Tempo de execução: \
+                f"Erro na def integrationinfo da dags_common_functions. Tempo de execução: \
                 {time.time() - start_time:.2f} segundos"
             )
             return False
     except Exception as e:
-        logging.exception("An unexpected error occurred during BRANDS import" - e)
+        logging.exception("Erro na def integrationinfo da dags_common_functions" - e)
         raise
 
 

@@ -8,7 +8,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.python_operator import PythonOperator
 from modules.dags_common_functions import (
-    get_coorp_conection_info,
+    integrationInfo,
 )
 
 # Lista de requisitos
@@ -63,27 +63,64 @@ with DAG(
     @task(provide_context=True)
     def create_tabela_cliente_global(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        try:
+            # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            query = f"""
+            select hosting from public.integrations_integration where id = {PGSCHEMA} 
+ 		    """
+            hosting = hook.get_records(query)
 
+        
+        except Exception as e:
+            logging.exception(
+                f"An unexpected error occurred during create_tabela_global_cliente - {e}"
+            )
+            raise e
+    
+           
+
+           # return [integration[0] for integration in integration_ids]
         
 
         try:
-      
-            #esse schema usaremos para demo, para fazer videos e etc ..     
-            #copiando do schema 2dd03
-            if(PGSCHEMA == "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
-                from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
-                sql_script = vtexsqlscriptscreatetabglobaldemo("5e164a4b-5e09-4f43-9d81-a3d22b09a01b")
+            if hosting[0]== "vtex": 
+                #essa parte é do vtex
+                #esse schema usaremos para demo, para fazer videos e etc ..     
+                #copiando do schema 2dd03
+                if(PGSCHEMA == "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
+                    from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
+                    sql_script = vtexsqlscriptscreatetabglobaldemo("5e164a4b-5e09-4f43-9d81-a3d22b09a01b")
+                    
+                else: # Defina o código SQL para criar a tabela
+                    from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
+                    sql_script = vtexsqlscriptscreatetabglobal(PGSCHEMA)    
+                # Conecte-se ao PostgreSQL e execute o script
+                # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
+                # não pode estar cravada aqui no codigo
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+                hook.run(sql_script)
                 
-            else: # Defina o código SQL para criar a tabela
-                from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
-                sql_script = vtexsqlscriptscreatetabglobal(PGSCHEMA)    
-            # Conecte-se ao PostgreSQL e execute o script
-            # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
-            # não pode estar cravada aqui no codigo
-            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
-            hook.run(sql_script)
-            
-            return True
+                return True
+
+            else:
+                #essa parte é do shopify
+                #copiando do schema 2dd03- probel 
+                if(PGSCHEMA == "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
+                    from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
+                    sql_script = vtexsqlscriptscreatetabglobaldemo("5e164a4b-5e09-4f43-9d81-a3d22b09a01b")
+                    
+                else: # Defina o código SQL para criar a tabela
+                    from modules.sqlscriptabglobal import shopifysqlscriptscreatetabglobal
+                    sql_script = shopifysqlscriptscreatetabglobal(PGSCHEMA)    
+                # Conecte-se ao PostgreSQL e execute o script
+                # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
+                # não pode estar cravada aqui no codigo
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+                hook.run(sql_script)
+                
+                return True    
+
 
         except Exception as e:
             logging.exception(
@@ -99,7 +136,6 @@ with DAG(
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY":"{{ params.ISDAILY }}"
            
-
         },  # Se precisar passar informações adicionais para a DAG_B
     )
 
