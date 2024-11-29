@@ -104,7 +104,7 @@ with DAG(
                 
             )
             print(start_date)
-            return start_date
+            return start_date.isoformat()
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
@@ -118,7 +118,7 @@ with DAG(
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}",
-            "START_DATE": str(orders_task),
+            "START_DATE": "{{ ti.xcom_pull(task_ids='orders_shopify') }}",
 
         },  # Se precisar passar informações adicionais para a DAG_B
     )
