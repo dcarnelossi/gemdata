@@ -85,9 +85,8 @@ with DAG(
 
         try:
             end_date = datetime.now() + timedelta(days=1)
-            #print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
+            print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
 
-            
 
             if start_date is None:
                 #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
@@ -107,6 +106,8 @@ with DAG(
                 start_date=start_date
                 
             )
+
+            print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
 
             return start_date
         except Exception as e:
