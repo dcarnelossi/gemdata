@@ -85,7 +85,7 @@ def fetch_order_transactions_list(order_id):
                 logging.info(f"Nenhuma transação encontrada para o pedido {order_id}")
                 transactions.append({
                     "orderid": int(order_id),
-                    "idpaymentshopify": f"GEMDATA-order_id",
+                    "idpaymentshopify": f"GEMDATA-{order_id}",
                     "transactionid": None,
                     "kind": None,
                     "paymentMethod": None,
