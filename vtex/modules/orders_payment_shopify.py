@@ -167,12 +167,13 @@ def process_orders(start_date):
             
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
-
-            if veri[0]: 
+            
+            print(f"AQUIII: {veri[0]}")
+            if veri: 
               countloop = countloop +1
               orders_ids=veri
               erroid=veri[0]
-              time.sleep(60)
+              time.sleep(2)
             else:
               countloop =10
               return 
