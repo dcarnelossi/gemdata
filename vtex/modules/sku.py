@@ -17,7 +17,7 @@ def make_request(method, path, params=None):
     try:
         response = session.request(
             method,
-            f"https://{api_conection_info['VTEX_Domain']}/api/catalog_system/pvt/sku/{path}",
+            f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}",
             params=params,
             headers=api_conection_info["headers"],
         )

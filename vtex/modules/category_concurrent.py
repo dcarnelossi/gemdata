@@ -20,7 +20,7 @@ def make_request(method, endpoint, params=None):
         with requests.Session() as session:
             response = session.request(
                 method,
-                f"https://{api_conection_info['VTEX_Domain']}{endpoint}",
+                f"https://{api_conection_info['Domain']}{endpoint}",
                 headers=api_conection_info["headers"],
                 params=params,
             )
