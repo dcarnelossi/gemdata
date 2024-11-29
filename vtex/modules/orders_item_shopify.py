@@ -183,6 +183,10 @@ def get_orders_ids_from_db(start_date=None):
             
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders" )
         result = result.query()
+        
+        print("COMECA AQUI :")
+        print(start_date)
+        print(result)
         return result
 
     except Exception as e:
