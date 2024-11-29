@@ -104,18 +104,20 @@ with DAG(
                 
             )
 
-            return True
+            return start_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
     
+    orders_task = orders_shopify()
         
     trigger_dag_orders_item_shopy = TriggerDagRunOperator(
         task_id="trigger_dag_orders_items_shopify",
         trigger_dag_id="shopify-2-Orders-items",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-             "ISDAILY": "{{ params.ISDAILY }}",
+            "ISDAILY": "{{ params.ISDAILY }}",
+            "START_DATE": orders_task,
 
         },  # Se precisar passar informações adicionais para a DAG_B
     )
