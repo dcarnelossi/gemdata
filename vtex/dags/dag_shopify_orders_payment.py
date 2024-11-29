@@ -110,7 +110,7 @@ with DAG(
         
     trigger_dag_json = TriggerDagRunOperator(
         task_id="trigger_dag_json_shopify",
-        trigger_dag_id="shopify-3-Orders-payment2",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="9-create-table-client",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
              "ISDAILY": "{{ params.ISDAILY }}",
