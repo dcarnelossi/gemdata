@@ -103,6 +103,9 @@ with DAG(
                 
                 parsed_date=start_date.strftime("%Y-%m-%d")
 
+            else:
+                parsed_date=start_date    
+
             orders_item_shopify.set_globals(
                 api_conection_info,
                 data_conection_info,
