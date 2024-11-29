@@ -184,9 +184,7 @@ def get_orders_ids_from_db(start_date=None):
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders" )
         result = result.query()
         
-        print("COMECA AQUI :")
-        print(start_date)
-        print(result)
+
         return result
 
     except Exception as e:
@@ -203,6 +201,8 @@ def process_orders(start_date):
         if not orders_ids[0]:
             logging.info("Nenhum item para ser processado")
             return
+        print("primeiro")
+        print(orders_ids)
 
         veri=[]
         countloop = 0  # Número máximo de tentativas
@@ -221,10 +221,14 @@ def process_orders(start_date):
             
             # Sucesso no processamento, reseta contador de tentativas
             veri=get_orders_ids_from_db(start_date=None)
-
+            print("eeeeeee")
+            print(veri)
+            print(veri[0])
+            
             if not veri: 
               countloop = countloop +1
               orders_ids=veri
+              print("entrouu aqui ")
             else:
               countloop =10
               return 
