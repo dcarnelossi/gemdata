@@ -70,7 +70,7 @@ with DAG(
     def orders_item_shopy(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
-        start_date = kwargs["params"]["START_DATE"]
+        start_date = str(kwargs["params"]["START_DATE"])
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(team_id)
