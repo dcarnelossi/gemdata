@@ -109,6 +109,7 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
     
+
     orders_task = orders_shopify()
         
     trigger_dag_orders_item_shopy = TriggerDagRunOperator(
@@ -121,13 +122,9 @@ with DAG(
 
         },  # Se precisar passar informações adicionais para a DAG_B
     )
-    try:
-        orders_task = orders_shopify()
+       
 
 
-        orders_task >>  trigger_dag_orders_item_shopy 
+    orders_task >>  trigger_dag_orders_item_shopy 
     
-    except Exception as e:
-        logging.error(f"Error inserting log diario: {e}")
     
-        raise  # Ensure failure is propagated to Airflow
