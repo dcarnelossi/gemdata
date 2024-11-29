@@ -1,14 +1,12 @@
-import json
+
 import os
 
-from airflow.decorators import task
 from airflow import DAG
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.python import PythonOperator
 from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFilesystemToWasbOperator
 from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 from airflow.models.param import Param
-from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.dummy import DummyOperator
@@ -16,10 +14,8 @@ from airflow.utils.task_group import TaskGroup
 # Importação dos módulos deve ser feita fora do contexto do DAG
 from modules.sqlscriptsjson import vtexsqlscriptjson
 
-from modules.dags_common_functions import (
-    get_coorp_conection_info,
-)
-from datetime import datetime, timedelta
+
+from datetime import datetime
 import logging
 
 
@@ -55,7 +51,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             
             
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()
@@ -132,7 +128,7 @@ def daily_run_date_update(pg_schema):
                 WHERE id = %s;
                 """
                 # Initialize the PostgresHook
-                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-homol")
                 # Execute the query with parameters
                 
                 hook2.run(query, parameters=(datetime.now(),pg_schema))

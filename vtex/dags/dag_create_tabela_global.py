@@ -1,15 +1,12 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from airflow import DAG
 from airflow.decorators import task
 from airflow.models.param import Param
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.operators.python_operator import PythonOperator
-from modules.dags_common_functions import (
-    integrationInfo,
-)
+
 
 # Lista de requisitos
 requirements = [
@@ -65,9 +62,9 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            hook = PostgresHook(postgres_conn_id="appgemdata-homol")
             query = f"""
-            select hosting from public.integrations_integration where id = {PGSCHEMA} 
+            select hosting from public.integrations_integration where id = '{PGSCHEMA}' 
  		    """
             hosting = hook.get_records(query)
 
@@ -98,7 +95,7 @@ with DAG(
                 # Conecte-se ao PostgreSQL e execute o script
                 # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
                 # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+                hook = PostgresHook(postgres_conn_id="integrations-data-dev")
                 hook.run(sql_script)
                 
                 return True
@@ -116,7 +113,7 @@ with DAG(
                 # Conecte-se ao PostgreSQL e execute o script
                 # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
                 # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+                hook = PostgresHook(postgres_conn_id="integrations-data-dev")
                 hook.run(sql_script)
                 
                 return True    
