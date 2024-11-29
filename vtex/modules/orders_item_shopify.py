@@ -162,14 +162,8 @@ def fetch_order_items_list(order_id):
 
 def get_orders_ids_from_db(start_date=None):
     try:
-        if start_date:
+        if start_date is None:
           #  print(start_date)
-            query = f"""    
-            select so.orderid  
-            from shopify_orders so
-            where updatedat >= '{start_date}' ;
-            """
-        else:
             query = f"""    
                 select  so.orderid
                 FROM shopify_orders so
@@ -179,7 +173,14 @@ def get_orders_ids_from_db(start_date=None):
                 GROUP BY so.orderid
                 HAVING max(so.currentsubtotalprice +so.currenttotaldiscounts  ) <> COALESCE(SUM(oi.originalunitprice*oi.quantity),0.00);  
                 """ 
-        
+           
+        else:
+            query = f"""    
+                select so.orderid  
+                from shopify_orders so
+                where updatedat >= '{start_date}' ;
+                """
+            
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders" )
         result = result.query()
         return result

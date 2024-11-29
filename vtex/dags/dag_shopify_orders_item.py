@@ -100,7 +100,7 @@ with DAG(
                     start_date = end_date - timedelta(days=10)
                     #min_date = end_date - timedelta(days=360)
                 
-                print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
+                
                 parsed_date=start_date.strftime("%Y-%m-%d")
 
             orders_item_shopify.set_globals(

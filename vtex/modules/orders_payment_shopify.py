@@ -113,14 +113,7 @@ def fetch_order_transactions_list(order_id):
 
 def get_orders_ids_from_db(start_date=None):
     try:
-        if start_date:
-          #  print(start_date)
-            query = f"""    
-            select so.orderid  
-            from shopify_orders so
-            where updatedat >= '{start_date}' ;
-            """
-        else:
+        if start_date is None:
             query = f"""    
                 select  so.orderid
                 FROM shopify_orders so
@@ -128,6 +121,15 @@ def get_orders_ids_from_db(start_date=None):
                 ON  oi.orderid = so.orderid
                 where oi.orderid is null 
                 """ 
+        else:
+
+             #  print(start_date)
+            query = f"""    
+                select so.orderid  
+                from shopify_orders so
+                where updatedat >= '{start_date}' ;
+                """
+            
         
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders_payment")
         result = result.query()
