@@ -130,6 +130,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
 
+ 
                 DO $$
                 BEGIN
                    
@@ -193,7 +194,7 @@ def vtexsqlscriptscreatetabglobal(schema):
                         insert into "{schema}".orders_ia_forecast
                         SELECT
                             dcs.data,
-                            asz.ajuste_sazonal AS faturamento_projetado
+                            coalesce(asz.ajuste_sazonal,0.00) AS faturamento_projetado
                         FROM
                             datas_com_sazonalidade dcs
                         LEFT JOIN
@@ -206,8 +207,6 @@ def vtexsqlscriptscreatetabglobal(schema):
                     END IF;
                 END $$;
 
-
-
     """
     # print(scripts)
     return scripts
@@ -215,7 +214,7 @@ def vtexsqlscriptscreatetabglobal(schema):
 
 def shopifysqlscriptscreatetabglobal(schema):
     scripts = f"""
-            	DROP TABLE IF EXISTS orderspayment;
+            		DROP TABLE IF EXISTS orderspayment;
                 CREATE TEMPORARY TABLE orderspayment as	
                 SELECT DISTINCT ON (orderid) orderid, gateway
 				FROM "{schema}".shopify_orders_payment
@@ -328,7 +327,8 @@ def shopifysqlscriptscreatetabglobal(schema):
 
                 where 
                 LOWER(o.displayfinancialstatus)  in  ('paid') and o.cancelledat is null;
-
+				
+               
                
                 DO $$
                 BEGIN
@@ -393,7 +393,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                         insert into "{schema}".orders_ia_forecast
                         SELECT
                             dcs.data,
-                            asz.ajuste_sazonal AS faturamento_projetado
+                            coalesce(asz.ajuste_sazonal,0.00) AS faturamento_projetado
                         FROM
                             datas_com_sazonalidade dcs
                         LEFT JOIN
@@ -405,9 +405,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                         
                     END IF;
                 END $$;
-    
                  
-
 
     """
     # print(scripts)
