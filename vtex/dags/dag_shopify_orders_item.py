@@ -84,6 +84,9 @@ with DAG(
         try:
             end_date = datetime.now() + timedelta(days=1)
             print(f"testeeeeeeeeeeeeeeeeeeeee: {start_date}")
+
+            
+
             if start_date is None:
                 #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
                 if not isdaily :
@@ -94,7 +97,8 @@ with DAG(
                     #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
                     start_date = end_date - timedelta(days=10)
                     #min_date = end_date - timedelta(days=360)
-
+            else:
+                start_date = start_date.strftime("%Y-%m-%d")
                 
             orders_item_shopify.set_globals(
                 api_conection_info,
