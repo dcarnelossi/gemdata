@@ -108,24 +108,28 @@ with DAG(
                 
             )
 
-            return True
+            return start_date.isoformat()
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
     
+    orders_item_task = orders_item_shopy()
+
         
     trigger_dag_update_orders_payment = TriggerDagRunOperator(
         task_id="trigger_dag_orders_payment_shopify",
         trigger_dag_id="shopify-3-Orders-payment",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-             "ISDAILY": "{{ params.ISDAILY }}",
+            "ISDAILY": "{{ params.ISDAILY }}",
+            "START_DATE": "{{ ti.xcom_pull(task_ids='orders_item_shopy') }}",
+
+             
 
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     try:
-        orders_item_task = orders_item_shopy()
-
+        
 
         orders_item_task >>  trigger_dag_update_orders_payment 
     
