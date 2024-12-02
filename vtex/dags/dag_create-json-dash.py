@@ -51,7 +51,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             
             
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()
@@ -128,7 +128,7 @@ def daily_run_date_update(pg_schema):
                 WHERE id = %s;
                 """
                 # Initialize the PostgresHook
-                hook2 = PostgresHook(postgres_conn_id="appgemdatadatabase-prod")
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
                 # Execute the query with parameters
                 
                 hook2.run(query, parameters=(datetime.now(),pg_schema))

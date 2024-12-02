@@ -62,7 +62,7 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdatadatabase-prod")
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = f"""
             select hosting from public.integrations_integration where id = '{PGSCHEMA}' 
  		    """
@@ -79,7 +79,7 @@ with DAG(
 
            # return [integration[0] for integration in integration_ids]
 
-        print (f"TIPO DE API :{hosting[0]}")
+
 
         try:
             if hosting[0]== "vtex": 
@@ -96,7 +96,7 @@ with DAG(
                 # Conecte-se ao PostgreSQL e execute o script
                 # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
                 # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 hook.run(sql_script)
                 
                 return True
@@ -114,7 +114,7 @@ with DAG(
                 # Conecte-se ao PostgreSQL e execute o script
                 # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
                 # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 hook.run(sql_script)
                 
                 return True    
