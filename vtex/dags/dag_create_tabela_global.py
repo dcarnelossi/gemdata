@@ -62,7 +62,7 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-homol")
+            hook = PostgresHook(postgres_conn_id="appgemdatadatabase-prod")
             query = f"""
             select hosting from public.integrations_integration where id = '{PGSCHEMA}' 
  		    """
