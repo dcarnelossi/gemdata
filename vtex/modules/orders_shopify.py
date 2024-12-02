@@ -286,9 +286,9 @@ def fetch_orders_list(start_date, end_date,minimum_date):
 def process_orders_and_save(start_date, end_date,minimum_date):
     
     countloop = 0  # Número máximo de tentativas
-    while  countloop < 40 :
+    while  countloop < 4 :
         try:
-            if(countloop==10):
+            if(countloop==3):
                 time.sleep(30)
             # Reduz o contador de tentativas a cada iteração
             orders_data = fetch_orders_list(start_date, end_date,minimum_date)
@@ -318,15 +318,15 @@ def process_orders_and_save(start_date, end_date,minimum_date):
             if veri==0: 
               countloop = countloop +1
             else:
-              countloop =41
+              countloop =5
 
         except Exception as e:
             logging.error(f"Erro ao processar pedidos: {e}")
             countloop = countloop +1   # Reduz o número de tentativas restantes
 
-    if countloop == 40:
+    if countloop == 4:
       logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
-      raise Exception(f"Erro ao processar pedidos após {40} tentativas. Intervalo: {start_date} a {end_date} ")  
+      raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
       
 
 
