@@ -221,7 +221,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 where 
                 (LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
                 not in  
-                (select oi.nomecategoria from  "{schema}".shopify_gemdata_categoria oi)
+                (select oi.nomecategoria from  "{schema}".shopify_gemdata_categoria oi);
 
             	DROP TABLE IF EXISTS orderspayment;
                 CREATE TEMPORARY TABLE orderspayment as	
