@@ -243,6 +243,7 @@ def process_order_item(order_id):
     try:
         #print(order_id)
         orders_item = fetch_order_items_list(order_id)
+        print(f"ordens:{orders_item}")
 
       #  print(orders_item)
         orders_item_list = orders_item["list"]  # Obtém a lista de pedidos

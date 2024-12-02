@@ -62,7 +62,7 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         try:
             # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="appgemdata-homol")
+            hook = PostgresHook(postgres_conn_id="")
             query = f"""
             select hosting from public.integrations_integration where id = '{PGSCHEMA}' 
  		    """
@@ -78,10 +78,11 @@ with DAG(
            
 
            # return [integration[0] for integration in integration_ids]
-        
+
+        print (f"TIPO DE API :{hosting[0]}")
 
         try:
-            if hosting[0][0]== "vtex": 
+            if hosting[0]== "vtex": 
                 #essa parte é do vtex
                 #esse schema usaremos para demo, para fazer videos e etc ..     
                 #copiando do schema 2dd03

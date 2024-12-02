@@ -215,7 +215,7 @@ def process_order_item(order_id):
             logging.info("Nenhum pedido encontrado na lista.")
             return
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             futures = {executor.submit(process_order_item_save, order): order for order in orders_item_list}
             for future in concurrent.futures.as_completed(futures):
                 order = futures[future]
