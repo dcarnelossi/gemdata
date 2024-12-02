@@ -168,7 +168,7 @@ def process_orders(start_date):
         while  countloop < 4 :
         #    print(orders_ids)
         #    print(veri)
-            with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 future_to_order = {executor.submit(process_order_item, order_id[0]): order_id for order_id in orders_ids[0]}
                 for future in concurrent.futures.as_completed(future_to_order):
                     order_id = future_to_order[future]
