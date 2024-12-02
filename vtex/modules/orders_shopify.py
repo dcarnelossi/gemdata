@@ -40,7 +40,7 @@ def get_orders_list_pages(query_params):
 def get_orders_count_query(start_date, end_date,minimum_date):
     return f"""
     {{
-      ordersCount(query: "created_at:>='{start_date}' AND created_at:<'{end_date}'") {{
+      ordersCount(query: "updated_at:>='{start_date}' AND updated_at:<'{end_date}' AND created_at:>='{minimum_date}'") {{
         count
       }}
     }}
@@ -147,7 +147,7 @@ def get_orders_query(start_date, end_date,minimum_date, cursor=None):
 def orders_count_from_db(start_date, end_date,minimum_date):
     try:
         query = f"""     select count(1) from shopify_orders so 
-                        WHERE  createdat >='{start_date}' and  createdat <'{end_date}'
+                        WHERE  data_insercao >='{start_date}' and  data_insercao <='{end_date}'
      
                            """
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders")
@@ -161,14 +161,14 @@ def orders_count_from_db(start_date, end_date,minimum_date):
 
 
 
-def verificar_contagem(start_date, end_date,minimum_date):
+def verificar_contagem(start_date, end_date,minimum_date,qtdorders,dataini_upsert, datafim_upsert):
 
     try:
         loopcount = 0
         
      
         while loopcount<5 :
-            count, _ = orders_count_from_db(start_date, end_date,minimum_date)
+            count, _ = orders_count_from_db(dataini_upsert, datafim_upsert,minimum_date)
             countorderpg = count[0][0]
             query = get_orders_count_query(start_date, end_date,minimum_date)
             
@@ -180,8 +180,9 @@ def verificar_contagem(start_date, end_date,minimum_date):
           
             total_count_shopify = responsecount.get("data", {}).get("ordersCount", {}).get("count")
 
-            logging.info(F"VERIFICANDO SE TEM TODAS AS ORDERS -QTD BD : {countorderpg} = {total_count_shopify} QTD SHOPIFY")
-            if total_count_shopify == countorderpg:
+            logging.info(F"VERIFICANDO SE TEM TODAS AS ORDERS {qtdorders} -QTD BD : {countorderpg} = {total_count_shopify} QTD SHOPIFY")
+            
+            if total_count_shopify ==qtdorders and  countorderpg == qtdorders:
               return 1
             else:
               return 0
@@ -292,6 +293,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
                 time.sleep(30)
             # Reduz o contador de tentativas a cada iteração
             orders_data = fetch_orders_list(start_date, end_date,minimum_date)
+            dataini_upsert = datetime.now()  
             if not orders_data:
                 logging.info("Nenhum pedido encontrado.")
                 return
@@ -311,9 +313,10 @@ def process_orders_and_save(start_date, end_date,minimum_date):
                     except Exception as e:
                         logging.error(f"Erro ao processar pedido {order.get('orderId')}: {e}")
                         raise  # Propaga a exceção para falhar a tarefa do Airflow
-                    #time.sleep(5)            
+                    #time.sleep(5)     
+            datafim_upsert = datetime.now()        
             # Sucesso no processamento, reseta contador de tentativas
-            veri=verificar_contagem(start_date, end_date,minimum_date)
+            veri=verificar_contagem(start_date, end_date,minimum_date,len(orders_list),dataini_upsert,datafim_upsert)
 
             if veri==0: 
               countloop = countloop +1
@@ -324,9 +327,9 @@ def process_orders_and_save(start_date, end_date,minimum_date):
             logging.error(f"Erro ao processar pedidos: {e}")
             countloop = countloop +1   # Reduz o número de tentativas restantes
 
-    if countloop == 4:
-      logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
-      raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
+    # if countloop == 4:
+    #   logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
+    #   raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
       
 
 
