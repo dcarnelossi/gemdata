@@ -40,7 +40,7 @@ def get_orders_list_pages(query_params):
 def get_orders_count_query(start_date, end_date,minimum_date):
     return f"""
     {{
-      ordersCount(query: "updated_at:>='{start_date}' AND updated_at:<'{end_date}' AND created_at:>='{minimum_date}'") {{
+      ordersCount(query: "created_at:>='{start_date}' AND created_at:<'{end_date}'") {{
         count
       }}
     }}
@@ -147,7 +147,7 @@ def get_orders_query(start_date, end_date,minimum_date, cursor=None):
 def orders_count_from_db(start_date, end_date,minimum_date):
     try:
         query = f"""     select count(1) from shopify_orders so 
-                        WHERE updatedat >=  '{start_date}' and  updatedat <'{end_date}' and  createdat >='{minimum_date}'
+                        WHERE  createdat >='{start_date}' and  createdat <'{end_date}'
      
                            """
         result = WriteJsonToPostgres(data_conection_info, query, "shopify_orders")
