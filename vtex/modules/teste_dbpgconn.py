@@ -10,17 +10,28 @@ from dotenv import load_dotenv
 class PostgresConnection:
     def __init__(self, connection_info):
         load_dotenv()
-
-        self.host = os.getenv(f"DATA_PGHOST")
-        self.port = os.getenv("DATA_PGPORT")
-        if(connection_info== "appgemdata-pgserver-prod"): 
-            self.database = os.getenv(f"CORP_DATA_PGDATABASE")
+        if(connection_info=="integrations-data-prod" or connection_info=="appgemdatadatabase-prod"): 
+            self.host = os.getenv(f"DATA_PGHOST")
+            self.port = os.getenv("DATA_PGPORT")
+            if(connection_info== "appgemdata-pgserver-prod"): 
+                self.database = os.getenv(f"CORP_DATA_PGDATABASE")
+            else:
+                self.database = os.getenv(f"CLIENT_DATA_PGDATABASE")
+            self.user = os.getenv("DATA_PGUSER")
+            self.password =  os.getenv("DATA_PGPASSWORD")
+            self.schema = "public"
+            self.conn = None
         else:
-            self.database = os.getenv(f"CLIENT_DATA_PGDATABASE")
-        self.user = os.getenv("DATA_PGUSER")
-        self.password =  os.getenv("DATA_PGPASSWORD")
-        self.schema = "public"
-        self.conn = None
+            self.host = os.getenv(f"DEV_DATA_PGHOST")
+            self.port = os.getenv("DEV_DATA_PGPORT")
+            if(connection_info== "appgemdata-dev"): 
+                self.database = os.getenv(f"DEV_CORP_DATA_PGDATABASE")
+            else:
+                self.database = os.getenv(f"DEV_CLIENT_DATA_PGDATABASE")
+            self.user = os.getenv("DEV_DATA_PGUSER")
+            self.password =  os.getenv("DEV_DATA_PGPASSWORD")
+            self.schema = "public"
+            self.conn = None
 
     def connect(self):
         if self.conn is None:
@@ -357,7 +368,7 @@ class WriteJsonToPostgres:
                         value = data[column]
                     row_values.append(value)
                 values.append(tuple(row_values))
-
+   
             # Execute a instrução SQL com os valores reais
             cursor.executemany(sql_insert, values)
 
@@ -386,6 +397,30 @@ class WriteJsonToPostgres:
             # Garanta que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
+
+    def execute_query(self):
+        try:
+            query = self.data
+            # Conectar ao banco de dados
+            with self.connection.connect() as conn:
+                with conn.cursor() as cursor:
+                  
+                    if query:
+                        print("Executando a query:")
+                        print(query)
+                        cursor.execute(query)
+                        self.connection.commit()
+                    else:
+                        print("Nenhuma query fornecida ou gerada para execução.")
+                        return False
+        except Exception as e:
+            # Rollback se ocorrer um erro
+            self.connection.rollback()
+            print("Ocorreu um erro, transação revertida:", e)
+            return False
+        finally:
+            # Feche a conexão
+            self.connection.close()
 
 
 # if __name__ == "__main__":
