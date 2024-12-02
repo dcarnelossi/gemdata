@@ -53,6 +53,28 @@ def trunca_tabelas_IA (schema):
     WriteJsonToPostgres("integrations-data-prod", query3).execute_query()
 
 
+
+def delete_tabelas_IA (schema,createdat):
+
+    
+    query= f"""
+                    delete from "{schema}".orders_ia where creationdate >='{createdat}'
+                    
+    """
+
+    WriteJsonToPostgres("integrations-data-prod", query).execute_query()
+
+    
+    query2= f"""
+                  delete from "{schema}".orders_items_ia  where creationdate >='{createdat}'
+                    
+    """
+
+    WriteJsonToPostgres("integrations-data-prod", query2).execute_query()
+
+
+
+
  
 def process_order(nometabela,schema,order):
     try:    
@@ -67,11 +89,11 @@ def process_order(nometabela,schema,order):
         raise  # Ensure failure is propagated to Airflow
 
 
-def importar_orderia_shopify(schema,schema_copy):
+def importar_orderia_shopify(schema,schema_copy,data_create):
     dataini_total = datetime.now()    
     # Consulta para puxar os dados
     query_consulta = f""" 
-    SELECT * FROM "{schema_copy}".orders_ia
+    SELECT * FROM "{schema_copy}".orders_ia where creationdate>= '{data_create}'
     """
    # print(query_consulta)
 
@@ -117,12 +139,12 @@ def importar_orderia_shopify(schema,schema_copy):
  
 
 
-def importar_orderitemia_shopify(schema,schema_copy):
+def importar_orderitemia_shopify(schema,schema_copy,data_create):
     
       
     dataini_total = datetime.now()
     query_consulta =f""" 
-    select *  from "{schema_copy}".orders_items_ia
+    select *  from "{schema_copy}".orders_items_ia where creationdate>= '{data_create}'
                         """
         
     print(query_consulta)
@@ -195,6 +217,8 @@ schema = "e7217b31-b471-4d59-957b-fb06b1e9f8fd"
 
 schema_copy = "07e14abb-bf37-4022-b159-03d2a757b40b"
 
+start_date= '2024-10-20'
+
 
 #criando_estrutura_shopify(schema)
 
@@ -202,8 +226,11 @@ schema_copy = "07e14abb-bf37-4022-b159-03d2a757b40b"
 
 #trunca_tabelas_IA(schema)
 
-#importar_orderia_shopify(schema,schema_copy )
+#delete_tabelas_IA(schema,start_date)
 
-importar_forecastia_shopify(schema,schema_copy)
+importar_orderia_shopify(schema,schema_copy,start_date)
 
-importar_orderitemia_shopify(schema,schema_copy)
+importar_orderitemia_shopify(schema,schema_copy,start_date)
+
+# importar_forecastia_shopify(schema,schema_copy)
+
