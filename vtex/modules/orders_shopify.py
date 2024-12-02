@@ -177,8 +177,10 @@ def verificar_contagem(start_date, end_date,minimum_date):
             #responsecount = requests.post(url, headers=headers, json={"query": query})
             responsecount =  get_orders_list_pages(query) 
         
-           
+          
             total_count_shopify = responsecount.get("data", {}).get("ordersCount", {}).get("count")
+
+            logging.info(F"VERIFICANDO SE TEM TODAS AS ORDERS -QTD BD : {countorderpg} = {total_count_shopify} QTD SHOPIFY")
             if total_count_shopify == countorderpg:
               return 1
             else:
@@ -284,8 +286,10 @@ def fetch_orders_list(start_date, end_date,minimum_date):
 def process_orders_and_save(start_date, end_date,minimum_date):
     
     countloop = 0  # Número máximo de tentativas
-    while  countloop < 4 :
+    while  countloop < 40 :
         try:
+            if(countloop==10):
+                time.sleep(30)
             # Reduz o contador de tentativas a cada iteração
             orders_data = fetch_orders_list(start_date, end_date,minimum_date)
             if not orders_data:
@@ -298,7 +302,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
                 logging.info("Nenhum pedido encontrado na lista.")
                 return
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
                 futures = {executor.submit(process_order, order): order for order in orders_list}
                 for future in concurrent.futures.as_completed(futures):
                     order = futures[future]
@@ -314,15 +318,15 @@ def process_orders_and_save(start_date, end_date,minimum_date):
             if veri==0: 
               countloop = countloop +1
             else:
-              countloop =10
+              countloop =41
 
         except Exception as e:
             logging.error(f"Erro ao processar pedidos: {e}")
             countloop = countloop +1   # Reduz o número de tentativas restantes
 
-    if countloop == 4:
+    if countloop == 40:
       logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
-      raise Exception(f"Erro ao processar pedidos após {5} tentativas. Intervalo: {start_date} a {end_date} ")  
+      raise Exception(f"Erro ao processar pedidos após {40} tentativas. Intervalo: {start_date} a {end_date} ")  
       
 
 
