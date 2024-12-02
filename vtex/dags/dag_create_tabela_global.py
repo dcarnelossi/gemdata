@@ -81,7 +81,7 @@ with DAG(
         
 
         try:
-            if hosting[0]== "vtex": 
+            if hosting[0][0]== "vtex": 
                 #essa parte é do vtex
                 #esse schema usaremos para demo, para fazer videos e etc ..     
                 #copiando do schema 2dd03
