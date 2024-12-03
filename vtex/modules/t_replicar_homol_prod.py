@@ -25,24 +25,7 @@ def criando_tabelas_IA_shopify(schema):
 
 
 
-def trunca_tabelas_IA (schema):
-
-    
-    query= f"""
-                   truncate table "{schema}".orders_ia
-                    
-    """
-
-    WriteJsonToPostgres("integrations-data-prod", query).execute_query()
-
-    
-    query2= f"""
-                  truncate table "{schema}".orders_items_ia
-                    
-    """
-
-    WriteJsonToPostgres("integrations-data-prod", query2).execute_query()
-
+def trunca_forecat_IA (schema):
 
 
     query3= f"""
@@ -228,9 +211,12 @@ start_date= '2024-10-20'
 
 #delete_tabelas_IA(schema,start_date)
 
-importar_orderia_shopify(schema,schema_copy,start_date)
+trunca_forecat_IA(schema)
 
-importar_orderitemia_shopify(schema,schema_copy,start_date)
 
-# importar_forecastia_shopify(schema,schema_copy)
+# importar_orderia_shopify(schema,schema_copy,start_date)
+
+# importar_orderitemia_shopify(schema,schema_copy,start_date)
+
+importar_forecastia_shopify(schema,schema_copy)
 

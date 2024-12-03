@@ -18,6 +18,8 @@ from modules.sqlscriptsjson import vtexsqlscriptjson
 from datetime import datetime
 import logging
 
+import subprocess
+import sys
 
 # Lista de requisitos
 requirements = [
@@ -40,13 +42,22 @@ default_args = {
 }
 
 
+# Função para instalar um pacote via pip
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
-       
-        import orjson
+        try:
+            
+            import orjson
+        except ImportError:
+            print("matplotlib não está instalado. Instalando agora...")
+            install("orjson")
+            import orjson
+        
         try:
             
             
