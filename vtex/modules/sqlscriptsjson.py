@@ -85,7 +85,8 @@ def vtexsqlscriptjson(schema):
                                                                                  
                                 select 
                                 cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
-                                userprofileid 
+                                userprofileid, 
+                                cast(round(cast(SUM(revenue) as numeric),2) as float) as faturamento
 
                                 from "{schema}".orders_ia oi 
 

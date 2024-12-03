@@ -102,7 +102,7 @@ def importar_orderia_shopify(schema,schema_copy,data_create):
     sales_df = pd.DataFrame(result)
 
     # Processar os dados em lotes
-    batch_size = 500
+    batch_size = 1000
     num_batches = len(sales_df) // batch_size + (1 if len(sales_df) % batch_size > 0 else 0)
 
     for batch_number in range(num_batches):
@@ -153,7 +153,7 @@ def importar_orderitemia_shopify(schema,schema_copy,data_create):
     sales_df = pd.DataFrame(result)
 
     # Processar os dados em lotes
-    batch_size = 500
+    batch_size = 1000
     num_batches = len(sales_df) // batch_size + (1 if len(sales_df) % batch_size > 0 else 0)
 
     for batch_number in range(num_batches):
