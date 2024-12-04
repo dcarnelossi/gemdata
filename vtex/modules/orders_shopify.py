@@ -327,9 +327,9 @@ def process_orders_and_save(start_date, end_date,minimum_date):
             logging.error(f"Erro ao processar pedidos: {e}")
             countloop = countloop +1   # Reduz o número de tentativas restantes
 
-    # if countloop == 4:
-    #   logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
-    #   raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
+    if countloop == 4:
+      logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
+      raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
       
 
 
@@ -399,7 +399,7 @@ def set_globals(api_info, data_conection, coorp_conection,start_date,end_date,mi
     global coorp_conection_info
     coorp_conection_info = coorp_conection
 
-    print(minimum_date)
+    #print(minimum_date)
 
   
     try:
