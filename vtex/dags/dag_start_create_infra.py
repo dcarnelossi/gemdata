@@ -68,8 +68,8 @@ with DAG(
             hosting = integration_data["hosting"]
 
             trigger = TriggerDagRunOperator(
-                task_id=f"dev-0-CreateInfra-{integration_id}",
-                trigger_dag_id="dev-0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
+                task_id=f"0-CreateInfra-{integration_id}",
+                trigger_dag_id="0-CreateInfra",  # Substitua pelo nome real da sua segunda DAG
                 conf={
                     "PGSCHEMA": integration_id,
                     "ISDAILY": False,
