@@ -20,8 +20,8 @@ try:
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.metrics import mean_squared_log_error
 except ImportError:
-    print("sklearn não está instalado. Instalando agora...")
-    install("sklearn")
+    print("scikit-learn não está instalado. Instalando agora...")
+    install("scikit-learn")
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import HistGradientBoostingRegressor
     from sklearn.ensemble import RandomForestRegressor
