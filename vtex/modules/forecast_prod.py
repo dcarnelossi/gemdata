@@ -225,7 +225,7 @@ def selecionar_melhor_modelo(X_train, y_train, X_test, y_test):
     try:
         """Treina diferentes modelos e seleciona o com menor RMSLE"""
         modelos = {
-            'LGBMRegressor': LGBMRegressor(),
+         #   'LGBMRegressor': LGBMRegressor(),
             'HistGradientBoostingRegressor': HistGradientBoostingRegressor(),
             'XGBRegressor': XGBRegressor(),
             'CatBoostRegressor': CatBoostRegressor(verbose=0),
@@ -354,7 +354,6 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
-    isdaily= kwargs["isdaily"]
    
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logging.error("Global connection information is incomplete.")
