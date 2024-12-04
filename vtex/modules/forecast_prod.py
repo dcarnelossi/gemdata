@@ -37,12 +37,12 @@ except ImportError:
 
 
 # Instalar matplotlib se não estiver instalado
-try:
-    from lightgbm import LGBMRegressor
-except ImportError:
-    print("lightgbm não está instalado. Instalando agora...")
-    install("lightgbm")
-    from lightgbm import LGBMRegressor
+# try:
+#     from lightgbm import LGBMRegressor
+# except ImportError:
+#     print("lightgbm não está instalado. Instalando agora...")
+#     install("lightgbm")
+#     from lightgbm import LGBMRegressor
 
 
 # Instalar matplotlib se não estiver instalado
