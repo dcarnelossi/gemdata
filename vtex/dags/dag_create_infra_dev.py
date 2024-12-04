@@ -101,24 +101,28 @@ with DAG(
             )
             return e
     
-    @task(provide_context=True)
+    
     def choose_trigger_dag(**kwargs):
         hosting = kwargs["params"]["HOSTING"]
           # Adicione o log aqui
-        logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
+        #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
         if hosting.lower() == "vtex":
-            return "trigger_vtex_import"
-        elif hosting.lower() == "shopify":
-            return "trigger_shopify_orders_import"
-        else:
-            raise ValueError("HOSTING must be 'vtex' or 'shopify'.")
+            return 'trigger_vtex_import'
+        else: 
+            return 'trigger_shopify_orders_import'
+
+    branch_task = BranchPythonOperator(
+        task_id='choose_trigger_dag',
+        provide_context=True,
+        python_callable=choose_trigger_dag
+    )
 
 
 
     # Trigger para VTEX
-    trigger_vtex_import = TriggerDagRunOperator(
+    trigger_vtex_import_ini = TriggerDagRunOperator(
         task_id="trigger_vtex_import",
-        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products2",
+        trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}",
@@ -126,7 +130,7 @@ with DAG(
     )
 
     # Trigger para Shopify
-    trigger_shopify_orders_import = TriggerDagRunOperator(
+    trigger_shopify_orders_import_ini = TriggerDagRunOperator(
         task_id="trigger_shopify_orders_import",
         trigger_dag_id="shopify-1-Orders",
         conf={
@@ -137,8 +141,8 @@ with DAG(
 
     # Configurando a dependência entre as tarefas
     create_postgres_infra_task = create_postgres_infra()
-    choose_trigger_dag_task = choose_trigger_dag()
+   # choose_trigger_dag_task = choose_trigger_dag()
 
 
-    create_postgres_infra_task >> choose_trigger_dag_task >> [trigger_vtex_import, trigger_shopify_orders_import]
+    create_postgres_infra_task >> branch_task >> [trigger_vtex_import_ini, trigger_shopify_orders_import_ini]
 
