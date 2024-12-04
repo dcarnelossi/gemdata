@@ -66,6 +66,10 @@ with DAG(
 ) as dag:
      
      
+
+
+
+
     @task(provide_context=True)
     def orders_shopify(**kwargs):
         team_id = kwargs["params"]["PGSCHEMA"]
@@ -76,7 +80,23 @@ with DAG(
         api_conection_info = get_api_conection_info(team_id)
         # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
-     
+        
+        try:
+                query = """
+                UPDATE public.integrations_integration
+                SET daily_run_date_ini = %s,
+                isdaily_manual = false
+                WHERE id = %s;
+                """
+                # Initialize the PostgresHook
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                # Execute the query with parameters
+                
+                hook2.run(query, parameters=(datetime.now(),team_id))
+
+        except Exception as e:
+            logging.exception(f"An unexpected error occurred during DAG - {e}")
+            raise e
 
         from modules import orders_shopify
 
