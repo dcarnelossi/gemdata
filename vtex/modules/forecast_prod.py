@@ -74,7 +74,7 @@ def rmsle(y_true, y_pred):
     return np.sqrt(mean_squared_log_error(y_true + 1, y_pred + 1))  # Adiciona 1 para evitar log(0)
 
 
-def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
+def CriaDataFrameFeriado(schema= "6cc09227-eb0f-482f-82fa-a827fd538072"):
     '''Funcao para realizar consulta no sql e gravar em dataframe do pandas'''
     try:
         query_feriado = f"""
