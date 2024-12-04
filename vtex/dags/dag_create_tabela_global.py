@@ -129,7 +129,7 @@ with DAG(
 
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
-        trigger_dag_id="9.1-forecast-revenue",  # Substitua pelo nome real da sua segunda DAG
+        trigger_dag_id="9-forecast-revenue",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY":"{{ params.ISDAILY }}"

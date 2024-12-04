@@ -36,7 +36,7 @@ default_args = {
 
 
 with DAG(
-    "9.1-forecast-revenue",
+    "9-forecast-revenue",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
