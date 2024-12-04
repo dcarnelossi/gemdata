@@ -36,11 +36,11 @@ default_args = {
 
 
 with DAG(
-    "t-forecast-revenue",
+    "9.1-forecast-revenue",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["all", "orders", "FORECAST"],
+    tags=["forecast", "v1", "all"],
      render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
@@ -51,6 +51,15 @@ with DAG(
             min_length=1,
             max_length=200,
         ),
+        "ISDAILY": Param(
+            type="boolean",
+            title="ISDAILY:",
+            description="Enter com False (processo total) ou True (processo diario) .",
+            section="Important params",
+            min_length=1,
+            max_length=10,
+        )
+
     },
 ) as dag:
     
@@ -76,23 +85,22 @@ with DAG(
             raise e
     
  
-    
-    # trigger_dag_orders_items = TriggerDagRunOperator(
-    #     task_id="trigger_dag_orders_items",
-    #     trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
-    #     conf={
-    #         "PGSCHEMA": "{{ params.PGSCHEMA }}",
-    #         "ISDAILY":"{{ params.ISDAILY }}"
-    #     },  # Se precisar passar informações adicionais para a DAG_B
-    # )
-    # # Configurando a dependência entre as tasks
+    trigger_dag_create_json = TriggerDagRunOperator(
+        task_id="trigger_dag_create_json_dash",
+        trigger_dag_id="a10-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY":"{{ params.ISDAILY }}"
+           
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
 
     try:
 
         forecast_task = forecast()
         
         
-        forecast_task  
+        forecast_task  >> trigger_dag_create_json
     
     except Exception as e:
         logging.error(f"Error ao criar o forecast log diario: {e}")
