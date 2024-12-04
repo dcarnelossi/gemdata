@@ -536,6 +536,34 @@ class WriteJsonToPostgres:
             # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
+
+    def execute_query_ddl(self):
+        try:
+            query = self.data
+            # Conectar ao banco de dados
+            with self.connection.connect() as conn:
+                with conn.cursor() as cursor:
+                  
+                    if query:
+                        print("Executando a query:")
+                        print(query)
+                        cursor.execute(query)
+                        self.connection.commit()
+                    else:
+                        print("Nenhuma query fornecida ou gerada para execução.")
+                        return False
+        except Exception as e:
+            # Rollback se ocorrer um erro
+            self.connection.rollback()
+            print("Ocorreu um erro, transação revertida:", e)
+            return False
+        finally:
+            # Feche a conexão
+            self.connection.close()
+
+
+
+
 # if __name__ == "__main__":
 #     with open(os.path.join(os.path.dirname(__file__), "client_profile_data.json"), "r") as f:
 #         data = json.load(f)
