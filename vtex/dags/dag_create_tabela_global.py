@@ -79,6 +79,7 @@ with DAG(
 
            # return [integration[0] for integration in integration_ids]
 
+        print (hosting[0])
 
 
         try:
