@@ -258,7 +258,7 @@ def gerar_projecao_a_partir_de_data(data_inicio):
         """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""
         # Trata a base e retorna o DataFrame tratado
         dias_projecao=90
-        df = tratar_base(dias_projecao)
+        df = tratar_base()
         df.set_index('dt_pedido', inplace=True)
 
         # Filtrar os dados históricos até a data anterior a data_inicio
