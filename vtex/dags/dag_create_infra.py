@@ -69,7 +69,7 @@ with DAG(
                 sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
            
-            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook.run(sql_script)
             
             query = """
