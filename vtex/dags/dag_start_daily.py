@@ -59,7 +59,8 @@ with DAG(
 
             """
             dados_integration = hook.get_records(query)
-            print(f"Iniciando criação de infraestrutura para integração: {dados_integration[0]}-{dados_integration[1]}")
+           
+            print(f"Iniciando criação de infraestrutura para integração: {dados_integration}")
             return {"id": dados_integration[0], "hosting": dados_integration[1]}            
             
         except Exception as e:
