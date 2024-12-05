@@ -52,7 +52,7 @@ with DAG(
                 select id,hosting from public.integrations_integration
                             where is_active = true 
                             and infra_create_status = true 
-                           
+                            and hosting = 'shopify'
                             order by 1	
                             limit 1
  		
