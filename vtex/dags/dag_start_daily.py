@@ -46,17 +46,16 @@ with DAG(
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
-                SELECT id, hosting
-                FROM public.integrations_integration
-                WHERE is_active = true
-                  AND infra_create_status = true
-                  AND (
-                      (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE
-                       AND COALESCE(daily_run_date_end::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE)
-                      OR isdaily_manual IS true
-                  )
-                ORDER BY 1
-                LIMIT 1
+                                           
+                    select id,hosting,daily_run_date_ini from public.integrations_integration
+                            where is_active = true 
+                            and infra_create_status = true 
+                            and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE 
+                                    and COALESCE(daily_run_date_end::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE )
+                            
+                                            or  isdaily_manual is true )
+                            order by 3	
+                            limit 1
             """
             dados_integration = hook.get_records(query)
 
