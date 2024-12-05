@@ -71,9 +71,7 @@ with DAG(
     
     
     def choose_trigger_dag(ti, **context):
-        integration_data = ti.xcom_pull(task_ids="get_integration_id")
-
-        print(integration_data)
+        integration_data = ti.xcom_pull(task_ids="get_postgres_id")
         hosting = integration_data['hosting']
           # Adicione o log aqui
         #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
@@ -89,7 +87,7 @@ with DAG(
     )
 
     def trigger_dag_run_vtex(ti, **context):
-            integration_data = ti.xcom_pull(task_ids="get_integration_id")
+            integration_data = ti.xcom_pull(task_ids="get_postgres_id")
             integration_id = integration_data["id"]
 
             trigger = TriggerDagRunOperator(
@@ -104,7 +102,7 @@ with DAG(
 
 
     def trigger_dag_run_shopify(ti, **context):
-            integration_data = ti.xcom_pull(task_ids="get_integration_id")
+            integration_data = ti.xcom_pull(task_ids="get_postgres_id")
             integration_id = integration_data["id"]
 
             trigger = TriggerDagRunOperator(
