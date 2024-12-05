@@ -1,15 +1,12 @@
 import logging
 from datetime import datetime, timedelta
-
 from airflow import DAG
 from airflow.decorators import task
-from airflow.sensors.time_sensor import TimeSensor
-from airflow.operators.python import PythonOperator
+from airflow.models.param import Param
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
-from airflow.api.common.experimental.trigger_dag import trigger_dag
-from airflow.operators.dummy import DummyOperator
-
-
+from airflow.operators.python import BranchPythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 
 
 # Lista de requisitos
@@ -42,20 +39,17 @@ with DAG(
 
 ) as dag:
 
-    #   # Sensor para esperar até 00:30
-    # wait_until_00_30 = TimeSensor(
-    #     task_id='wait_until_00_30',
-    #     target_time=time(0, 30),
-    # )
+    @task(provide_context=True)
+    def get_postgres_id():
+     
+        import modules.sqlscripts as scripts
 
-    @task
-    def get_integration_ids():
         try:
-            # Conecte-se ao PostgreSQL e execute o script
+           # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
                      
-                select id from public.integrations_integration
+                select id,hosting from public.integrations_integration
                             where is_active = true 
                             and infra_create_status = true 
                             and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE 
@@ -67,54 +61,80 @@ with DAG(
  		
 
             """
-            integration_ids = hook.get_records(query)
+            dados_integration = hook.get_records(query)
+            print(f"Iniciando criação de infraestrutura para integração: {dados_integration[0]}-{dados_integration[1]}")
+            return {"id": dados_integration[0], "hosting": dados_integration[1]}            
             
-           
-
-            return [integration[0] for integration in integration_ids]
-           
-
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during get_integration_ids - {e}"
+                f"An unexpected error occurred during create_postgres_infra - {e}"
             )
-            raise
-        
+            return e
+    
+    
+    def choose_trigger_dag(ti, **context):
+        integration_data = ti.xcom_pull(task_ids="get_integration_id")
+          # Adicione o log aqui
+        #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
+        if integration_data['hosting'].lower() == "vtex":
+            return 'trigger_vtex_import'
+        else: 
+            return 'trigger_shopify_orders_import'
 
-    def trigger_dag_run(dag_id, conf, execution_date=None, replace_microseconds=False):
-        trigger_dag(
-            dag_id=dag_id,
-            run_id=f"manual__{datetime.utcnow().isoformat()}",
-            conf=conf,
-            execution_date=execution_date,
-            replace_microseconds=replace_microseconds,
-        )
-
-    def trigger_dag_run_task(integration_ids):
-        for integration_id in integration_ids:
-            conf = {
-                "PGSCHEMA": integration_id,
-                "ISDAILY": True
-            }
-            trigger_dag_run(
-                dag_id="1-ImportVtex-Brands-Categories-Skus-Products",
-                conf=conf
-            )
-
-    # Crie a tarefa Python para disparar a DAG
-    trigger_task = PythonOperator(
-        task_id="trigger_import_dags",
-        python_callable=trigger_dag_run_task,
-        op_args=[get_integration_ids()],
+    branch_task = BranchPythonOperator(
+        task_id='choose_trigger_dag',
+        provide_context=True,
+        python_callable=choose_trigger_dag
     )
 
-    # # Sensor para garantir que a DAG termine até as 05:00
-    # wait_until_05_00 = TimeSensor(
-    #     task_id='wait_until_05_00',
-    #     target_time=time(5, 0),
-    #     mode='reschedule',
-    # )
+    def trigger_dag_run_vtex(ti, **context):
+            integration_data = ti.xcom_pull(task_ids="get_integration_id")
+            integration_id = integration_data["id"]
+
+            trigger = TriggerDagRunOperator(
+                task_id=f"1-ImportVtex-Brands-Categories-Skus-Products-{integration_id}",
+                trigger_dag_id="1-ImportVtex-Brands-Categories-Skus-Products",  # Substitua pelo nome real da sua segunda DAG
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": True,
+                },
+            )
+            trigger.execute(context=context)
+
+
+    def trigger_dag_run_shopify(ti, **context):
+            integration_data = ti.xcom_pull(task_ids="get_integration_id")
+            integration_id = integration_data["id"]
+
+            trigger = TriggerDagRunOperator(
+                task_id=f"trigger_shopify_orders_import-{integration_id}",
+                trigger_dag_id="shopify-1-Orders",  # Substitua pelo nome real da sua segunda DAG
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": True,
+                },
+            )
+            trigger.execute(context=context)
+
+    # trigger_dag_choose = PythonOperator(
+    #         task_id="check_integration_id",
+    #         python_callable=choose_trigger_dag,
+    #     )
+
+    trigger_dag_vtex = PythonOperator(
+            task_id="trigger_vtex_import",
+            python_callable=trigger_dag_run_vtex,
+        )
     
-    # Definindo a sequência das tarefas
-    # wait_until_00_30 >> trigger_task >> wait_until_05_00
-    trigger_task
+    trigger_dag_shopify = PythonOperator(
+            task_id="trigger_shopify_orders_import",
+            python_callable=trigger_dag_run_shopify,
+        )
+
+    # Configurando a dependência entre as tarefas
+    get_id_task = get_postgres_id()
+   # choose_trigger_dag_task = choose_trigger_dag()
+
+
+    get_id_task >> branch_task >> [trigger_dag_vtex, trigger_dag_shopify]
+
