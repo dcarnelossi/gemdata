@@ -81,7 +81,7 @@ with DAG(
 
         print (hosting[0])
 
-
+        logging.info(f"Processing params: {hosting[0]}")
         try:
             if hosting[0]== "vtex": 
                 #essa parte é do vtex
