@@ -138,13 +138,18 @@ def vtexsqlscriptscreatetabglobal(schema):
 def shopifysqlscriptscreatetabglobal(schema):
     scripts = f"""
                 INSERT INTO "{schema}".shopify_gemdata_categoria(nomecategoria)
-                select distinct  
-                (LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END)) as nomecategoria
+				select distinct  
+                translate((LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
+                	,'ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ',
+                     'AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn') as nomecategoria
                 from "{schema}".shopify_orders_items si 
                 where 
-                (LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
+                translate((LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
+                	,'ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ',
+                     'AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn')
                 not in  
                 (select oi.nomecategoria from  "{schema}".shopify_gemdata_categoria oi);
+
 
             	DROP TABLE IF EXISTS orderspayment;
                 CREATE TEMPORARY TABLE orderspayment as	
@@ -168,7 +173,9 @@ def shopifysqlscriptscreatetabglobal(schema):
                 LOWER(coalesce(si.title,'Não informado')) as namesku,
                 --não tem no shopify
                 coalesce(ca.idcategoriagemdata,'999999') as idcat,
-                LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END) as namecategory,
+                translate(LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END)
+                    ,'ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ',
+                     'AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn') as namecategory,
                 0 as tax,
                 0 as taxcode,
                 cast(1 as float) as quantityorder,
