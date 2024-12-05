@@ -49,10 +49,13 @@ with DAG(
             hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
                      
-                select id,hosting from public.integrations_integration
+             select id from public.integrations_integration
                             where is_active = true 
                             and infra_create_status = true 
-                            and hosting = 'shopify'
+                            and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE 
+                                    and COALESCE(daily_run_date_end::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE )
+                            
+                                            or  isdaily_manual is true )
                             order by 1	
                             limit 1
  		
