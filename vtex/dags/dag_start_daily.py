@@ -72,9 +72,12 @@ with DAG(
     
     def choose_trigger_dag(ti, **context):
         integration_data = ti.xcom_pull(task_ids="get_integration_id")
+
+        print(integration_data)
+        hosting = integration_data['hosting']
           # Adicione o log aqui
         #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
-        if integration_data['hosting'].lower() == "vtex":
+        if hosting.lower() == "vtex":
             return 'trigger_vtex_import'
         else: 
             return 'trigger_shopify_orders_import'
