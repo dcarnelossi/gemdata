@@ -42,14 +42,12 @@ with DAG(
     @task(provide_context=True)
     def get_postgres_id():
      
-        import modules.sqlscripts as scripts
-
         try:
            # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             query = """
                      
-             select id from public.integrations_integration
+             select id,hosting from public.integrations_integration
                             where is_active = true 
                             and infra_create_status = true 
                             and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE 
