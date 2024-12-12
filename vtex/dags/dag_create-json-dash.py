@@ -186,18 +186,24 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def cadastro_analytics_analytics(pg_schema):
+def post_analytics_analytics(pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
        
 
         try:    
-               aba_dash = ['revenue','products']
-             
-               for aba in aba_dash:
+ 
+            aba_dash= [('revenue','faturamento_canais.json','channels'),
+                          ('revenue','faturamento_categorias.json','category'),
+                          ('revenue','faturamento_ecommerce.json','revenue'),
+                          ('revenue','faturamento_regiao.json','cities'),
+                          ('revenue','faturamento_compradores.json','buyers'),
+                          ('products','pedido_ecommerce.json','products')
+                          ]
+            distinct_first_column = set(aba[0] for aba in aba_dash) 
+
+            for aba in distinct_first_column:
                 random_uuid = uuid.uuid4()
-                
-                # Query SQL com placeholders corretos
                 query = """
                 INSERT INTO analytics_analytics (id, name, is_active, integration_id)
                 SELECT %s, %s, %s, %s
@@ -213,7 +219,48 @@ def cadastro_analytics_analytics(pg_schema):
                 
                 # Executa a query com os parâmetros
                 hook2.run(query, parameters=(str(random_uuid), aba, True, pg_schema, aba, pg_schema))
+        
+        except Exception as e:
+            logging.exception(
+                f"erro ao inserir no analytics_analytics - {e}"
+            )
+            raise e
+
+        try:      
+            # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            query = f"""         
+                   select distinct name,id from analytics_analytics aa 
+                    where integration_id = '{pg_schema}'
+                """
+            dados_integration = hook.get_records(query)   
             
+            for dados_analytics in dados_integration:
+                for aba_file in aba_dash:
+                    print(aba_file[0])
+                    print(dados_analytics[0])
+                    if aba_file[0] == dados_analytics[0]:
+                        file_uuid = uuid.uuid4()
+                        
+                        # Query SQL com placeholders corretos
+                        query = """
+                        INSERT INTO analytics_analyticsfile (id, json_file, graph, analytics_id)
+                        SELECT %s, %s, %s, %s
+                        WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM analytics_analyticsfile
+                            WHERE graph = %s AND analytics_id = %s
+                        );
+                        """
+
+                        # Inicializa o PostgresHook
+                        hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                        
+                        # Executa a query com os parâmetros
+                        hook2.run(query, parameters=(str(file_uuid), f"pg_schema/{aba_file[1]}",aba_file[2] , dados_analytics[1] ,aba_file[2] , dados_analytics[1]))
+
+
+
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
@@ -256,30 +303,8 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
        
-
         try:    
-               aba_dash = ['revenue','products']
-             
-               for aba in aba_dash:
-                random_uuid = uuid.uuid4()
-                
-                # Query SQL com placeholders corretos
-                query = """
-                INSERT INTO analytics_analytics (id, name, is_active, integration_id)
-                SELECT %s, %s, %s, %s
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM analytics_analytics
-                    WHERE name = %s AND integration_id = %s
-                );
-                """
-
-                # Inicializa o PostgresHook
-                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-                
-                # Executa a query com os parâmetros
-                hook2.run(query, parameters=(str(random_uuid), aba, True, PGSCHEMA, aba, PGSCHEMA))
-            
+            post_analytics_analytics(PGSCHEMA)
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
