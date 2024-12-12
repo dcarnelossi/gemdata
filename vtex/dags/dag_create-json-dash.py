@@ -186,7 +186,7 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def post_analytics_analytics(pg_schema,isdaily):
+def post_analytics_analytics(pg_schema):
 
        
     # if(not isdaily):
