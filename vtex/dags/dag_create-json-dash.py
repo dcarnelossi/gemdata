@@ -258,7 +258,7 @@ def post_analytics_analytics(pg_schema):
                         hook3 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
                         
                         # Executa a query com os parâmetros
-                        hook3.run(query3, parameters=(str(file_uuid), f"pg_schema/{aba_file[1]}",aba_file[2] , dados_analytics[1] ,aba_file[2] , dados_analytics[1]))
+                        hook3.run(query3, parameters=(str(file_uuid), f"{pg_schema}/{aba_file[1]}",aba_file[2] , dados_analytics[1] ,aba_file[2] , dados_analytics[1]))
 
 
 
