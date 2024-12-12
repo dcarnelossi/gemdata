@@ -16,6 +16,10 @@ isdaily = None
 
 def get_orders_list_pages(query_params):
     try:
+        print(api_conection_info["Domain"])
+        print(query_params)
+        print(api_conection_info["headers"])
+        
         return make_request(
             api_conection_info["Domain"],
             "GET",
@@ -87,7 +91,7 @@ def process_orders_lists(start_date, end_date):
             
                 # Número de pedidos por página
             }
-            
+
             logging.info(f"Processing orders from {start_date} to {end_date}.")
             process_page(qs1)
             data_inicial += timedelta(days=1)
