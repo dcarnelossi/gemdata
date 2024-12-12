@@ -2,6 +2,7 @@
 import os
 
 from airflow import DAG
+from airflow.decorators import task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.operators.python import PythonOperator
 from airflow.providers.microsoft.azure.transfers.local_to_wasb import LocalFilesystemToWasbOperator
