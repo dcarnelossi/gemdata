@@ -80,6 +80,7 @@ def process_order(order):
 
 def process_orders_lists(start_date, end_date):
     try:
+        
         data_inicial, data_final = validate_and_convert_dates(start_date, end_date)
         
         while data_inicial <= data_final:
@@ -93,6 +94,7 @@ def process_orders_lists(start_date, end_date):
             }
 
             logging.info(f"Processing orders from {start_date} to {end_date}.")
+            print(f"aaaaaaaaaaaaaa{data_inicial}")
             if(data_inicial=='2024-10-09'):
                 process_page(qs1)
             data_inicial += timedelta(days=1)
