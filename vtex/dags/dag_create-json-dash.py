@@ -186,12 +186,12 @@ def upload_to_blob_directory(file_name,pg_schema):
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def post_analytics_analytics(pg_schema):
-        #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        #isdaily = kwargs["params"]["ISDAILY"]
-       
+def post_analytics_analytics(pg_schema,isdaily):
 
+       
+    if(not isdaily):
         try:    
+           
  
             aba_dash= [('revenue','faturamento_canais.json','channels'),
                           ('revenue','faturamento_categorias.json','category'),
@@ -302,10 +302,10 @@ with DAG(
     @task(provide_context=True)
     def cadastro_analytics_analytics(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        #isdaily = kwargs["params"]["ISDAILY"]
+        isdaily = kwargs["params"]["ISDAILY"]
        
         try:    
-            post_analytics_analytics(PGSCHEMA)
+            post_analytics_analytics(PGSCHEMA,isdaily)
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
