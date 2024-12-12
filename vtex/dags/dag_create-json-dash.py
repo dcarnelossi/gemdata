@@ -189,7 +189,7 @@ def upload_to_blob_directory(file_name,pg_schema):
 def post_analytics_analytics(pg_schema,isdaily):
 
        
-    if(not isdaily):
+    # if(not isdaily):
         try:    
            
  
@@ -302,10 +302,10 @@ with DAG(
     @task(provide_context=True)
     def cadastro_analytics_analytics(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        isdaily = kwargs["params"]["ISDAILY"]
+        #isdaily = kwargs["params"]["ISDAILY"]
        
         try:    
-            post_analytics_analytics(PGSCHEMA,isdaily)
+            post_analytics_analytics(PGSCHEMA)
         except Exception as e:
             logging.exception(
                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
