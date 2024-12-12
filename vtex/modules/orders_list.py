@@ -36,6 +36,7 @@ def process_page(query_params):
     try:
         logging.info(f"Processing page with params: {query_params}")
         tentativa=0
+        lista =[]
         while not lista or tentativa <5: 
            # time.sleep(2)
             lista = get_orders_list_pages(query_params)
