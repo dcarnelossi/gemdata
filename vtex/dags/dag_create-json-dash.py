@@ -229,11 +229,12 @@ def post_analytics_analytics(pg_schema):
         try:      
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-            query = f"""         
+            query2 = f"""         
                    select distinct name,id from analytics_analytics aa 
                     where integration_id = '{pg_schema}'
                 """
-            dados_integration = hook.get_records(query)   
+            dados_integration = hook.get_records(query2)   
+
             
             for dados_analytics in dados_integration:
                 for aba_file in aba_dash:
@@ -243,7 +244,7 @@ def post_analytics_analytics(pg_schema):
                         file_uuid = uuid.uuid4()
                         
                         # Query SQL com placeholders corretos
-                        query = """
+                        query3 = """
                         INSERT INTO analytics_analyticsfile (id, json_file, graph, analytics_id)
                         SELECT %s, %s, %s, %s
                         WHERE NOT EXISTS (
@@ -254,10 +255,10 @@ def post_analytics_analytics(pg_schema):
                         """
 
                         # Inicializa o PostgresHook
-                        hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                        hook3 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
                         
                         # Executa a query com os parâmetros
-                        hook2.run(query, parameters=(str(file_uuid), f"pg_schema/{aba_file[1]}",aba_file[2] , dados_analytics[1] ,aba_file[2] , dados_analytics[1]))
+                        hook3.run(query3, parameters=(str(file_uuid), f"pg_schema/{aba_file[1]}",aba_file[2] , dados_analytics[1] ,aba_file[2] , dados_analytics[1]))
 
 
 
