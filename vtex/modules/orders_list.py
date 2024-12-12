@@ -81,9 +81,13 @@ def process_orders_lists(start_date, end_date):
         while data_inicial <= data_final:
             start_date, end_date = increment_one_day(data_inicial)
             qs1 = {
-                "per_page": 100,
-                "f_creationDate": f"[{start_date} TO {end_date}]",
+                'per_page': 100,
+                'f_creationDate': f'creationDate:[{start_date} TO {end_date}]'  # Período desejado
+                
+            
+                # Número de pedidos por página
             }
+            
             logging.info(f"Processing orders from {start_date} to {end_date}.")
             process_page(qs1)
             data_inicial += timedelta(days=1)
