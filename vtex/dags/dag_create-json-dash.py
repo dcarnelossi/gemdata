@@ -198,6 +198,7 @@ def post_analytics_analytics(pg_schema):
                           ('revenue','faturamento_ecommerce.json','revenue'),
                           ('revenue','faturamento_regiao.json','cities'),
                           ('revenue','faturamento_compradores.json','buyers'),
+                          ('revenue','faturamento_mensal.json','revenuemensal'),
                           ('products','pedido_ecommerce.json','products')
                           ]
             distinct_first_column = set(aba[0] for aba in aba_dash) 

@@ -63,21 +63,36 @@ def vtexsqlscriptjson(schema):
                                             
           
                                             SET CLIENT_ENCODING = 'UTF8';
-                                                                            
-                                            select 
-                                            cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                            cast(idcat as integer) as idcategoria,
-                                            ori.namecategory as nomecategoria,
-                                            cast(idprod as integer) as idsku,
-                                            ori.namesku as nomesku ,
-
-                                            cast(SUM(ori.sellingprice) as float)  as faturamento,
-                                            cast(SUM(ori.quantityorder) as integer)  as pedidos
-
-                                            from "{schema}".orders_items_ia ori
-                                            group by 
-                                            1,2,3,4,5 
-                                            order by 1    
+                                            WITH faturamento_base AS (
+                                                SELECT 
+                                                    to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD') AS dt,
+                                                    CAST(idcat AS INTEGER) AS idc,
+                                                    concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
+                                                    CAST(idprod AS INTEGER) AS ids,
+                                                    concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
+                                                    CAST(SUM(ori.sellingprice) AS FLOAT) AS fat,
+                                                    CAST(SUM(ori.quantityorder) AS INTEGER) AS ped
+                                            
+                                                    from "{schema}".orders_items_ia ori
+                                                GROUP BY 1, 2, 3, 4, 5
+                                            )
+                                            SELECT 
+                                            --  base.dateint,
+                                                base.dt,
+                                                base.idc,
+                                                base.nmc,
+                                                base.ids,
+                                                base.nms,
+                                                base.fat,
+                                                base.ped,
+                                                CAST(COALESCE(round(cast(prev.fat as decimal),2), 0) as float) AS fat_a,
+                                                COALESCE(prev.ped, 0) AS ped_a
+                                            FROM faturamento_base base
+                                            LEFT JOIN faturamento_base prev
+                                                ON base.idc = prev.idc
+                                                AND base.ids = prev.ids
+                                                AND base.dt = TO_CHAR((TO_DATE(prev.dt, 'YYYY-MM-DD') + INTERVAL '1 year'), 'YYYY-MM-DD')
+                                            ORDER BY base.dt;   
                                                
                                             """
 
@@ -141,32 +156,88 @@ def vtexsqlscriptjson(schema):
 
                                         """   
                 ,'pedido_ecommerce': f""" 
-                                                                           
-                                      select 
-                                      cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
-                                      cast(idcat as integer) as idcategoria,
-                                      ori.namecategory as nomecategoria,
-                                      cast(idprod as integer) as idsku,
-                                      ori.namesku as nomesku ,
-                                      trim(selectedaddresses_0_state) as estado,
-                                      INITCAP(translate(trim(selectedaddresses_0_city),  
-                                      'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
-                                      'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                      )) as cidade,
-                                      cast(SUM(ori.revenue_without_shipping) as float)  as faturamento,
-                                      cast(SUM(ori.quantityorder) as integer)  as pedidos,
-                                      cast(SUM(ori.quantityitems) as integer)  as qtditem
+                            WITH faturamento_base AS (
+                                SELECT 
+                                    to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD') AS dt,
+                                    CAST(idcat AS INTEGER) AS idc,
+                                    concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
+                                    CAST(idprod AS INTEGER) AS ids,
+                                    concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
+                                    trim(selectedaddresses_0_state) as est,
+                                    INITCAP(translate(trim(selectedaddresses_0_city),  
+                                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
+                                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
+                                                            )) as cid,
+                                    cast(SUM(ori.revenue_without_shipping) as float)  as fat,
+                                    cast(SUM(ori.quantityorder) as integer)  as ped,
+                                    cast(SUM(ori.quantityitems) as integer)  as qti
 
+                            
+                                    from "{schema}".orders_items_ia ori
+                                GROUP BY 1, 2, 3, 4, 5,6,7
+                            )
+                            SELECT 
+                            --  base.dateint,
+                                base.dt,
+                                base.idc,
+                                base.nmc,
+                                base.ids,
+                                base.nms,
+                                base.est,
+                                base.cid,
+                                base.fat,
+                                base.ped,
+                                base.qti,
+                                CAST(COALESCE(round(cast(prev.fat as decimal),2), 0) as float) AS fat_a,
+                                COALESCE(prev.ped, 0) AS ped_a,
+                                COALESCE(prev.qti, 0) AS qti_a
 
-
-                                      from "{schema}".orders_items_ia ori
-                                      group by 
-                                      1,2,3,4,5,6,7
-                                      order by 1 
+                            FROM faturamento_base base
+                            LEFT JOIN faturamento_base prev
+                                ON base.idc = prev.idc
+                                AND base.ids = prev.ids
+                                and base.est = base.est
+                                and base.cid = base.cid
+                                AND base.dt = TO_CHAR((TO_DATE(prev.dt, 'YYYY-MM-DD') + INTERVAL '1 year'), 'YYYY-MM-DD')
+                            ORDER BY base.dt;
+                                      """                             
+                ,'faturamento_mensal': f""" 
+                                                            
+                                        select 
+                                        yearMonth,
+                                        "date",
+                                        cast(round(cast(sum(revenue) as numeric),0) as varchar(20)) as revenue,
+                                        cast(round(cast(sum(projection) as numeric),0) as varchar(20)) as projection,
+                                        cast(round(cast(sum(orders) as numeric),0) as varchar(20)) as orders,
+                                        cast(round(cast(sum(averageTicket) as numeric),0) as varchar(20)) as averageTicket 
+                                        from (
+                                            select 
+                                            to_char(creationdate,'YYYY-MM') as yearMonth,
+                                            to_char(DATE_TRUNC('month', creationdate),'YYYY-MM-DD' )as "date",
+                                            sum(oi.revenue) as revenue,
+                                            0 as projection,
+                                            count(1) as orders, 
+                                            sum(oi.revenue) / count(1) as averageTicket
+                                            from "{schema}".orders_ia oi 
+                                            group by 
+                                            1,2
+                                            
+                                            union all 
+                                            
+                                            select 
+                                            to_char(creationdateforecast,'YYYY-MM') as yearMonth,
+                                            to_char(DATE_TRUNC('month', creationdateforecast),'YYYY-MM-DD' ) as "date",
+                                            0 as revenue,
+                                            SUM(predicted_revenue) as projection,
+                                            0 as orders,
+                                            0 as averageTicket
+                                            from "{schema}".orders_ia_forecast oif   
+                                            group by 1,2
+                                        )mesorder
+                                        group by 1,2 
+                                        order by  1 
                                       """                             
 
-                                
-    
     }
     # Convertendo o dicionário para uma string JSON
   
