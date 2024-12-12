@@ -35,12 +35,14 @@ def get_orders_list_pages(query_params):
 def process_page(query_params):
     try:
         logging.info(f"Processing page with params: {query_params}")
-        
-        time.sleep(10)
-        lista = get_orders_list_pages(query_params)
+        while not lista: 
+            time.sleep(2)
+            lista = get_orders_list_pages(query_params)
+
 
         if not lista or "list" not in lista:
             logging.error(f"No orders found for params: {query_params}")
+            
             raise ValueError(f"Invalid response for params: {query_params}")
 
         orders_list = lista["list"]
