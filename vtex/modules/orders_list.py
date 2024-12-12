@@ -45,7 +45,8 @@ def process_page(query_params):
 
         if not lista or "list" not in lista:
             logging.error(f"No orders found for params: {query_params}")
-            raise ValueError(f"Invalid response for params: {query_params}")
+            return
+            #raise ValueError(f"Invalid response for params: {query_params}")
 
         orders_list = lista["list"]
 
