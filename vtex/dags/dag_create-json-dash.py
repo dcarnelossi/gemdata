@@ -14,7 +14,7 @@ from airflow.utils.task_group import TaskGroup
 # Importação dos módulos deve ser feita fora do contexto do DAG
 from modules.sqlscriptsjson import vtexsqlscriptjson
 
-
+import uuid
 from datetime import datetime
 import logging
 
@@ -184,6 +184,40 @@ def upload_to_blob_directory(file_name,pg_schema):
             raise e
 
 
+# Função para extrair dados do PostgreSQL e salvá-los como JSON
+def cadastro_analytics_analytics(pg_schema):
+        #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        #isdaily = kwargs["params"]["ISDAILY"]
+       
+
+        try:    
+               aba_dash = ['revenue','products']
+             
+               for aba in aba_dash:
+                random_uuid = uuid.uuid4()
+                
+                # Query SQL com placeholders corretos
+                query = """
+                INSERT INTO analytics_analytics (id, name, is_active, integration_id)
+                SELECT %s, %s, %s, %s
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM analytics_analytics
+                    WHERE name = %s AND integration_id = %s
+                );
+                """
+
+                # Inicializa o PostgresHook
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                
+                # Executa a query com os parâmetros
+                hook2.run(query, parameters=(str(random_uuid), aba, True, pg_schema, aba, pg_schema))
+            
+        except Exception as e:
+            logging.exception(
+                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+            )
+            raise e
 
 
 # Usando o decorator @dag para criar o objeto DAG
@@ -213,6 +247,43 @@ with DAG(
         )
     },
 ) as dag:
+
+
+# Função para extrair dados do PostgreSQL e salvá-los como JSON
+    def cadastro_analytics_analytics(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        #isdaily = kwargs["params"]["ISDAILY"]
+       
+
+        try:    
+               aba_dash = ['revenue','products']
+             
+               for aba in aba_dash:
+                random_uuid = uuid.uuid4()
+                
+                # Query SQL com placeholders corretos
+                query = """
+                INSERT INTO analytics_analytics (id, name, is_active, integration_id)
+                SELECT %s, %s, %s, %s
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM analytics_analytics
+                    WHERE name = %s AND integration_id = %s
+                );
+                """
+
+                # Inicializa o PostgresHook
+                hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                
+                # Executa a query com os parâmetros
+                hook2.run(query, parameters=(str(random_uuid), aba, True, pg_schema, aba, pg_schema))
+            
+        except Exception as e:
+            logging.exception(
+                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+            )
+            raise e
+
 
     # Carregar o script SQL usando o módulo importado
     try:
@@ -276,5 +347,6 @@ with DAG(
         dag=dag
     )
 
+    cad_analytics_analytics=cadastro_analytics_analytics()
     # Configurar que o trigger será executado após a atualização do log
-    log_update_corp >> trigger_dag_disparo_email
+    cad_analytics_analytics >>log_update_corp >> trigger_dag_disparo_email
