@@ -82,7 +82,7 @@ def process_orders_lists(start_date, end_date):
             start_date, end_date = increment_one_day(data_inicial)
             qs1 = {
                 "per_page": 100,
-                "f_creationDate": f"creationDate:[{start_date} TO {end_date}]",
+                "f_creationDate": f"[{start_date} TO {end_date}]",
             }
             logging.info(f"Processing orders from {start_date} to {end_date}.")
             process_page(qs1)
