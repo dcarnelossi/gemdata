@@ -35,6 +35,8 @@ def get_orders_list_pages(query_params):
 def process_page(query_params):
     try:
         logging.info(f"Processing page with params: {query_params}")
+        
+        time.sleep(10)
         lista = get_orders_list_pages(query_params)
 
         if not lista or "list" not in lista:
@@ -43,7 +45,7 @@ def process_page(query_params):
 
         orders_list = lista["list"]
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = {executor.submit(process_order, order): order for order in orders_list}
             for future in concurrent.futures.as_completed(futures):
                 order = futures[future]
