@@ -15,9 +15,9 @@ def increment_one_day(d1):
 
     # Obtém a data de início como a data atual com a hora T01:59:59.999Z
     end_date = (
-        d1.replace(hour=1, minute=59, second=59, microsecond=999000) + timedelta(days=1)
+        d1.replace(hour=1, minute=59, second=59, microsecond=999) + timedelta(days=1)
     ).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-    start_date = (d1.replace(hour=2, minute=00, second=00, microsecond=000000)).strftime(
+    start_date = (d1.replace(hour=2, minute=00, second=00, microsecond=000)).strftime(
         "%Y-%m-%dT%H:%M:%S.%fZ"
     )
 
