@@ -250,6 +250,7 @@ with DAG(
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
+    @task(provide_context=True)
     def cadastro_analytics_analytics(**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
@@ -276,7 +277,7 @@ with DAG(
                 hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
                 
                 # Executa a query com os parâmetros
-                hook2.run(query, parameters=(str(random_uuid), aba, True, pg_schema, aba, pg_schema))
+                hook2.run(query, parameters=(str(random_uuid), aba, True, PGSCHEMA, aba, PGSCHEMA))
             
         except Exception as e:
             logging.exception(
