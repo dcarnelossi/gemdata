@@ -43,7 +43,7 @@ def process_page(query_params):
 
         orders_list = lista["list"]
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
             futures = {executor.submit(process_order, order): order for order in orders_list}
             for future in concurrent.futures.as_completed(futures):
                 order = futures[future]
