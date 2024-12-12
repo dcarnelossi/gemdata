@@ -94,8 +94,8 @@ def process_orders_lists(start_date, end_date):
             }
 
             logging.info(f"Processing orders from {start_date} to {end_date}.")
-            print(f"aaaaaaaaaaaaaa{data_inicial}")
-            if(data_inicial=='2024-10-09'):
+            print(f"aaaaaaaaaaaaaa{start_date}")
+            if(start_date=='2024-10-09T02:00:00.000000Z'):
                 process_page(qs1)
             data_inicial += timedelta(days=1)
 
