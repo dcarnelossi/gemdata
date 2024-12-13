@@ -71,7 +71,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped
                                             
-                                                    from "{shema}".orders_items_ia ori
+                                                    from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5
                                             ),
                                             faturamento_passado AS (
@@ -85,7 +85,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat_a,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped_a
                                             
-                                                    from "{shema}".orders_items_ia ori
+                                                    from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5    
                                             ),    
                                              faturamento_juntos as(
