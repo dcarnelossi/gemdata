@@ -60,8 +60,7 @@ def vtexsqlscriptjson(schema):
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
-                                            
-          											                                   
+                                            								                                   
 
 
                                             SET CLIENT_ENCODING = 'UTF8';
@@ -75,7 +74,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped
                                             
-                                                    from orders_items_ia ori
+                                                    from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5
                                             ),
                                             faturamento_passado AS (
@@ -89,7 +88,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat_a,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped_a
                                             
-                                                    from orders_items_ia ori
+                                                    from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5    
                                             ),    
                                              faturamento_juntos as(
@@ -131,6 +130,8 @@ def vtexsqlscriptjson(schema):
 												
 												from faturamento_juntos base
 												group by 1,2,3,4,5 ;
+		
+                                            
                                             """
 
                  ,'faturamento_compradores': f"""
