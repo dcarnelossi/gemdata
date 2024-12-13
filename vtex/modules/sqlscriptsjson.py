@@ -60,8 +60,7 @@ def vtexsqlscriptjson(schema):
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
-                                            
-                                            SET CLIENT_ENCODING = 'UTF8';
+                                                                                        SET CLIENT_ENCODING = 'UTF8';
                                             WITH faturamento_base_atual AS (
                                                 SELECT 
                                                     DATE_TRUNC('day', ori.creationdate) AS dt,
@@ -72,13 +71,13 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped
                                             
-                                                    from "{schema}".orders_items_ia ori
+                                                    from "{shema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5
                                             ),
                                             faturamento_passado AS (
   											SELECT 
                                                    -- to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD')- INTERVAL '1 year' AS dt,
-  													DATE_TRUNC('day', ori.creationdate)- INTERVAL '1 year' AS dt,
+  													DATE_TRUNC('day', ori.creationdate)+ INTERVAL '1 year' AS dt,
                                                     CAST(idcat AS INTEGER) AS idc,
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
                                                     CAST(idprod AS INTEGER) AS ids,
@@ -86,7 +85,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.sellingprice) AS FLOAT) AS fat_a,
                                                     CAST(SUM(ori.quantityorder) AS INTEGER) AS ped_a
                                             
-                                                    from "{schema}".orders_items_ia ori
+                                                    from "{shema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5    
                                             ),    
                                              faturamento_juntos as(
@@ -127,11 +126,11 @@ def vtexsqlscriptjson(schema):
                                                 COALESCE(sum(base.ped_a), 0) AS ped_a
 												
 												from faturamento_juntos base
+												where base.dt <= (select max( dt) from faturamento_base_atual)
 												group by 1,2,3,4,5
 												HAVING SUM(base.fat) > 0 OR SUM(base.fat_a) > 0
 												order by 1
-                                            
-          
+                                            	
 												
                                             """
 
