@@ -81,7 +81,7 @@ def vtexsqlscriptjson(schema):
                                                     CAST(SUM(ori.revenue_without_shipping) AS FLOAT) AS fat,
                                                     CAST(count(distinct orderid) AS INTEGER) AS ped,
                                                     CAST(sum(ori.quantityitems)  as INTEGER ) as qti,
-                                                    CAST(max(pc.ped_categoria) as INTEGER ) as ped_categoria
+                                                    CAST(sum(pc.ped_categoria) as INTEGER ) as ped_categoria
                                                                                            
                                                     from "{schema}".orders_items_ia ori
                                                     inner join pedido_categoria pc on 
