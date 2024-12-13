@@ -63,12 +63,13 @@ def vtexsqlscriptjson(schema):
                 
                                             SET CLIENT_ENCODING = 'UTF8';
                                             WITH pedido_categoria as (
-                                             SELECT
+                                             select
+                                             		DATE_TRUNC('day', ori.creationdate) AS dtcat,
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
                                                     CAST(count(distinct orderid) AS INTEGER) AS ped_categoria
                                                                                            
                                                from "{schema}".orders_items_ia ori
-                                                GROUP BY 1
+                                                GROUP BY 1,2
                                             
                                              ),faturamento_base_atual AS (
                                                 SELECT 
@@ -85,6 +86,7 @@ def vtexsqlscriptjson(schema):
                                                     from "{schema}".orders_items_ia ori
                                                     inner join pedido_categoria pc on 
                                                     pc.nmc = concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory)
+                                                    and pc.dtcat =  DATE_TRUNC('day', ori.creationdate)
                                                     
                                                 GROUP BY 1, 2, 3, 4, 5
                                             ),
