@@ -71,8 +71,8 @@ def vtexsqlscriptjson(schema):
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
                                                     CAST(idprod AS INTEGER) AS ids,
                                                     concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
-                                                    CAST(SUM(ori.sellingprice) AS FLOAT) AS fat,
-                                                    CAST(SUM(ori.quantityorder) AS INTEGER) AS ped
+                                                    CAST(SUM(ori.revenue_without_shipping) AS FLOAT) AS fat,
+                                                    CAST(count(distinct orderid) AS INTEGER) AS ped
                                             
                                                     from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5
@@ -85,8 +85,8 @@ def vtexsqlscriptjson(schema):
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
                                                     CAST(idprod AS INTEGER) AS ids,
                                                     concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
-                                                    CAST(SUM(ori.sellingprice) AS FLOAT) AS fat_a,
-                                                    CAST(SUM(ori.quantityorder) AS INTEGER) AS ped_a
+                                                    CAST(SUM(ori.revenue_without_shipping) AS FLOAT) AS fat_a,
+                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_a
                                             
                                                     from "{schema}".orders_items_ia ori
                                                 GROUP BY 1, 2, 3, 4, 5    
@@ -133,10 +133,6 @@ def vtexsqlscriptjson(schema):
 												group by 1,2,3,4,5
 												order by 1
                                             	
-                                         
-												
-												
-				
 												
                                             """
 
