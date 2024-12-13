@@ -60,7 +60,8 @@ def vtexsqlscriptjson(schema):
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
-                                            								                                   
+                                            
+          											                                   
 
 
                                             SET CLIENT_ENCODING = 'UTF8';
@@ -118,7 +119,7 @@ def vtexsqlscriptjson(schema):
 												from faturamento_passado base
 												)
 												select 
-												base.dt,
+												to_char(base.dt, 'YYYY-MM-DD') as dt,
                                                 base.idc,
                                                 base.nmc,
                                                 base.ids,
@@ -129,8 +130,8 @@ def vtexsqlscriptjson(schema):
                                                 COALESCE(sum(base.ped_a), 0) AS ped_a
 												
 												from faturamento_juntos base
-												group by 1,2,3,4,5 ;
-		
+												group by 1,2,3,4,5
+												order by 1;
                                             
                                             """
 
