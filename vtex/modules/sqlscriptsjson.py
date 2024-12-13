@@ -60,7 +60,10 @@ def vtexsqlscriptjson(schema):
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
-                                                                                        SET CLIENT_ENCODING = 'UTF8';
+                                            											                                   
+
+
+                                            SET CLIENT_ENCODING = 'UTF8';
                                             WITH faturamento_base_atual AS (
                                                 SELECT 
                                                     DATE_TRUNC('day', ori.creationdate) AS dt,
@@ -128,9 +131,12 @@ def vtexsqlscriptjson(schema):
 												from faturamento_juntos base
 												where base.dt <= (select max( dt) from faturamento_base_atual)
 												group by 1,2,3,4,5
-												HAVING SUM(base.fat) > 0 OR SUM(base.fat_a) > 0
 												order by 1
                                             	
+                                         
+												
+												
+				
 												
                                             """
 
