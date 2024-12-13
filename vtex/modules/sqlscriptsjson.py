@@ -61,9 +61,6 @@ def vtexsqlscriptjson(schema):
                                         
                 ,'faturamento_categorias': f"""
                                             
-          											                                   
-
-
                                             SET CLIENT_ENCODING = 'UTF8';
                                             WITH faturamento_base_atual AS (
                                                 SELECT 
@@ -131,8 +128,11 @@ def vtexsqlscriptjson(schema):
 												
 												from faturamento_juntos base
 												group by 1,2,3,4,5
-												order by 1;
+												HAVING SUM(base.fat) > 0 OR SUM(base.fat_a) > 0
+												order by 1
                                             
+          
+												
                                             """
 
                  ,'faturamento_compradores': f"""
