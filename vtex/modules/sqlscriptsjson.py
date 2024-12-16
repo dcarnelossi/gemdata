@@ -177,27 +177,71 @@ def vtexsqlscriptjson(schema):
                                         """
                                         
                 ,'faturamento_regiao': f"""
-                                                                        
-                                            SET CLIENT_ENCODING = 'UTF8';
                                             
+										SET CLIENT_ENCODING = 'UTF8';
+                                        WITH faturamento_base_atual AS (
                                             select 
-                                            cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
-                                            trim(selectedaddresses_0_state) as estado,
+                                            DATE_TRUNC('day', creationdate) AS dt,
+                                            trim(selectedaddresses_0_state) as est,
                                             INITCAP(translate(trim(selectedaddresses_0_city),  
                                             'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
                                             'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                            )) as cidade,
-                                            cast(SUM(revenue) as float)   as faturamento,
-                                            cast(SUM(quantityorder) as integer)  as pedidos
-
-                                            from "{schema}".orders_ia ia 
-
-                                  
-                                            
-
+                                            )) as cid,
+                                            cast(SUM(revenue) as float)   as fat,
+                                            cast(SUM(quantityorder) as integer)  as ped
+											
+                                            --"{schema}".
+                                            from orders_ia ia 
                                             group by 1,2,3
-                                            order by 3
+                                            order by 1
 
+                                            ),
+                                            faturamento_passado AS (
+  											SELECT 
+                                                   -- to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD')- INTERVAL '1 year' AS dt,
+  													dt+ INTERVAL '1 year' AS dt,
+                                                   	est,
+                                                   	cid, 
+                                                   	fat as fat_a,
+                                                   	ped as ped_a
+                                                    
+                                                    from faturamento_base_atual
+                                            ),    
+                                             faturamento_juntos as(
+                                            SELECT 
+                                            --  base.dateint,
+                                                base.dt,
+                                                base.est,
+                                                base.cid, 
+                                                base.fat as fat,
+                                                base.ped as ped,
+                                                0 as fat_a,
+                                                0 as ped_a
+                                            FROM faturamento_base_atual base
+                                           union all 
+												select 
+												base.dt,
+                                                base.est,
+                                                base.cid, 
+                                                0 as fat,
+                                                0 as ped,
+                                                base.fat_a, 
+                                                base.ped_a
+                                                from faturamento_passado base
+												)
+												select 
+												to_char(base.dt, 'YYYY-MM-DD') as dt,
+                                                base.est,
+                                                base.cid, 
+                                                CAST(COALESCE(round(cast(sum(base.fat) as decimal),2), 0) as float) as fat,
+                                                COALESCE(sum(base.ped), 0) AS ped,
+                                                CAST(COALESCE(round(cast(sum(base.fat_a) as decimal),2), 0) as float) AS fat_a,
+                                                COALESCE(sum(base.ped_a), 0) AS ped_a
+                                                
+												from faturamento_juntos base
+												where base.dt <= (select max( dt) from faturamento_base_atual)
+												group by 1,2,3
+												order by 1
 
                                         """   
                 ,'pedido_ecommerce': f""" 
