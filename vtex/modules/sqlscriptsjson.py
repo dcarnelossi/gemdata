@@ -60,18 +60,8 @@ def vtexsqlscriptjson(schema):
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
-                
-                                            SET CLIENT_ENCODING = 'UTF8';
-                                            WITH pedido_categoria as (
-                                             select
-                                             		DATE_TRUNC('day', ori.creationdate) AS dtcat,
-                                                    concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
-                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_categoria
-                                                                                           
-                                               from "{schema}".orders_items_ia ori
-                                                GROUP BY 1,2
-                                            
-                                             ),faturamento_base_atual AS (
+                                        SET CLIENT_ENCODING = 'UTF8';
+                                        WITH faturamento_base_atual AS (
                                                 SELECT 
                                                     DATE_TRUNC('day', ori.creationdate) AS dt,
                                                     CAST(idcat AS INTEGER) AS idc,
@@ -80,13 +70,9 @@ def vtexsqlscriptjson(schema):
                                                     concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
                                                     CAST(SUM(ori.revenue_without_shipping) AS FLOAT) AS fat,
                                                     CAST(count(distinct orderid) AS INTEGER) AS ped,
-                                                    CAST(sum(ori.quantityitems)  as INTEGER ) as qti,
-                                                    CAST(sum(pc.ped_categoria) as INTEGER ) as ped_categoria
+                                                    CAST(sum(ori.quantityitems)  as INTEGER ) as qti
                                                                                            
                                                     from "{schema}".orders_items_ia ori
-                                                    inner join pedido_categoria pc on 
-                                                    pc.nmc = concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory)
-                                                    and pc.dtcat =  DATE_TRUNC('day', ori.creationdate)
                                                     
                                                 GROUP BY 1, 2, 3, 4, 5
                                             ),
@@ -100,8 +86,8 @@ def vtexsqlscriptjson(schema):
                                                     nms,
                                                     fat as fat_a,
                                                     ped as ped_a,
-                                                    qti as qti_a,
-                                                    ped_categoria as ped_categoria_a
+                                                    qti as qti_a
+                                                    
                                                     from faturamento_base_atual
                                             ),    
                                              faturamento_juntos as(
@@ -115,11 +101,9 @@ def vtexsqlscriptjson(schema):
                                                 base.fat,
                                                 base.ped,
                                                 base.qti,
-                                                base.ped_categoria as pcat,
                                                 0 AS fat_a,
                                                0 AS ped_a,
-                                               0 as qti_a,
-                                               0 as pcat_a
+                                               0 as qti_a
                                             FROM faturamento_base_atual base
                                            union all 
 												select 
@@ -131,11 +115,9 @@ def vtexsqlscriptjson(schema):
                                                 0,
                                                 0,
                                                 0,
-                                                0,
                                                 base.fat_a AS fat_a,
                                                 base.ped_a AS ped_a,
-                                                base.qti_a as qti_a,
-                                                base.ped_categoria_a as pcat_a
+                                                base.qti_a as qti_a
 												from faturamento_passado base
 												)
 												select 
@@ -147,11 +129,9 @@ def vtexsqlscriptjson(schema):
                                                 CAST(COALESCE(round(cast(sum(base.fat) as decimal),2), 0) as float) as fat,
                                                 COALESCE(sum(base.ped), 0) AS ped,
                                                 COALESCE(sum(base.qti), 0) AS qti,
-                                                COALESCE(sum(base.pcat), 0) AS pcat,
                                                 CAST(COALESCE(round(cast(sum(base.fat_a) as decimal),2), 0) as float) AS fat_a,
                                                 COALESCE(sum(base.ped_a), 0) AS ped_a,
-                                                COALESCE(sum(base.qti_a), 0) AS qti_a,
-                                                COALESCE(sum(base.pcat_a), 0) AS pcat_a
+                                                COALESCE(sum(base.qti_a), 0) AS qti_a
                                                 
 												from faturamento_juntos base
 												where base.dt <= (select max( dt) from faturamento_base_atual)
@@ -302,7 +282,15 @@ def vtexsqlscriptjson(schema):
                                         group by 1,2 
                                         order by  1 
                                       """                             
-
+                ,'pedido_por_categoria': f"""
+                                      select
+                                             		DATE_TRUNC('day', ori.creationdate) AS dtcat,
+                                                    concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
+                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_categoria
+                                                                                           
+                                               from "{schema}".orders_items_ia ori
+                                                GROUP BY 1,2	
+                    """
     }
     # Convertendo o dicionário para uma string JSON
   
