@@ -176,7 +176,7 @@ def vtexsqlscriptjson(schema):
 
                                         """
                                         
-                ,'faturamento_regiao': f"""
+                ,'faturamento_regiao2': f"""
                                             
 										SET CLIENT_ENCODING = 'UTF8';
                                         WITH faturamento_base_atual AS (
