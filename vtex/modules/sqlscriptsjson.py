@@ -190,8 +190,8 @@ def vtexsqlscriptjson(schema):
                                             cast(SUM(revenue) as float)   as fat,
                                             cast(SUM(quantityorder) as integer)  as ped
 											
-                                            --"{schema}".
-                                            from orders_ia ia 
+                                           
+                                            from "{schema}".orders_ia ia 
                                             group by 1,2,3
                                             order by 1
 
