@@ -283,13 +283,55 @@ def vtexsqlscriptjson(schema):
                                         order by  1 
                                       """                             
                 ,'pedido_por_categoria': f"""
-                                      select
-                                             		DATE_TRUNC('day', ori.creationdate) AS dtcat,
+                                     
+										SET CLIENT_ENCODING = 'UTF8';
+                                        WITH faturamento_base_atual AS (
+                                               select
+                                             		DATE_TRUNC('day', ori.creationdate) AS dt,
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
-                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_categoria
+                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_cat
                                                                                            
                                                from "{schema}".orders_items_ia ori
                                                 GROUP BY 1,2	
+                                            ),
+                                            faturamento_passado AS (
+  											SELECT 
+                                                   -- to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD')- INTERVAL '1 year' AS dt,
+  													dt+ INTERVAL '1 year' AS dt,
+                                                   	nmc,
+                                                   	ped_cat as ped_cat_a
+                                                    
+                                                    from faturamento_base_atual
+                                            ),    
+                                             faturamento_juntos as(
+                                            SELECT 
+                                            --  base.dateint,
+                                                base.dt,
+                                                base.nmc,
+                                                base.ped_cat,
+                                                0 as ped_cat_a
+                                                
+                                            FROM faturamento_base_atual base
+                                           union all 
+												select 
+												base.dt,
+                                                base.nmc,
+                                                0,
+                                                base.ped_cat_a as ped_cat_a
+												from faturamento_passado base
+												)
+												select 
+												to_char(base.dt, 'YYYY-MM-DD') as dt,
+                                                base.nmc,
+                                                COALESCE(sum(base.ped_cat), 0) AS ped_cat,
+                                                COALESCE(sum(base.ped_cat_a), 0) AS ped_cat_a
+                                                
+												from faturamento_juntos base
+												where base.dt <= (select max( dt) from faturamento_base_atual)
+												group by 1,2
+												order by 1
+                                            	
+													
                     """
     }
     # Convertendo o dicionário para uma string JSON
