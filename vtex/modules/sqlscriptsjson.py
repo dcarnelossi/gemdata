@@ -177,7 +177,7 @@ def vtexsqlscriptjson(schema):
                                         """
                                         
                 ,'faturamento_regiao2': f"""
-                                        SET CLIENT_ENCODING = 'UTF8';
+                                        										SET CLIENT_ENCODING = 'UTF8';
                                         WITH faturamento_base_atual AS (
                                            select 
                                             DATE_TRUNC('day', creationdate) AS dt,
@@ -189,7 +189,8 @@ def vtexsqlscriptjson(schema):
                                             latitude as lat, 
                                             longitude as lon,
                                             cast(SUM(revenue) as float)   as fat,
-                                            cast(SUM(quantityorder) as integer)  as ped
+                                            cast(SUM(quantityorder) as integer)  as ped,
+                                            CAST(sum(quantityitems)  as INTEGER ) as qti
 											
                                             from "{schema}".orders_ia ia 
                                            left join public.cidades c2 on 
@@ -219,7 +220,8 @@ def vtexsqlscriptjson(schema):
                                                    	lat, 
                                             		lon,
                                                    	fat as fat_a,
-                                                   	ped as ped_a
+                                                   	ped as ped_a,
+                                                   	qti as qti_a
                                                     
                                                     from faturamento_base_atual
                                             ),    
@@ -233,8 +235,10 @@ def vtexsqlscriptjson(schema):
                                             		lon,
                                                 base.fat as fat,
                                                 base.ped as ped,
+                                                base.qti as qti,
                                                 0 as fat_a,
-                                                0 as ped_a
+                                                0 as ped_a,
+                                                0 as qti_a
                                             FROM faturamento_base_atual base
                                            union all 
 												select 
@@ -245,20 +249,24 @@ def vtexsqlscriptjson(schema):
                                             		lon,
                                                 0 as fat,
                                                 0 as ped,
+                                                0 as qti,
                                                 base.fat_a, 
-                                                base.ped_a
+                                                base.ped_a,
+                                                base.qti_a
                                                 from faturamento_passado base
 												)
 												select 
 												to_char(base.dt, 'YYYY-MM-DD') as dt,
                                                 base.est,
                                                 base.cid, 
-                                                replace(cast(lat as varchar(20)),',','.') as lat, 
+                                               	replace(cast(lat as varchar(20)),',','.') as lat, 
                                             	replace(cast(lon as varchar(20)),',','.')as lon	,
                                                 CAST(COALESCE(round(cast(sum(base.fat) as decimal),2), 0) as float) as fat,
                                                 COALESCE(sum(base.ped), 0) AS ped,
+                                                COALESCE(sum(base.qti), 0) AS qti,
                                                 CAST(COALESCE(round(cast(sum(base.fat_a) as decimal),2), 0) as float) AS fat_a,
-                                                COALESCE(sum(base.ped_a), 0) AS ped_a
+                                                COALESCE(sum(base.ped_a), 0) AS ped_a,
+                                                COALESCE(sum(base.qti_a), 0) AS qti_a
                                                 
 												from faturamento_juntos base
 												where base.dt <= (select max( dt) from faturamento_base_atual)
@@ -399,6 +407,56 @@ def vtexsqlscriptjson(schema):
 												group by 1,2
 												order by 1
                                             	
+													
+                    """
+                    ,'pedido_por_estado': f"""
+                                    
+										SET CLIENT_ENCODING = 'UTF8';
+                                        WITH faturamento_base_atual AS (
+                                               select
+                                             		DATE_TRUNC('day', ori.creationdate) AS dt,
+                                                    upper(trim(selectedaddresses_0_state)) as est,
+                                                    CAST(count(distinct orderid) AS INTEGER) AS ped_cat
+                                                                                           
+                                               from "{schema}".orders_items_ia ori
+                                                GROUP BY 1,2	
+                                            ),
+                                            faturamento_passado AS (
+  											SELECT 
+                                                   -- to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD')- INTERVAL '1 year' AS dt,
+  													dt+ INTERVAL '1 year' AS dt,
+                                                   	est,
+                                                   	ped_cat as ped_cat_a
+                                                    
+                                                    from faturamento_base_atual
+                                            ),    
+                                             faturamento_juntos as(
+                                            SELECT 
+                                            --  base.dateint,
+                                                base.dt,
+                                                base.est,
+                                                base.ped_cat,
+                                                0 as ped_cat_a
+                                                
+                                            FROM faturamento_base_atual base
+                                           union all 
+												select 
+												base.dt,
+                                                base.est,
+                                                0,
+                                                base.ped_cat_a as ped_cat_a
+												from faturamento_passado base
+												)
+												select 
+												to_char(base.dt, 'YYYY-MM-DD') as dt,
+                                                base.est,
+                                                COALESCE(sum(base.ped_cat), 0) AS ped_cat,
+                                                COALESCE(sum(base.ped_cat_a), 0) AS ped_cat_a
+                                                
+												from faturamento_juntos base
+												where base.dt <= (select max( dt) from faturamento_base_atual)
+												group by 1,2
+												order by 1 
 													
                     """
     }
