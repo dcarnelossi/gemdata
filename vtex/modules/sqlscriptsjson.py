@@ -1,7 +1,7 @@
 
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
-    scripts ={ 'faturamento_ecommerce':f""" 
+    scripts ={ 'faturamento_ecommerce1':f""" 
                                        										
 									DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
@@ -42,7 +42,7 @@ def vtexsqlscriptjson(schema):
                                         
 
                                         select 
-                                        cast(td.dategenerate as varchar(20)) as datadiaria,
+                                        to_char(cast(td.dategenerate as varchar(20)), 'YYYY-MM-DD') as datadiaria,
                                         cast(COALESCE(fd.faturamento,0.00)as float) as faturamento,
                                         cast(COALESCE(fd.pedidos,0) as float) as pedidos,
                                         cast(COALESCE(fp.faturamento,0) as float) as faturamentoprojetado,
@@ -141,10 +141,10 @@ def vtexsqlscriptjson(schema):
 												
                                             """
 
-                 ,'faturamento_compradores': f"""
+                 ,'faturamento_compradores1': f"""
                                                                                  
                                 select 
-                                cast(DATE_TRUNC('day',  creationdate) as varchar(20))   as dategenerate,
+                                to_char(cast(DATE_TRUNC('day',  creationdate) as varchar(20)) , 'YYYY-MM-DD')  as dategenerate,
                                 userprofileid, 
                                 cast(round(cast(SUM(revenue) as numeric),2) as float) as faturamento
 
