@@ -177,22 +177,35 @@ def vtexsqlscriptjson(schema):
                                         """
                                         
                 ,'faturamento_regiao2': f"""
-                                            
-										SET CLIENT_ENCODING = 'UTF8';
+                                        SET CLIENT_ENCODING = 'UTF8';
                                         WITH faturamento_base_atual AS (
-                                            select 
+                                           select 
                                             DATE_TRUNC('day', creationdate) AS dt,
-                                            trim(selectedaddresses_0_state) as est,
-                                            INITCAP(translate(trim(selectedaddresses_0_city),  
+                                            coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
+                                            coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
                                             'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
                                             'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                            )) as cid,
+                                            ))) as cid,
+                                            concat('BR-', coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) ) as isoest,
                                             cast(SUM(revenue) as float)   as fat,
                                             cast(SUM(quantityorder) as integer)  as ped
 											
-                                           
                                             from "{schema}".orders_ia ia 
-                                            group by 1,2,3
+                                           left join public.cidades c2 on 
+                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
+                                            and 
+                                            REPLACE(
+													    INITCAP(
+													        TRANSLATE(
+													            TRIM(selectedaddresses_0_city),
+													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
+													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
+													        )
+													    ),
+													    ' ',
+													    ''
+													)  = cidade_bate
+											group by 1,2,3,4
                                             order by 1
 
                                             ),
@@ -202,6 +215,7 @@ def vtexsqlscriptjson(schema):
   													dt+ INTERVAL '1 year' AS dt,
                                                    	est,
                                                    	cid, 
+                                                   	isoest,
                                                    	fat as fat_a,
                                                    	ped as ped_a
                                                     
@@ -213,6 +227,7 @@ def vtexsqlscriptjson(schema):
                                                 base.dt,
                                                 base.est,
                                                 base.cid, 
+                                                isoest,
                                                 base.fat as fat,
                                                 base.ped as ped,
                                                 0 as fat_a,
@@ -223,6 +238,7 @@ def vtexsqlscriptjson(schema):
 												base.dt,
                                                 base.est,
                                                 base.cid, 
+                                                isoest,
                                                 0 as fat,
                                                 0 as ped,
                                                 base.fat_a, 
@@ -233,6 +249,7 @@ def vtexsqlscriptjson(schema):
 												to_char(base.dt, 'YYYY-MM-DD') as dt,
                                                 base.est,
                                                 base.cid, 
+                                                base.isoest,
                                                 CAST(COALESCE(round(cast(sum(base.fat) as decimal),2), 0) as float) as fat,
                                                 COALESCE(sum(base.ped), 0) AS ped,
                                                 CAST(COALESCE(round(cast(sum(base.fat_a) as decimal),2), 0) as float) AS fat_a,
@@ -240,7 +257,7 @@ def vtexsqlscriptjson(schema):
                                                 
 												from faturamento_juntos base
 												where base.dt <= (select max( dt) from faturamento_base_atual)
-												group by 1,2,3
+												group by 1,2,3,4
 												order by 1
 
                                         """   
