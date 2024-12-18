@@ -1,7 +1,7 @@
 
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
-    scripts ={ 'faturamento_ecommerce1':f""" 
+    scripts ={ 'faturamento_ecommerce':f""" 
                                        										
 									DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
@@ -141,7 +141,7 @@ def vtexsqlscriptjson(schema):
 												
                                             """
 
-                 ,'faturamento_compradores1': f"""
+                 ,'faturamento_compradores': f"""
                                                                                  
                                 select 
                                 to_char(DATE_TRUNC('day',  creationdate) , 'YYYY-MM-DD')  as dategenerate,
@@ -176,7 +176,7 @@ def vtexsqlscriptjson(schema):
 
                                         """
                                         
-                ,'faturamento_regiao2': f"""
+                ,'faturamento_regiao': f"""
                                         										SET CLIENT_ENCODING = 'UTF8';
                                         WITH faturamento_base_atual AS (
                                            select 
