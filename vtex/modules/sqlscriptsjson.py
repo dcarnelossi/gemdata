@@ -277,7 +277,7 @@ def vtexsqlscriptjson(schema):
 
                                         """   
                 ,'pedido_ecommerce': f""" 
-                           										SET CLIENT_ENCODING = 'UTF8';
+                           				SET CLIENT_ENCODING = 'UTF8';
                                         WITH faturamento_base_atual AS (
                                            select 
                                             DATE_TRUNC('day', creationdate) AS dt,
@@ -294,7 +294,7 @@ def vtexsqlscriptjson(schema):
                                             cast(SUM(quantityorder) as integer)  as ped,
                                             CAST(sum(quantityitems)  as INTEGER ) as qti
 											
-                                            from orders_items_ia ia 
+                                            from "{schema}".orders_items_ia ia 
                                            left join public.cidades c2 on 
                                             c2.estado = upper(trim(ia.selectedaddresses_0_state))
                                             and 
