@@ -277,50 +277,111 @@ def vtexsqlscriptjson(schema):
 
                                         """   
                 ,'pedido_ecommerce': f""" 
-                            WITH faturamento_base AS (
-                                SELECT 
-                                    to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD') AS dt,
-                                    CAST(idcat AS INTEGER) AS idc,
-                                    concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
-                                    CAST(idprod AS INTEGER) AS ids,
-                                    concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
-                                    trim(selectedaddresses_0_state) as est,
-                                    INITCAP(translate(trim(selectedaddresses_0_city),  
-                                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
-                                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                                            )) as cid,
-                                    cast(SUM(ori.revenue_without_shipping) as float)  as fat,
-                                    cast(SUM(ori.quantityorder) as integer)  as ped,
-                                    cast(SUM(ori.quantityitems) as integer)  as qti
+                           										SET CLIENT_ENCODING = 'UTF8';
+                                        WITH faturamento_base_atual AS (
+                                           select 
+                                            DATE_TRUNC('day', creationdate) AS dt,
+                                            CAST(idcat AS INTEGER) AS idc,
+                                            concat(cast(idcat AS VARCHAR(10)), '-', ia.namecategory) AS nmc,
+                                            CAST(idprod AS INTEGER) AS ids,
+                                            concat(cast(idprod AS VARCHAR(10)), '-', ia.namesku) AS nms,
+                                            coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
+                                            coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
+                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
+                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
+                                            ))) as cid,
+                                            cast(SUM(revenue_without_shipping) as float)   as fat,
+                                            cast(SUM(quantityorder) as integer)  as ped,
+                                            CAST(sum(quantityitems)  as INTEGER ) as qti
+											
+                                            from orders_items_ia ia 
+                                           left join public.cidades c2 on 
+                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
+                                            and 
+                                            REPLACE(
+													    INITCAP(
+													        TRANSLATE(
+													            TRIM(selectedaddresses_0_city),
+													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
+													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
+													        )
+													    ),
+													    ' ',
+													    ''
+													)  = cidade_bate
+											group by 1,2,3,4,5,6,7
+                                            order by 1
 
-                            
-                                    from "{schema}".orders_items_ia ori
-                                GROUP BY 1, 2, 3, 4, 5,6,7
-                            )
-                            SELECT 
-                            --  base.dateint,
-                                base.dt,
-                                base.idc,
-                                base.nmc,
-                                base.ids,
-                                base.nms,
-                                base.est,
-                                base.cid,
-                                base.fat,
-                                base.ped,
-                                base.qti,
-                                CAST(COALESCE(round(cast(prev.fat as decimal),2), 0) as float) AS fat_a,
-                                COALESCE(prev.ped, 0) AS ped_a,
-                                COALESCE(prev.qti, 0) AS qti_a
-
-                            FROM faturamento_base base
-                            LEFT JOIN faturamento_base prev
-                                ON base.idc = prev.idc
-                                AND base.ids = prev.ids
-                                and base.est = base.est
-                                and base.cid = base.cid
-                                AND base.dt = TO_CHAR((TO_DATE(prev.dt, 'YYYY-MM-DD') + INTERVAL '1 year'), 'YYYY-MM-DD')
-                            ORDER BY base.dt;
+                                            ),
+                                            faturamento_passado AS (
+  											SELECT 
+                                                   -- to_char(DATE_TRUNC('day', ori.creationdate), 'YYYY-MM-DD')- INTERVAL '1 year' AS dt,
+  													dt+ INTERVAL '1 year' AS dt,
+                                                   	idc,
+                                                   	nmc,
+                                                   	ids,
+                                                   	nms,
+  													est,
+                                                   	cid, 
+                                                   	fat as fat_a,
+                                                   	ped as ped_a,
+                                                   	qti as qti_a
+                                                    
+                                                    from faturamento_base_atual
+                                            ),    
+                                             faturamento_juntos as(
+                                            SELECT 
+                                            --  base.dateint,
+                                                base.dt,
+                                               		idc,
+                                                   	nmc,
+                                                   	ids,
+                                                   	nms,
+  													est,
+                                                   	cid, 
+                                                base.fat as fat,
+                                                base.ped as ped,
+                                                base.qti as qti,
+                                                0 as fat_a,
+                                                0 as ped_a,
+                                                0 as qti_a
+                                            FROM faturamento_base_atual base
+                                           union all 
+												select 
+												base.dt,
+                                               		idc,
+                                                   	nmc,
+                                                   	ids,
+                                                   	nms,
+  													est,
+                                                   	cid, 
+                                                0 as fat,
+                                                0 as ped,
+                                                0 as qti,
+                                                base.fat_a, 
+                                                base.ped_a,
+                                                base.qti_a
+                                                from faturamento_passado base
+												)
+												select 
+												to_char(base.dt, 'YYYY-MM-DD') as dt,
+                                               	base.idc,
+                                                base.nmc,
+                                                base.ids,
+                                                base.nms,
+  												base.est,
+                                                base.cid,  
+                                                CAST(COALESCE(round(cast(sum(base.fat) as decimal),2), 0) as float) as fat,
+                                                COALESCE(sum(base.ped), 0) AS ped,
+                                                COALESCE(sum(base.qti), 0) AS qti,
+                                                CAST(COALESCE(round(cast(sum(base.fat_a) as decimal),2), 0) as float) AS fat_a,
+                                                COALESCE(sum(base.ped_a), 0) AS ped_a,
+                                                COALESCE(sum(base.qti_a), 0) AS qti_a
+                                                
+												from faturamento_juntos base
+												where base.dt <= (select max( dt) from faturamento_base_atual)
+												group by 1,2,3,4,5,6,7
+												order by 1
                                       """                             
                 ,'faturamento_mensal': f""" 
                                                             
