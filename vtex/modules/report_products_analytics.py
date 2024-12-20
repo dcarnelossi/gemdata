@@ -552,12 +552,12 @@ def grafico_dispersao(nm_imagem,titulo,df_grafico):
     
     ticksx = ax.get_xticks()
     ax.set_xticks(ticksx)  # Definir explicitamente os ticks do eixo Y
-    valores_ajustado_x = [ abreviar_eixoy_moeda(x,0,0,1) for x in ticksx]
+    valores_ajustado_x = [ abreviar_eixoy_moeda(x,1,0,1) for x in ticksx]
     ax.set_xticklabels(valores_ajustado_x)
 
     ticks = ax.get_yticks()
     ax.set_yticks(ticks)  # Definir explicitamente os ticks do eixo Y
-    valores_ajustado = [ abreviar_eixoy_moeda(x*100,0,0,0) for x in ticks]
+    valores_ajustado = [ abreviar_eixoy_moeda(x*100,1,0,0) for x in ticks]
     ax.set_yticklabels(valores_ajustado)
 
 
