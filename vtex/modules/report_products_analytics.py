@@ -473,10 +473,10 @@ def getbase(celular,integration,diretorio):
         
 
 
-        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_grupo2.sort_values(by='score_final', ascending=True).head(43))
-        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_group1.sort_values(by='score_final', ascending=True).head(43))
-        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_grupo_1.sort_values(by='score_final', ascending=True).head(43) )
-        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_grupo_2.sort_values(by='score_final', ascending=True).head(43))
+        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_grupo2.sort_values(by='score_final', ascending=True).head(10))
+        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_group1.sort_values(by='score_final', ascending=True).head(10))
+        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_grupo_1.sort_values(by='score_final', ascending=True).head(10) )
+        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_grupo_2.sort_values(by='score_final', ascending=True).head(10))
 
 
 
