@@ -466,18 +466,30 @@ def getbase(celular,integration,diretorio):
 
         df_merged['grupos_finais']=df_merged['grupos_finais'].fillna(0)
 
+        df_grupo2=df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']]
+        df_group1=df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']]
+        df_grupo_1=df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']]
+        df_grupo_2=df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']]
+        
+
+
+        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_grupo2.nlargest(15, 'score_final'))
+        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_group1.nlargest(15, 'score_final'))
+        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_grupo_1.nlargest(15, 'score_final') )
+        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_grupo_2.nlargest(15, 'score_final'))
+
+
+
+        # grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_merged.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        # grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_merged.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+        # grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
+        # grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
+
+
+
         df_merged= df_merged.sort_values(by='score_final', ascending=True).reset_index(drop=True)
         
         df_primeiros_30 = df_merged.iloc[:43].copy()
-        
-        grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_primeiros_30.loc[df_merged['grupos_finais'] == 2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_primeiros_30.loc[df_merged['grupos_finais'] == 1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-        grafico_dispersao(f"{diretorio}/negativo_grupo1{celular}.png",'Análise grupo amarelo',df_primeiros_30.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']] )
-        grafico_dispersao(f"{diretorio}/negativo_grupo2{celular}.png",'Análise grupo vermelho',df_primeiros_30.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod']])
-
-
-
-       
         df_primeiros_30['ID-Nome'] = df_primeiros_30.apply(
                         lambda row: f"{row['idprod']}-{row['namesku_x']}", axis=1
                         )
