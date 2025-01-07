@@ -2,6 +2,7 @@ import concurrent.futures
 import logging
 import requests
 from modules.dbpgconn import WriteJsonToPostgres
+import time
 
 # set Globals
 api_conection_info = None
@@ -25,13 +26,16 @@ def make_request(method, path, params=None):
             )
             response.raise_for_status()
             tentativa = 4
+
             return response.json() if response.status_code == 200 else None
         except requests.JSONDecodeError as e:
             logging.error(f"Failed to parse JSON response: {e}")
             tentativa = tentativa +1 
+            time.sleep(60)
         except requests.RequestException as e:
             logging.error(f"Request failed: {e}")
             tentativa = tentativa + 1
+            time.sleep(60)
 
 
 
