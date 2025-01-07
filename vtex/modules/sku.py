@@ -14,10 +14,11 @@ def make_request(method, path, params=None):
     if not api_conection_info:
         logging.error("API connection info is not set.")
         raise ValueError("API connection info is not set.")
+
     tentativa = 1
-    while  tentativa < 4 : 
+    max_tentativas = 3  # Limite de tentativas
+    while tentativa <= max_tentativas:
         try:
-        
             response = session.request(
                 method,
                 f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}",
@@ -25,19 +26,22 @@ def make_request(method, path, params=None):
                 headers=api_conection_info["headers"],
             )
             response.raise_for_status()
-            tentativa = 4
 
+            # Sucesso: retorna o JSON ou None
             return response.json() if response.status_code == 200 else None
+
         except requests.JSONDecodeError as e:
-            logging.error(f"Failed to parse JSON response: {e}")
-            tentativa = tentativa +1 
-            time.sleep(60)
+            logging.error(f"Tentativa {tentativa}: Falha ao processar resposta JSON: {e}")
         except requests.RequestException as e:
-            logging.error(f"Request failed: {e}")
-            tentativa = tentativa + 1
-            time.sleep(60)
+            logging.error(f"Tentativa {tentativa}: Falha na requisição: {e}")
 
+        tentativa += 1
+        logging.info(f"Aguardando 60 segundos antes da próxima tentativa...")
+        time.sleep(60)
 
+    # Se todas as tentativas falharem, levanta uma exceção ou retorna None
+    logging.error("Todas as tentativas de requisição falharam.")
+    raise RuntimeError("Falha ao realizar requisição após múltiplas tentativas.")
 
 
 def get_skus_list_pages(page):
