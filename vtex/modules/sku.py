@@ -13,25 +13,32 @@ def make_request(method, path, params=None):
     if not api_conection_info:
         logging.error("API connection info is not set.")
         raise ValueError("API connection info is not set.")
-    
-    try:
-        response = session.request(
-            method,
-            f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}",
-            params=params,
-            headers=api_conection_info["headers"],
-        )
-        response.raise_for_status()
-        return response.json() if response.status_code == 200 else None
-    except requests.JSONDecodeError as e:
-        logging.error(f"Failed to parse JSON response: {e}")
-        raise
-    except requests.RequestException as e:
-        logging.error(f"Request failed: {e}")
-        raise
+    tentativa = 1
+    while  tentativa < 4 : 
+        try:
+        
+            response = session.request(
+                method,
+                f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}",
+                params=params,
+                headers=api_conection_info["headers"],
+            )
+            response.raise_for_status()
+            tentativa = 4
+            return response.json() if response.status_code == 200 else None
+        except requests.JSONDecodeError as e:
+            logging.error(f"Failed to parse JSON response: {e}")
+            tentativa = tentativa +1 
+        except requests.RequestException as e:
+            logging.error(f"Request failed: {e}")
+            tentativa = tentativa + 1
+
+
+
 
 def get_skus_list_pages(page):
     query_params = {"page": page, "pagesize": 1000}
+
     return make_request("GET", "stockkeepingunitids", params=query_params)
 
 def get_skus_ids(init_page):
