@@ -255,6 +255,7 @@ def fetch_orders_list(start_date, end_date,minimum_date):
                             "customerlocale": order_data.get("customerLocale", None),
                             "displayfinancialstatus": order_data.get("displayFinancialStatus", None),
                             "totalweight": int(order_data.get("totalWeight", 0)) if order_data.get("totalWeight") else None,
+                            
                             "totalshippingprice": order_data.get("totalShippingPriceSet", {}).get("shopMoney", {}).get("amount", None),
                             "totaltax": order_data.get("totalTaxSet", {}).get("shopMoney", {}).get("amount", None),
                             "totalprice": order_data.get("totalPriceSet", {}).get("shopMoney", {}).get("amount", None),
