@@ -169,7 +169,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 date_trunc('hour',so.createdat AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate ,
                 so.orderid,
                 --tem mas é diferente do vtex
-                coalesce( substring(si.title FROM '- ([0-9]+)$'),'999999') as idprod ,
+                coalesce( regexp_replace('gid://shopify/Product/6814971756680', '^.*/', ''),'999999') as idprod ,
                 LOWER(coalesce(si.title,'Não informado')) as namesku,
                 --não tem no shopify
                 coalesce(ca.idcategoriagemdata,'999999') as idcat,
@@ -208,7 +208,9 @@ def shopifysqlscriptscreatetabglobal(schema):
 				
                 left join "{schema}".shopify_gemdata_categoria ca on 
                 ca.nomecategoria = 
-                LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END)
+                 translate((LOWER( case WHEN TRIM(COALESCE(si.producttype, '')) = '' THEN 'não informado' ELSE si.producttype END))
+                	,'ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ',
+                     'AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn')
 
                 left join orderspayment op on 
                 op.orderid = so.orderid
@@ -222,8 +224,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 LOWER(so.displayfinancialstatus)  in  ('paid') and so.cancelledat is null;
 
 
-               --COMECANDO AQUI 
-               --------------------------------------------------------------------------------
+
                 DROP TABLE IF EXISTS qtditemorder;
                 CREATE TEMPORARY TABLE qtditemorder as
                 select oi.orderid, sum(cast(oi.quantity as numeric)) as quantityitems  
