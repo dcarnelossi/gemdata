@@ -165,14 +165,15 @@ def get_orders_ids_from_db(start_date=None):
         if start_date is None:
           #  print(start_date)
             query = f"""    
-                select  so.orderid
+               select  so.orderid
                 FROM shopify_orders so
                 LEFT JOIN shopify_orders_items oi
                 ON  oi.orderid = so.orderid
                 where cancelreason is null and so.currentsubtotalprice <>0
                 GROUP BY so.orderid
                 HAVING max(so.currentsubtotalprice +so.currenttotaldiscounts  ) <> COALESCE(SUM(oi.originalunitprice*oi.quantity),0.00)  
-				and max(so.currentsubtotalprice ) <> COALESCE(SUM((oi.originalunitprice*oi.quantity)-totaldiscountamount ),0.00);                
+				and max(so.currentsubtotalprice ) <> COALESCE(SUM((oi.originalunitprice*oi.quantity)-totaldiscountamount ),0.00)
+                and max(so.totalprice- totalshippingprice ) <> COALESCE(SUM((oi.originalunitprice*oi.quantity)-totaldiscountamount ),0.00);  
                 """ 
            
         else:
