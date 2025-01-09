@@ -356,6 +356,11 @@ def gerar_projecao_a_partir_de_data(data_inicio):
             # Juntar as médias por dia da semana
             df_futuro = df_futuro.merge(media_por_dia_semana, on='dia_semana', how='left')
 
+            
+            if not pd.api.types.is_numeric_dtype(df_futuro['predicted_revenue']):
+                df_futuro['predicted_revenue'] = pd.to_numeric(df_futuro['predicted_revenue'], errors='coerce')
+
+            
             return df_futuro[['creationdateforecast', 'predicted_revenue']]
 
     
