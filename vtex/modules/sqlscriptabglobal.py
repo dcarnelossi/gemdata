@@ -169,7 +169,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 date_trunc('hour',so.createdat AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) as creationdate ,
                 so.orderid,
                 --tem mas é diferente do vtex
-                coalesce( regexp_replace('gid://shopify/Product/6814971756680', '^.*/', ''),'999999') as idprod ,
+                coalesce(coalesce( substring(si.title FROM '- ([0-9]+)$'),regexp_replace(si.productid, '^.*/', '')),'999999') as idprod ,
                 LOWER(coalesce(si.title,'Não informado')) as namesku,
                 --não tem no shopify
                 coalesce(ca.idcategoriagemdata,'999999') as idcat,
