@@ -35,13 +35,13 @@ except ImportError:
     install("math")
     import math
 
-# Instalar pacotes da lib lightgbm se não estiver instalado
-try:
-    from lightgbm import LGBMRegressor
-except ImportError:
-    print("lightgbm não está instalado. Instalando agora...")
-    install("lightgbm")
-    from lightgbm import LGBMRegressor
+# # Instalar pacotes da lib lightgbm se não estiver instalado
+# try:
+#     from lightgbm import LGBMRegressor
+# except ImportError:
+#     print("lightgbm não está instalado. Instalando agora...")
+#     install("lightgbm")
+#     from lightgbm import LGBMRegressor
 
 # Instalar pacotes da lib catboost se não estiver instalado
 try:
@@ -359,7 +359,7 @@ def SelecionarMelhorModelo(X_train, y_train, X_test, y_test):
     """Treina diferentes modelos e seleciona o com menor RMSLE"""
     try: 
         modelos = {
-            'LGBMRegressor': LGBMRegressor(),
+            #'LGBMRegressor': LGBMRegressor(),
             'HistGradientBoostingRegressor': HistGradientBoostingRegressor(),
             'XGBRegressor': XGBRegressor(),
             'CatBoostRegressor': CatBoostRegressor(verbose=0),
