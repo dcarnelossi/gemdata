@@ -161,7 +161,7 @@ def vtexsqlscriptjson(schema):
 
                                         cast(DATE_TRUNC('day',  ori.creationdate) as varchar(20))  as dategenerate,
                                         'Mercado Livre' as nomecanal,
-                                        cast(ori.idprod as integer) as idsku,
+                                        cast(ori.idprod as bigint) as idsku,
                                         ori.namesku as nomesku ,
                                         cast(round(cast(SUM(ori.sellingprice)*1.15 as numeric),2) as float)  as faturamento,
                                         cast(SUM(ori.quantityorder) as integer)  as pedidos
@@ -283,7 +283,7 @@ def vtexsqlscriptjson(schema):
                                             DATE_TRUNC('day', creationdate) AS dt,
                                             CAST(idcat AS INTEGER) AS idc,
                                             concat(cast(idcat AS VARCHAR(10)), '-', ia.namecategory) AS nmc,
-                                            CAST(idprod AS INTEGER) AS ids,
+                                            CAST(idprod AS bigint) AS ids,
                                             concat(cast(idprod AS VARCHAR(10)), '-', ia.namesku) AS nms,
                                             coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
                                             coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
