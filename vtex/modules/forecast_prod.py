@@ -671,9 +671,9 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
     try:
-        print(api_conection_info)
+       
         print(data_conection_info)
-        projecao = gerar_projecao_a_partir_de_data("2024-11-01",api_conection_info)
+        projecao = gerar_projecao_a_partir_de_data("2024-11-01",data_conection_info)
 
         inserir_forecast(projecao)
 
