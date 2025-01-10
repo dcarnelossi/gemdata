@@ -9,11 +9,11 @@ import sys
 
 from modules.dbpgconn import WriteJsonToPostgres
 
-# Função para instalar um pacote via pip
 def install(package):
+    '''Funcao para instalar os pacotes via pip'''  
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
-# Instalar matplotlib se não estiver instalado
+# Instalar pacotes da lib sklearn se não estiver instalado
 try:
     from sklearn.model_selection import train_test_split
     from sklearn.ensemble import HistGradientBoostingRegressor
@@ -27,25 +27,23 @@ except ImportError:
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.metrics import mean_squared_log_error
 
-# Instalar matplotlib se não estiver instalado
+# Instalar lib math se não estiver instalado
 try:
-    from xgboost import XGBRegressor
+    import math
 except ImportError:
-    print("xgboost não está instalado. Instalando agora...")
-    install("xgboost")
-    from xgboost import XGBRegressor
+    print("math não está instalado. Instalando agora...")
+    install("math")
+    import math
 
+# Instalar pacotes da lib lightgbm se não estiver instalado
+try:
+    from lightgbm import LGBMRegressor
+except ImportError:
+    print("lightgbm não está instalado. Instalando agora...")
+    install("lightgbm")
+    from lightgbm import LGBMRegressor
 
-# Instalar matplotlib se não estiver instalado
-# try:
-#     from lightgbm import LGBMRegressor
-# except ImportError:
-#     print("lightgbm não está instalado. Instalando agora...")
-#     install("lightgbm")
-#     from lightgbm import LGBMRegressor
-
-
-# Instalar matplotlib se não estiver instalado
+# Instalar pacotes da lib catboost se não estiver instalado
 try:
     from catboost import CatBoostRegressor
 except ImportError:
@@ -53,13 +51,21 @@ except ImportError:
     install("catboost")
     from catboost import CatBoostRegressor
 
-# Instalar matplotlib se não estiver instalado
+# Instalar pacotes da lib statsmodels.tsa.seasonal se não estiver instalado
 try:
     from statsmodels.tsa.seasonal import seasonal_decompose
 except ImportError:
     print("statsmodels não está instalado. Instalando agora...")
     install("statsmodels")
     from statsmodels.tsa.seasonal import seasonal_decompose
+
+# Instalar pacotes da lib xgboost se não estiver instalado
+try:
+    from xgboost import XGBRegressor
+except ImportError:
+    print("xgboost não está instalado. Instalando agora...")
+    install("xgboost")
+    from xgboost import XGBRegressor
 
 
 
@@ -69,13 +75,13 @@ data_conection_info = None
 coorp_conection_info = None
 
 
-#nção para calcular o RMSLE
 def rmsle(y_true, y_pred):
+    '''Funcao para calcular o RMSLE'''    
     return np.sqrt(mean_squared_log_error(y_true + 1, y_pred + 1))  # Adiciona 1 para evitar log(0)
 
 
 def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
-    '''Funcao para realizar consulta no sql e gravar em dataframe do pandas'''
+    '''Funcao para realizar consulta do calendario de feriados no sql e gravar em dataframe do pandas'''
     try:
         query_feriado = f"""
                     select 
@@ -91,11 +97,14 @@ def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
                         case 
                             when nm_feriado = 'Cyber monday' then 1
                             else 0
-                        end as fl_feriado_cm    
+                        end as fl_feriado_cm,
+                         case
+                            when nm_feriado = 'Natal' then 1
+                            else 0
+                        end as fl_feriado_nt    
                     from "{schema}".tb_forecast_feriado;
                         """
         _, feriado = WriteJsonToPostgres(data_conection_info, query_feriado, "tb_forecast_feriado").query()
-
         df_feriado = pd.DataFrame(feriado)
         df_feriado = df_feriado.rename(columns={'dt_feriado': 'dt_pedido'})
         df_feriado['dt_pedido'] = df_feriado['dt_pedido'].apply(lambda x: x.strftime('%Y-%m-%d'))
@@ -105,44 +114,44 @@ def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
-        
- 
-def CriaDataFrameRealizado():
-    '''Funcao para realizar consulta no sql e gravar em dataframe do pandas'''
+
+def CriaDataFrameRealizado(schema = "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
+    '''Funcao para realizar consulta dos dados historicos realizados no sql e gravar em dataframe do pandas'''
     try:
         query_realizado = f"""
                     select 
                         date_trunc('day',o.creationdate) as dt_pedido,
                         SUM(round(cast(o.revenue as numeric),2)) as sum_revenue, 
                         --count(1) as sum_revenue, 
-                        
-                        
                         'realizado' as nm_tipo_registro 
-                    from orders_ia as o 
+                    from "{schema}".orders_ia as o 
                     group by date_trunc('day',o.creationdate) order by 1 asc 
-                            """
-        _, result = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
-        df_new = pd.DataFrame(result)
+                        """
+        _, realizado = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
+        df_realizado = pd.DataFrame(realizado)
+        df_realizado['dt_pedido'] = df_realizado['dt_pedido'].apply(lambda x: x.strftime('%Y-%m-%d'))
+        df_realizado['dt_pedido'] = pd.to_datetime(df_realizado['dt_pedido'])
         # Return
-        return df_new
+        return df_realizado
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
-        
 
-
-def tratar_base():
-   
+def TratarBase(schema):
+    '''Funcao para realizar consulta no sql e gravar em dataframe do pandas'''
     try:
         # Cria dataframe com os dados historicos do faturamento realizado
-        df_realizado = CriaDataFrameRealizado()
+        df_realizado = CriaDataFrameRealizado(schema)
+        df_realizado.to_csv("df_realizado.csv", index=False)
 
-        if(len(df_realizado)>= 365):
-                
+        if(len(df_realizado) >= 365):
+
             # Cria dataframe com as referencias de feriados passados e futuros (ate 2030)
             df_feriado = CriaDataFrameFeriado()
-            
+            df_feriado.to_csv("df_feriado.csv", index=False)
+
             df_realizado['sum_revenue'] = pd.to_numeric(df_realizado['sum_revenue'], errors='coerce')
+            df_realizado.to_csv("df_realizado_2.csv", index=False)
 
             # Cria dataframe com o horizonte futuro de forecast
             #min_realizado = str(df_realizado['dt_pedido'].min())[:10]
@@ -150,92 +159,207 @@ def tratar_base():
             max_realizado = str(df_realizado['dt_pedido'].max())[:10]
             d1 = datetime.strptime(min_realizado,"%Y-%m-%d")
             d2 = datetime.strptime(max_realizado,"%Y-%m-%d")
-            
+            print(d1)
+            print(d2)
 
             df_full = df_realizado.merge(df_feriado, on='dt_pedido', how='left')
         
             df_full['fl_feriado_ativo'] = df_full['fl_feriado_ativo'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
             df_full['fl_feriado_bf'] = df_full['fl_feriado_bf'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
             df_full['fl_feriado_cm'] = df_full['fl_feriado_cm'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
+            df_full['fl_feriado_nt'] = df_full['fl_feriado_nt'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
             df_full['nm_tipo_registro'] = df_full['nm_tipo_registro'].fillna('forecast')
         
-        
-            df_full['fl_blackfriday'] = df_full['dt_pedido'].apply(lambda x: 1 if ((x.month == 11 and x.day >= 25) or (x.month == 12 and x.day <= 1)) else 0)
-
+            #df_full['fl_blackfriday'] = df_full['dt_pedido'].apply(lambda x: 1 if ((x.month == 11 and x.day >= 25) or (x.month == 12 and x.day <= 1)) else 0)
 
             # Supondo que 'df' seja o DataFrame com colunas 'data' e 'faturamento'
             df_full['dt_pedido2'] = pd.to_datetime(df_full['dt_pedido'])
             df_full.set_index('dt_pedido2', inplace=True)
         
-
-            # 1. Defasagens (Lags)
+            # 1. Defasagens do faturamento (Lags)
             df_full['faturamento_lag1'] = df_full['sum_revenue'].shift(1)
             df_full['faturamento_lag2'] = df_full['sum_revenue'].shift(2)
             df_full['faturamento_lag3'] = df_full['sum_revenue'].shift(3)
             df_full['faturamento_lag4'] = df_full['sum_revenue'].shift(4)
             df_full['faturamento_lag5'] = df_full['sum_revenue'].shift(5)
             df_full['faturamento_lag6'] = df_full['sum_revenue'].shift(6)
-            df_full['faturamento_lag6'] = df_full['sum_revenue'].shift(7)
+            df_full['faturamento_lag7'] = df_full['sum_revenue'].shift(7)
 
             # 2. Médias Móveis
-            df_full['media_movel_7dias'] = df_full['sum_revenue'].rolling(window=7).mean()
-            df_full['media_movel_30dias'] = df_full['sum_revenue'].rolling(window=30).mean()
-
+            df_full['media_movel_7dias'] = df_full['sum_revenue'].rolling(window=7).mean().apply(lambda x: round(x, 2))
+            df_full['media_movel_30dias'] = df_full['sum_revenue'].rolling(window=30).mean().apply(lambda x: round(x, 2))
+        
             # 3. Variação Percentual
-            df_full['variacao_percentual'] = df_full['sum_revenue'].pct_change()
+            #df_full['variacao_percentual'] = df_full['sum_revenue'].pct_change().apply(lambda x: round(x, 4))
 
             # 4. Componentes de Tendência e Sazonalidade
             # Decomposição aditiva
-            try:
-                decomposicao = seasonal_decompose(df_full['sum_revenue'], model='additive', period=365)
-                df_full['tendencia'] = decomposicao.trend
-                df_full['sazonalidade'] = decomposicao.seasonal
-            except ValueError as e:
-                print(f"Erro ao realizar decomposição: {e}")
-            # df_full['tendencia'] = None
-            # df_full['sazonalidade'] = None
+            #try:
+            #    decomposicao = seasonal_decompose(df_full['sum_revenue'], model='additive', period=365)
+            #    df_full['tendencia'] = decomposicao.trend.apply(lambda x: round(x, 2))
+            #    df_full['sazonalidade'] = decomposicao.seasonal.apply(lambda x: round(x, 2))
+            #except ValueError as e:
+            #    print(f"Erro ao realizar decomposição: {e}")
+            #   # df_full['tendencia'] = None
+            #   # df_full['sazonalidade'] = None
 
-            # 5. Indicadores Temporais
-            df_full['dia_da_semana'] = df_full.index.dayofweek
-            df_full['mes'] = df_full.index.month
-            df_full['dia_do_mes'] = df_full.index.day
-            df_full['semana_do_ano'] = df_full.index.isocalendar().week
-        # df_full["id_dia"] = df_full["dt_pedido"].apply(lambda x: x.day)
-            
-            df_full['sum_revenue_365d'] = df_full['sum_revenue'].shift(365)
-            df_full['media_90d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=90).mean()
-            df_full['media_30d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=30).mean()
-            df_full['media_60d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=60).mean()
+            # 5. Cria as defasagens dos feriados normais
+            df_full['fl_feriado_shift_1'] = df_full['fl_feriado_ativo'].shift(-1)
+            df_full['fl_feriado_shift_1'] = (df_full['fl_feriado_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
 
+            df_full['fl_feriado_shift_2'] = df_full['fl_feriado_ativo'].shift(-2)
+            df_full['fl_feriado_shift_2'] = (df_full['fl_feriado_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
 
-            df_full_tratado = df_full.drop(columns=['nm_tipo_registro'])
+            df_full['fl_feriado_shift_3'] = df_full['fl_feriado_ativo'].shift(-3)
+            df_full['fl_feriado_shift_3'] = (df_full['fl_feriado_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_feriado_shift_4'] = df_full['fl_feriado_ativo'].shift(-4)
+            df_full['fl_feriado_shift_4'] = (df_full['fl_feriado_shift_4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_feriado_shift_5'] = df_full['fl_feriado_ativo'].shift(-5)
+            df_full['fl_feriado_shift_5'] = (df_full['fl_feriado_shift_5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_feriado_shift_6'] = df_full['fl_feriado_ativo'].shift(-6)
+            df_full['fl_feriado_shift_6'] = (df_full['fl_feriado_shift_6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_feriado_shift_7'] = df_full['fl_feriado_ativo'].shift(-7)
+            df_full['fl_feriado_shift_7'] = (df_full['fl_feriado_shift_7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
         
-            
+            # 6. Cria as defasagens dos feriados black friday, cyber monday e natal
+            df_full['fl_bf_shift_p1'] = df_full['fl_feriado_bf'].shift(+1)
+            df_full['fl_bf_shift_p1'] = (df_full['fl_bf_shift_p1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
 
-        #  df_full_tratado.info()
+            df_full['fl_bf_shift_p2'] = df_full['fl_feriado_bf'].shift(+2)
+            df_full['fl_bf_shift_p2'] = (df_full['fl_bf_shift_p2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_bf_shift_p3'] = df_full['fl_feriado_bf'].shift(+3)
+            df_full['fl_bf_shift_p3'] = (df_full['fl_bf_shift_p3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_bf_shift_p4'] = df_full['fl_feriado_bf'].shift(+4)
+            df_full['fl_bf_shift_p4'] = (df_full['fl_bf_shift_p4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_bf_shift_p5'] = df_full['fl_feriado_bf'].shift(+5)
+            df_full['fl_bf_shift_p5'] = (df_full['fl_bf_shift_p5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_bf_shift_p6'] = df_full['fl_feriado_bf'].shift(+6)
+            df_full['fl_bf_shift_p6'] = (df_full['fl_bf_shift_p6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_bf_shift_p7'] = df_full['fl_feriado_bf'].shift(+7)
+            df_full['fl_bf_shift_p7'] = (df_full['fl_bf_shift_p7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_cm_shift_1'] = df_full['fl_feriado_cm'].shift(-1)
+            df_full['fl_cm_shift_1'] = (df_full['fl_cm_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_cm_shift_2'] = df_full['fl_feriado_cm'].shift(-2)
+            df_full['fl_cm_shift_2'] = (df_full['fl_cm_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_cm_shift_3'] = df_full['fl_feriado_cm'].shift(-3)
+            df_full['fl_cm_shift_3'] = (df_full['fl_cm_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
             
+            df_full['fl_nt_shift_1'] = df_full['fl_feriado_nt'].shift(-1)
+            df_full['fl_nt_shift_1'] = (df_full['fl_nt_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+            
+            df_full['fl_nt_shift_2'] = df_full['fl_feriado_nt'].shift(-2)
+            df_full['fl_nt_shift_2'] = (df_full['fl_nt_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_nt_shift_3'] = df_full['fl_feriado_nt'].shift(-3)
+            df_full['fl_nt_shift_3'] = (df_full['fl_nt_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_nt_shift_4'] = df_full['fl_feriado_nt'].shift(-4)
+            df_full['fl_nt_shift_4'] = (df_full['fl_nt_shift_4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_nt_shift_5'] = df_full['fl_feriado_nt'].shift(-5)
+            df_full['fl_nt_shift_5'] = (df_full['fl_nt_shift_5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+                                                    
+            df_full['fl_nt_shift_6'] = df_full['fl_feriado_nt'].shift(-6)
+            df_full['fl_nt_shift_6'] = (df_full['fl_nt_shift_6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_full['fl_nt_shift_7'] = df_full['fl_feriado_nt'].shift(-7)
+            df_full['fl_nt_shift_7'] = (df_full['fl_nt_shift_7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            # 7. Cria variavel do dia da semana, dia, mes, ano, semana do mes
+            df_full["id_dds"] = df_full["dt_pedido"].apply(lambda x:int(x.weekday()) + 2 if int(x.weekday()) + 2 != 8 else 1)
+            df_full["id_dia"] = df_full["dt_pedido"].apply(lambda x: x.day)
+            df_full["id_semana_do_mes"] = df_full["dt_pedido"].apply(lambda x: math.ceil(x.day/7))
+            df_full["id_mes"] = df_full["dt_pedido"].apply(lambda x: x.month)
+            df_full["id_ano"] = df_full["dt_pedido"].apply(lambda x: x.year)
+            df_full["id_semana_do_ano"] = df_full["dt_pedido"].dt.isocalendar().week
+
+            # 8. Cria variaveis dummys para cada dia da semana
+            df_full["fl_domingo"] = 0
+            df_full["fl_segunda"] = 0    
+            df_full["fl_terca"] = 0
+            df_full["fl_quarta"] = 0
+            df_full["fl_quinta"] = 0
+            df_full["fl_sexta"] = 0
+            df_full["fl_sabado"] = 0
+            df_full.loc[(df_full["id_dds"] == 1,"fl_domingo")] = 1
+            df_full.loc[(df_full["id_dds"] == 2,"fl_segunda")] = 1
+            df_full.loc[(df_full["id_dds"] == 3,"fl_terca")] = 1
+            df_full.loc[(df_full["id_dds"] == 4,"fl_quarta")] = 1
+            df_full.loc[(df_full["id_dds"] == 5,"fl_quinta")] = 1
+            df_full.loc[(df_full["id_dds"] == 6,"fl_sexta")] = 1
+            df_full.loc[(df_full["id_dds"] == 7,"fl_sabado")] = 1
+
+            # 9. Cria variaveis dummys para cada semana dentro do mesmo mes
+            df_full["fl_sem2_mes"] = 0
+            df_full["fl_sem3_mes"] = 0    
+            df_full["fl_sem4_mes"] = 0
+            df_full["fl_sem5_mes"] = 0
+            df_full.loc[(df_full["id_semana_do_mes"] == 2,"fl_sem2_mes")] = 1
+            df_full.loc[(df_full["id_semana_do_mes"] == 3,"fl_sem3_mes")] = 1
+            df_full.loc[(df_full["id_semana_do_mes"] == 4,"fl_sem4_mes")] = 1
+            df_full.loc[(df_full["id_semana_do_mes"] == 5,"fl_sem5_mes")] = 1
+
+            # 10. Cria variaveis dummys para cada mes
+            df_full["fl_jan"] = 0
+            df_full["fl_fev"] = 0
+            df_full["fl_mar"] = 0
+            df_full["fl_abr"] = 0
+            df_full["fl_mai"] = 0
+            df_full["fl_jun"] = 0
+            df_full["fl_jul"] = 0
+            df_full["fl_ago"] = 0
+            df_full["fl_set"] = 0
+            df_full["fl_out"] = 0
+            df_full["fl_nov"] = 0
+            df_full["fl_dez"] = 0
+            df_full.loc[(df_full["id_mes"] == 1,"fl_jan")] = 1
+            df_full.loc[(df_full["id_mes"] == 2,"fl_fev")] = 1
+            df_full.loc[(df_full["id_mes"] == 3,"fl_mar")] = 1
+            df_full.loc[(df_full["id_mes"] == 4,"fl_abr")] = 1
+            df_full.loc[(df_full["id_mes"] == 5,"fl_mai")] = 1
+            df_full.loc[(df_full["id_mes"] == 6,"fl_jun")] = 1
+            df_full.loc[(df_full["id_mes"] == 7,"fl_jul")] = 1
+            df_full.loc[(df_full["id_mes"] == 8,"fl_ago")] = 1
+            df_full.loc[(df_full["id_mes"] == 9,"fl_set")] = 1
+            df_full.loc[(df_full["id_mes"] == 10,"fl_out")] = 1
+            df_full.loc[(df_full["id_mes"] == 11,"fl_nov")] = 1
+            df_full.loc[(df_full["id_mes"] == 12,"fl_dez")] = 1
+
+            # 11. Cria variaveis de media movel
+            #df_full['sum_revenue_365d'] = df_full['sum_revenue'].shift(365)
+            #df_full['media_90d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=90).mean().apply(lambda x: round(x, 2))
+            #df_full['media_30d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=30).mean().apply(lambda x: round(x, 2))
+            #df_full['media_60d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=60).mean().apply(lambda x: round(x, 2))
+
+            df_full_tratado = df_full.drop(columns=['nm_tipo_registro','id_dds','id_dia','id_mes','id_ano','fl_domingo','fl_jan','id_semana_do_ano'])
+            df_full_tratado.to_csv("df_full_tratado.csv", index=False)
+
             return df_full_tratado
         else:
             return df_realizado
-
 
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
 
 
-
-def rmsle(y_true, y_pred):
-    """Função para calcular o RMSLE"""
-    return np.sqrt(mean_squared_log_error(y_true + 1, y_pred + 1))
-
-
-def selecionar_melhor_modelo(X_train, y_train, X_test, y_test):
-   
-    try:
-        """Treina diferentes modelos e seleciona o com menor RMSLE"""
+def SelecionarMelhorModelo(X_train, y_train, X_test, y_test):
+    """Treina diferentes modelos e seleciona o com menor RMSLE"""
+    try: 
         modelos = {
-         #   'LGBMRegressor': LGBMRegressor(),
+            'LGBMRegressor': LGBMRegressor(),
             'HistGradientBoostingRegressor': HistGradientBoostingRegressor(),
             'XGBRegressor': XGBRegressor(),
             'CatBoostRegressor': CatBoostRegressor(verbose=0),
@@ -262,15 +386,15 @@ def selecionar_melhor_modelo(X_train, y_train, X_test, y_test):
         raise  # Ensure any error fails the Airflow task
 
 
-def gerar_projecao_a_partir_de_data(data_inicio):
-    
+  
+def gerar_projecao_a_partir_de_data(data_inicio,schema):
+    """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
-        """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""
         # Trata a base e retorna o DataFrame tratado
         dias_projecao=90
-        df = tratar_base()
-        
-        if(len(df) >= 365):
+        df = TratarBase(schema)
+        if(len(df) >= 365):     
+            
             df.set_index('dt_pedido', inplace=True)
 
             # Filtrar os dados históricos até a data anterior a data_inicio
@@ -285,12 +409,24 @@ def gerar_projecao_a_partir_de_data(data_inicio):
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
             # Selecionar o melhor modelo
-            melhor_modelo = selecionar_melhor_modelo(X_train, y_train, X_test, y_test)
+            melhor_modelo = SelecionarMelhorModelo(X_train, y_train, X_test, y_test)
 
             # Criar um DataFrame para as próximas datas, começando em data_inicio
             ultimos_dados = df.iloc[-dias_projecao:]  # Últimos dias usados como base
             futuras_datas = [data_inicio_datetime + timedelta(days=i) for i in range(dias_projecao)]
             df_futuro = pd.DataFrame(index=futuras_datas)
+            df_futuro['dt_pedido'] = pd.to_datetime(df_futuro.index.values)
+            
+            # Cria dataframe com as referencias de feriados passados e futuros (ate 2030)
+            df_feriado = CriaDataFrameFeriado()
+            df_feriado.to_csv("df_feriado.csv", index=False)
+
+            df_futuro = df_futuro.merge(df_feriado, on='dt_pedido', how='left')
+
+            df_futuro['fl_feriado_ativo'] = df_futuro['fl_feriado_ativo'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
+            df_futuro['fl_feriado_bf'] = df_futuro['fl_feriado_bf'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
+            df_futuro['fl_feriado_cm'] = df_futuro['fl_feriado_cm'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
+            df_futuro['fl_feriado_nt'] = df_futuro['fl_feriado_nt'].apply(lambda x: 0 if (np.isnan(x) or x == 0) else 1)
 
             # Gerar os mesmos atributos para as próximas datas
             for lag in range(1, 8):
@@ -299,20 +435,150 @@ def gerar_projecao_a_partir_de_data(data_inicio):
             df_futuro['media_movel_7dias'] = ultimos_dados['sum_revenue'].rolling(window=7).mean().values[-dias_projecao:]
             df_futuro['media_movel_30dias'] = ultimos_dados['sum_revenue'].rolling(window=30).mean().values[-dias_projecao:]
 
-            # Usando weekday() para obter o dia da semana
-            df_futuro['dia_da_semana'] = [d.weekday() for d in futuras_datas]
-            df_futuro['mes'] = [d.month for d in futuras_datas]
-            df_futuro['dia_do_mes'] = [d.day for d in futuras_datas]
-            df_futuro['semana_do_ano'] = [d.isocalendar().week for d in futuras_datas]
+            # 5. Cria as defasagens dos feriados normais
+            df_futuro['fl_feriado_shift_1'] = df_futuro['fl_feriado_ativo'].shift(-1)
+            df_futuro['fl_feriado_shift_1'] = (df_futuro['fl_feriado_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_2'] = df_futuro['fl_feriado_ativo'].shift(-2)
+            df_futuro['fl_feriado_shift_2'] = (df_futuro['fl_feriado_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_3'] = df_futuro['fl_feriado_ativo'].shift(-3)
+            df_futuro['fl_feriado_shift_3'] = (df_futuro['fl_feriado_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_4'] = df_futuro['fl_feriado_ativo'].shift(-4)
+            df_futuro['fl_feriado_shift_4'] = (df_futuro['fl_feriado_shift_4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_5'] = df_futuro['fl_feriado_ativo'].shift(-5)
+            df_futuro['fl_feriado_shift_5'] = (df_futuro['fl_feriado_shift_5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_6'] = df_futuro['fl_feriado_ativo'].shift(-6)
+            df_futuro['fl_feriado_shift_6'] = (df_futuro['fl_feriado_shift_6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_feriado_shift_7'] = df_futuro['fl_feriado_ativo'].shift(-7)
+            df_futuro['fl_feriado_shift_7'] = (df_futuro['fl_feriado_shift_7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            # 6. Cria as defasagens dos feriados black friday, cyber monday e natal
+            df_futuro['fl_bf_shift_p1'] = df_futuro['fl_feriado_bf'].shift(+1)
+            df_futuro['fl_bf_shift_p1'] = (df_futuro['fl_bf_shift_p1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p2'] = df_futuro['fl_feriado_bf'].shift(+2)
+            df_futuro['fl_bf_shift_p2'] = (df_futuro['fl_bf_shift_p2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p3'] = df_futuro['fl_feriado_bf'].shift(+3)
+            df_futuro['fl_bf_shift_p3'] = (df_futuro['fl_bf_shift_p3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p4'] = df_futuro['fl_feriado_bf'].shift(+4)
+            df_futuro['fl_bf_shift_p4'] = (df_futuro['fl_bf_shift_p4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p5'] = df_futuro['fl_feriado_bf'].shift(+5)
+            df_futuro['fl_bf_shift_p5'] = (df_futuro['fl_bf_shift_p5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p6'] = df_futuro['fl_feriado_bf'].shift(+6)
+            df_futuro['fl_bf_shift_p6'] = (df_futuro['fl_bf_shift_p6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_bf_shift_p7'] = df_futuro['fl_feriado_bf'].shift(+7)
+            df_futuro['fl_bf_shift_p7'] = (df_futuro['fl_bf_shift_p7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_cm_shift_1'] = df_futuro['fl_feriado_cm'].shift(-1)
+            df_futuro['fl_cm_shift_1'] = (df_futuro['fl_cm_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_cm_shift_2'] = df_futuro['fl_feriado_cm'].shift(-2)
+            df_futuro['fl_cm_shift_2'] = (df_futuro['fl_cm_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_cm_shift_3'] = df_futuro['fl_feriado_cm'].shift(-3)
+            df_futuro['fl_cm_shift_3'] = (df_futuro['fl_cm_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_1'] = df_futuro['fl_feriado_nt'].shift(-1)
+            df_futuro['fl_nt_shift_1'] = (df_futuro['fl_nt_shift_1'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_2'] = df_futuro['fl_feriado_nt'].shift(-2)
+            df_futuro['fl_nt_shift_2'] = (df_futuro['fl_nt_shift_2'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_3'] = df_futuro['fl_feriado_nt'].shift(-3)
+            df_futuro['fl_nt_shift_3'] = (df_futuro['fl_nt_shift_3'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_4'] = df_futuro['fl_feriado_nt'].shift(-4)
+            df_futuro['fl_nt_shift_4'] = (df_futuro['fl_nt_shift_4'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_5'] = df_futuro['fl_feriado_nt'].shift(-5)
+            df_futuro['fl_nt_shift_5'] = (df_futuro['fl_nt_shift_5'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+                                                
+            df_futuro['fl_nt_shift_6'] = df_futuro['fl_feriado_nt'].shift(-6)
+            df_futuro['fl_nt_shift_6'] = (df_futuro['fl_nt_shift_6'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            df_futuro['fl_nt_shift_7'] = df_futuro['fl_feriado_nt'].shift(-7)
+            df_futuro['fl_nt_shift_7'] = (df_futuro['fl_nt_shift_7'].apply(lambda x: 0 if np.isnan(x) else x)).astype(int)
+
+            # 7. Cria variavel do dia da semana, dia, mes, ano, semana do mes
+            df_futuro["id_dds"] = df_futuro["dt_pedido"].apply(lambda x:int(x.weekday()) + 2 if int(x.weekday()) + 2 != 8 else 1)
+            df_futuro["id_dia"] = df_futuro["dt_pedido"].apply(lambda x: x.day)
+            df_futuro["id_semana_do_mes"] = df_futuro["dt_pedido"].apply(lambda x: math.ceil(x.day/7))
+            df_futuro["id_mes"] = df_futuro["dt_pedido"].apply(lambda x: x.month)
+            df_futuro["id_ano"] = df_futuro["dt_pedido"].apply(lambda x: x.year)
+            df_futuro["id_semana_do_ano"] = df_futuro["dt_pedido"].dt.isocalendar().week
+
+            # 8. Cria variaveis dummys para cada dia da semana
+            df_futuro["fl_domingo"] = 0
+            df_futuro["fl_segunda"] = 0    
+            df_futuro["fl_terca"] = 0
+            df_futuro["fl_quarta"] = 0
+            df_futuro["fl_quinta"] = 0
+            df_futuro["fl_sexta"] = 0
+            df_futuro["fl_sabado"] = 0
+            df_futuro.loc[(df_futuro["id_dds"] == 1,"fl_domingo")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 2,"fl_segunda")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 3,"fl_terca")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 4,"fl_quarta")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 5,"fl_quinta")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 6,"fl_sexta")] = 1
+            df_futuro.loc[(df_futuro["id_dds"] == 7,"fl_sabado")] = 1
+
+            # 9. Cria variaveis dummys para cada semana dentro do mesmo mes
+            df_futuro["fl_sem2_mes"] = 0
+            df_futuro["fl_sem3_mes"] = 0    
+            df_futuro["fl_sem4_mes"] = 0
+            df_futuro["fl_sem5_mes"] = 0
+            df_futuro.loc[(df_futuro["id_semana_do_mes"] == 2,"fl_sem2_mes")] = 1
+            df_futuro.loc[(df_futuro["id_semana_do_mes"] == 3,"fl_sem3_mes")] = 1
+            df_futuro.loc[(df_futuro["id_semana_do_mes"] == 4,"fl_sem4_mes")] = 1
+            df_futuro.loc[(df_futuro["id_semana_do_mes"] == 5,"fl_sem5_mes")] = 1
+
+            # 10. Cria variaveis dummys para cada mes
+            df_futuro["fl_jan"] = 0
+            df_futuro["fl_fev"] = 0
+            df_futuro["fl_mar"] = 0
+            df_futuro["fl_abr"] = 0
+            df_futuro["fl_mai"] = 0
+            df_futuro["fl_jun"] = 0
+            df_futuro["fl_jul"] = 0
+            df_futuro["fl_ago"] = 0
+            df_futuro["fl_set"] = 0
+            df_futuro["fl_out"] = 0
+            df_futuro["fl_nov"] = 0
+            df_futuro["fl_dez"] = 0
+            df_futuro.loc[(df_futuro["id_mes"] == 1,"fl_jan")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 2,"fl_fev")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 3,"fl_mar")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 4,"fl_abr")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 5,"fl_mai")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 6,"fl_jun")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 7,"fl_jul")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 8,"fl_ago")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 9,"fl_set")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 10,"fl_out")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 11,"fl_nov")] = 1
+            df_futuro.loc[(df_futuro["id_mes"] == 12,"fl_dez")] = 1
+
+            df_futuro = df_futuro.drop(columns=['id_dds','id_dia','id_mes','id_ano','fl_domingo','fl_jan','id_semana_do_ano'])
 
             # Adicionar todas as colunas usadas no treinamento com valores padrão (zero)
             colunas_treinamento = X_train.columns
-            for coluna in colunas_treinamento:
-                if coluna not in df_futuro.columns:
-                    df_futuro[coluna] = 0
 
             # Garantir que as colunas estejam na mesma ordem
+            df_futuro.set_index('dt_pedido', inplace=True)
             df_futuro = df_futuro[colunas_treinamento]
+
+            df_futuro.to_csv("base_futura.csv", index=True)
 
             # Fazer previsões para as próximas datas com o melhor modelo
             previsoes = melhor_modelo.predict(df_futuro)
@@ -322,13 +588,13 @@ def gerar_projecao_a_partir_de_data(data_inicio):
                 'creationdateforecast': futuras_datas,
                 'predicted_revenue': previsoes
             })
-
+            df_resultado['predicted_revenue'] = df_resultado['predicted_revenue'].apply(lambda x: round(x, 2)) 
+            
             # Salvar os resultados em um CSV
-            #df_resultado.to_csv("forecast_a_partir_de_1_nov_24.csv", index=False)
-            #print("Projeção salva no arquivo 'forecast_a_partir_de_1_nov_24.csv'.")
+            df_resultado.to_csv("forecast_a_partir_de_1_nov_24.csv", index=False)
+            print("Projeção salva no arquivo 'forecast_a_partir_de_1_nov_24.csv'.")
 
             return df_resultado
-      
         else:
             hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
@@ -364,11 +630,9 @@ def gerar_projecao_a_partir_de_data(data_inicio):
             return df_futuro[['creationdateforecast', 'predicted_revenue']]
 
     
-    
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
-
 
 def inserir_forecast(future_df):
 
