@@ -142,16 +142,16 @@ def TratarBase():
     try:
         # Cria dataframe com os dados historicos do faturamento realizado
         df_realizado = CriaDataFrameRealizado()
-        df_realizado.to_csv("df_realizado.csv", index=False)
+        # df_realizado.to_csv("df_realizado.csv", index=False)
 
         if(len(df_realizado) >= 365):
 
             # Cria dataframe com as referencias de feriados passados e futuros (ate 2030)
             df_feriado = CriaDataFrameFeriado()
-            df_feriado.to_csv("df_feriado.csv", index=False)
+            # df_feriado.to_csv("df_feriado.csv", index=False)
 
             df_realizado['sum_revenue'] = pd.to_numeric(df_realizado['sum_revenue'], errors='coerce')
-            df_realizado.to_csv("df_realizado_2.csv", index=False)
+            # df_realizado.to_csv("df_realizado_2.csv", index=False)
 
             # Cria dataframe com o horizonte futuro de forecast
             #min_realizado = str(df_realizado['dt_pedido'].min())[:10]
@@ -344,7 +344,7 @@ def TratarBase():
             #df_full['media_60d_ano_anterior'] = df_full['sum_revenue'].shift(365).rolling(window=60).mean().apply(lambda x: round(x, 2))
 
             df_full_tratado = df_full.drop(columns=['nm_tipo_registro','id_dds','id_dia','id_mes','id_ano','fl_domingo','fl_jan','id_semana_do_ano'])
-            df_full_tratado.to_csv("df_full_tratado.csv", index=False)
+            # df_full_tratado.to_csv("df_full_tratado.csv", index=False)
 
             return df_full_tratado
         else:
@@ -419,7 +419,7 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
             
             # Cria dataframe com as referencias de feriados passados e futuros (ate 2030)
             df_feriado = CriaDataFrameFeriado()
-            df_feriado.to_csv("df_feriado.csv", index=False)
+            # df_feriado.to_csv("df_feriado.csv", index=False)
 
             df_futuro = df_futuro.merge(df_feriado, on='dt_pedido', how='left')
 
@@ -578,7 +578,7 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
             df_futuro.set_index('dt_pedido', inplace=True)
             df_futuro = df_futuro[colunas_treinamento]
 
-            df_futuro.to_csv("base_futura.csv", index=True)
+            # df_futuro.to_csv("base_futura.csv", index=True)
 
             # Fazer previsões para as próximas datas com o melhor modelo
             previsoes = melhor_modelo.predict(df_futuro)
@@ -591,11 +591,12 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
             df_resultado['predicted_revenue'] = df_resultado['predicted_revenue'].apply(lambda x: round(x, 2)) 
             
             # Salvar os resultados em um CSV
-            df_resultado.to_csv("forecast_a_partir_de_1_nov_24.csv", index=False)
-            print("Projeção salva no arquivo 'forecast_a_partir_de_1_nov_24.csv'.")
+            # df_resultado.to_csv("forecast_a_partir_de_1_nov_24.csv", index=False)
+            # print("Projeção salva no arquivo 'forecast_a_partir_de_1_nov_24.csv'.")
 
             return df_resultado
         else:
+            print("QUAL MODELO: MEDIA")
             hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
             seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
             df_ultimos_seis_meses = df[df['dt_pedido'] >= seis_meses_atras]
