@@ -66,7 +66,7 @@ def vtexsqlscriptjson(schema):
                                                     DATE_TRUNC('day', ori.creationdate) AS dt,
                                                     CAST(idcat AS INTEGER) AS idc,
                                                     concat(cast(idcat AS VARCHAR(10)), '-', ori.namecategory) AS nmc,
-                                                    CAST(idprod AS INTEGER) AS ids,
+                                                    CAST(idprod AS bigint) AS ids,
                                                     concat(cast(idprod AS VARCHAR(10)), '-', ori.namesku) AS nms,
                                                     CAST(SUM(ori.revenue_without_shipping) AS FLOAT) AS fat,
                                                     CAST(count(distinct orderid) AS INTEGER) AS ped,
