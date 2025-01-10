@@ -391,7 +391,7 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
     """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
         # Trata a base e retorna o DataFrame tratado
-        dias_projecao=90
+        dias_projecao=60
         df = TratarBase()
         if(len(df) >= 365):     
             
@@ -672,8 +672,8 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
     try:
-       
-        projecao = gerar_projecao_a_partir_de_data("2024-11-01")
+        data_hoje = datetime.now().strftime('%Y-%m-%d')
+        projecao = gerar_projecao_a_partir_de_data(data_hoje)
 
         inserir_forecast(projecao)
 
