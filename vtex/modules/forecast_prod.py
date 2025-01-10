@@ -115,7 +115,7 @@ def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
 
-def CriaDataFrameRealizado(schema = "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
+def CriaDataFrameRealizado():
     '''Funcao para realizar consulta dos dados historicos realizados no sql e gravar em dataframe do pandas'''
     try:
         query_realizado = f"""
@@ -124,7 +124,7 @@ def CriaDataFrameRealizado(schema = "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
                         SUM(round(cast(o.revenue as numeric),2)) as sum_revenue, 
                         --count(1) as sum_revenue, 
                         'realizado' as nm_tipo_registro 
-                    from "{schema}".orders_ia as o 
+                    from orders_ia as o 
                     group by date_trunc('day',o.creationdate) order by 1 asc 
                         """
         _, realizado = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
@@ -137,11 +137,11 @@ def CriaDataFrameRealizado(schema = "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
 
-def TratarBase(schema):
+def TratarBase():
     '''Funcao para realizar consulta no sql e gravar em dataframe do pandas'''
     try:
         # Cria dataframe com os dados historicos do faturamento realizado
-        df_realizado = CriaDataFrameRealizado(schema)
+        df_realizado = CriaDataFrameRealizado()
         df_realizado.to_csv("df_realizado.csv", index=False)
 
         if(len(df_realizado) >= 365):
@@ -387,12 +387,12 @@ def SelecionarMelhorModelo(X_train, y_train, X_test, y_test):
 
 
   
-def gerar_projecao_a_partir_de_data(data_inicio,schema):
+def gerar_projecao_a_partir_de_data(data_inicio,):
     """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
         # Trata a base e retorna o DataFrame tratado
         dias_projecao=90
-        df = TratarBase(schema)
+        df = TratarBase()
         if(len(df) >= 365):     
             
             df.set_index('dt_pedido', inplace=True)
@@ -672,8 +672,7 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
         raise ValueError("All global connection information must be provided.")
     try:
        
-        print(data_conection_info)
-        projecao = gerar_projecao_a_partir_de_data("2024-11-01",data_conection_info)
+        projecao = gerar_projecao_a_partir_de_data("2024-11-01")
 
         inserir_forecast(projecao)
 
