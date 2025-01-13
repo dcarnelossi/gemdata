@@ -54,6 +54,7 @@ with DAG(
                                     and COALESCE(daily_run_date_end::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE )
                             
                                             or  isdaily_manual is true )
+                            AND (CURRENT_TIME AT TIME ZONE 'UTC')::time > '03:00:00'::time  
                             order by 3	
                             limit 1
             """
