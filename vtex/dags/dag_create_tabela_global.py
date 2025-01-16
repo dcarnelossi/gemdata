@@ -108,8 +108,8 @@ with DAG(
                 
               
                 # Inserir os dados no banco de destino
-                insert_query = """
-                    INSERT INTO stg_teamgoal (id, year, month, goal, integration_id)
+                insert_query = f"""
+                    INSERT INTO "{PGSCHEMA}".stg_teamgoal (id, year, month, goal, integration_id)
                     VALUES (%s, %s, %s, %s, %s)
                 """
                 for row in dados_integration:
