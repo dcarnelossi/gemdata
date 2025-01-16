@@ -67,7 +67,7 @@ with DAG(
                 target_hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
 
                         # Criar a tabela se não existir
-                create_table_query = """
+                create_table_query = f"""
                     CREATE TABLE IF NOT EXISTS "{PGSCHEMA}".stg_teamgoal (
                         id bigint ,
                         year INT,
@@ -81,7 +81,7 @@ with DAG(
 
                 # Conecte-se ao PostgreSQL e execute o script
                 hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-                query = """
+                query = f"""
                                             
                     select 
                         tg.id, 
