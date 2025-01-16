@@ -68,7 +68,7 @@ with DAG(
 
                         # Criar a tabela se não existir
                 create_table_query = """
-                    CREATE TABLE IF NOT EXISTS stg_teamgoal (
+                    CREATE TABLE IF NOT EXISTS "{PGSCHEMA}".stg_teamgoal (
                         id bigint ,
                         year INT,
                         month INT,
