@@ -27,6 +27,8 @@ default_args = {
  
 }
 
+
+
 # Usando o decorator @dag para criar o objeto DAG
 with DAG(
     "9-create-table-client",
@@ -55,6 +57,69 @@ with DAG(
        
     },
 ) as dag:
+
+
+    @task(provide_context=True)
+    def tabelametaclient(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        try:
+                  # Conexão com o banco de destino
+                target_hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+
+                        # Criar a tabela se não existir
+                create_table_query = """
+                    CREATE TABLE IF NOT EXISTS stg_teamgoal (
+                        id bigint ,
+                        year INT,
+                        month INT,
+                        goal NUMERIC,
+                        integration_id UUID
+                    );
+                """
+                target_hook.run(create_table_query)
+
+
+                # Conecte-se ao PostgreSQL e execute o script
+                hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+                query = """
+                                            
+                    select 
+                        tg.id, 
+                        tg.year, 
+                        tg.month, 
+                        tg.goal , 
+                        ii.id as integration_id 
+                        from teams_teamgoal tg
+                        inner join integrations_integration ii on 
+                        ii.team_id = tg.team_id 
+                        where 
+                        ii.id ='{PGSCHEMA}'
+                        and                    
+                        ii.infra_create_status =  true 
+                        and 
+                        ii.is_active = true
+
+                """
+                dados_integration = hook.get_records(query)
+
+                if not dados_integration:
+                    return logging.exception(f"Sem dado de meta")  
+                
+                
+              
+                # Inserir os dados no banco de destino
+                insert_query = """
+                    INSERT INTO stg_teamgoal (id, year, month, goal, integration_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                """
+                for row in dados_integration:
+                    target_hook.run(insert_query, parameters=row)
+
+
+        except Exception as e:
+                logging.exception(f"Ocorreu um erro inesperado durante get_postgres_id - {e}")
+                raise e
+
 
 
     @task(provide_context=True)
@@ -100,7 +165,7 @@ with DAG(
                 hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 hook.run(sql_script)
                 
-                return True
+                
 
             else:
                 #essa parte é do shopify
@@ -117,9 +182,8 @@ with DAG(
                 # não pode estar cravada aqui no codigo
                 hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 hook.run(sql_script)
-                
-                return True    
 
+            return True
 
         except Exception as e:
             logging.exception(

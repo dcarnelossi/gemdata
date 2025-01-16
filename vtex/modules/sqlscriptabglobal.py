@@ -278,6 +278,10 @@ def shopifysqlscriptscreatetabglobal(schema):
     # print(scripts)
     return scripts
 
+
+
+
+
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:
 #         text_file.write(vtexsqlscriptsorderslistupdate("6d41d249-d875-41ef-800e-eb0941f6d86f"))
