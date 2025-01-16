@@ -205,10 +205,11 @@ with DAG(
     # Configurando a dependência entre as tarefas
 
     try:
+        create_tab_meta=tabelametaclient()
         create_tab_global_task = create_tabela_cliente_global()
 
 
-        create_tab_global_task >>   trigger_dag_create_json
+        create_tab_meta >> create_tab_global_task >>   trigger_dag_create_json
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
