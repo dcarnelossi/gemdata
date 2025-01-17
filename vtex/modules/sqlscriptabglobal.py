@@ -334,7 +334,7 @@ def globalsqlscriptsmeta(schema):
                 SELECT 
                     md.year,
                     md.month,
-                    g.date AS day,
+                    TIMESTAMP  g.date AT TIME ZONE 'UTC' AS day,
                     EXTRACT(DOW FROM g.date) AS weekday,
                     predicted_revenue , -- Dia da semana,
                     COUNT(1) OVER (
@@ -358,6 +358,7 @@ def globalsqlscriptsmeta(schema):
                 ON dd.weekday = fw.weekday
             )
             select * from final_distribution;
+
 
 
 
