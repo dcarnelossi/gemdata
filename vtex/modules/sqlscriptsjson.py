@@ -2,8 +2,8 @@
 def vtexsqlscriptjson(schema):
     #para colocar um nova query, basta colocar o 'nome do arquivo' :""" query """
     scripts ={ 'faturamento_ecommerce':f""" 
-                                       										
-									DROP TABLE IF EXISTS tempdata;
+                                      										
+										DROP TABLE IF EXISTS tempdata;
                                         create temp table  tempdata  as (
                                         SELECT generate_series as dategenerate FROM generate_series(
                                             '2022-01-01 00:00:00'::timestamp,
@@ -38,6 +38,17 @@ def vtexsqlscriptjson(schema):
                                         group by 1
 										);
                                         
+                                        DROP TABLE IF EXISTS faturamentometa;
+                                        create temp table  faturamentometa  as (
+
+                                        select 
+                                        DATE_TRUNC('day',  "day")   as datemeta,
+                                        cast(round(cast(SUM(daily_revenue) as numeric),2) as float)   as faturamentometa
+
+                                        from "{schema}".orders_ia_meta ia 
+                                        group by 1
+										);
+                                        
 
                                         
 
@@ -46,7 +57,7 @@ def vtexsqlscriptjson(schema):
                                         cast(COALESCE(fd.faturamento,0.00)as float) as faturamento,
                                         cast(COALESCE(fd.pedidos,0) as float) as pedidos,
                                         cast(COALESCE(fp.faturamento,0) as float) as faturamentoprojetado,
-                                        CASE WHEN to_char(td.dategenerate,'yyyy') = '2024' then cast(round(cast(COALESCE(fd.faturamento,fp.faturamento) as numeric) *0.94 ,2) as float) ELSE 0.00 end as faturamentometa
+                                         cast(COALESCE(fm.faturamentometa,0) as float)  as faturamentometa
 
                                         from tempdata as td
 
@@ -55,8 +66,17 @@ def vtexsqlscriptjson(schema):
 
                                         left join faturamentoprojetado as fp on 
                                         td.dategenerate = fp.dateprojecao
+                                        
+                                        left join faturamentometa as fm on 
+                                        td.dategenerate = fm.datemeta
+                                        
+                                        
 
                                         order by 1 
+
+
+
+
                                         """ 
                                         
                 ,'faturamento_categorias': f"""
@@ -384,14 +404,16 @@ def vtexsqlscriptjson(schema):
 												order by 1
                                       """                             
                 ,'faturamento_mensal': f""" 
-                                                            
+                                         
+                   
                                         select 
                                         yearMonth,
                                         "date",
                                         cast(round(cast(sum(revenue) as numeric),0) as varchar(20)) as revenue,
                                         cast(round(cast(sum(projection) as numeric),0) as varchar(20)) as projection,
                                         cast(round(cast(sum(orders) as numeric),0) as varchar(20)) as orders,
-                                        cast(round(cast(sum(averageTicket) as numeric),0) as varchar(20)) as averageTicket 
+                                        cast(round(cast(sum(averageTicket) as numeric),0) as varchar(20)) as averageTicket,
+                                        cast(round(cast(sum(goal) as numeric),0) as varchar(20)) as goal
                                         from (
                                             select 
                                             to_char(creationdate,'YYYY-MM') as yearMonth,
@@ -415,9 +437,24 @@ def vtexsqlscriptjson(schema):
                                             0 as averageTicket
                                             from "{schema}".orders_ia_forecast oif   
                                             group by 1,2
+                                            
+                                            
+                                            union all 
+                                            
+                                            select 
+                                            year || '-' || LPAD(month::TEXT, 2, '0') as yearMonth,
+                                            year || '-' || LPAD(month::TEXT, 2, '0') || '-01' as "date",
+                                            0 as revenue,
+                                            0 as projection,
+                                            0 as orders,
+                                            0 as averageTicket,
+                                             SUM(goal) as goal
+                                            from "{schema}".stg_teamgoal oif   
+                                            group by 1,2
                                         )mesorder
                                         group by 1,2 
                                         order by  1 
+                                        
                                       """                             
                 ,'pedido_por_categoria': f"""
                                      
