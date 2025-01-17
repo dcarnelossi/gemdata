@@ -287,6 +287,7 @@ def globalsqlscriptsmeta(schema):
 
             CREATE TABLE "{schema}".orders_ia_meta AS
 
+
             -- Parte 1: CTE para cálculo
             WITH fatdiario AS (
             select 
@@ -333,7 +334,7 @@ def globalsqlscriptsmeta(schema):
                 SELECT 
                     md.year,
                     md.month,
-                    TIMESTAMP  g.date AT TIME ZONE 'UTC' AS day,
+                    g.date AT TIME ZONE 'UTC' AS day,
                     EXTRACT(DOW FROM g.date) AS weekday,
                     predicted_revenue , -- Dia da semana,
                     COUNT(1) OVER (
@@ -357,9 +358,6 @@ def globalsqlscriptsmeta(schema):
                 ON dd.weekday = fw.weekday
             )
             select * from final_distribution;
-
-
-
 
 
 
