@@ -287,7 +287,6 @@ def globalsqlscriptsmeta(schema):
 
             CREATE TABLE "{schema}".orders_ia_meta AS
 
-
             -- Parte 1: CTE para cálculo
             WITH fatdiario AS (
             select 
