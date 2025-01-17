@@ -283,7 +283,7 @@ def shopifysqlscriptscreatetabglobal(schema):
 
 def globalsqlscriptsmeta(schema):
     scripts = f"""
-            DROP TABLE IF EXISTS "{schema}".orders_ia_meta;
+           DROP TABLE IF EXISTS "{schema}".orders_ia_meta;
 
             CREATE TABLE "{schema}".orders_ia_meta AS
 
@@ -325,8 +325,8 @@ def globalsqlscriptsmeta(schema):
                     year,
                     month,
                     goal AS predicted_revenue,
-                    DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '00:00:00') AT TIME ZONE 'UTC' ) AS start_date,
-                    (DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '00:00:00') AT TIME ZONE 'UTC') 
+                    DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '03:00:00') AT TIME ZONE 'UTC' ) AS start_date,
+                    (DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '03:00:00') AT TIME ZONE 'UTC') 
                     + INTERVAL '1 month' - INTERVAL '1 day') AS end_date
                 FROM "{schema}".stg_teamgoal
             ),
@@ -358,6 +358,8 @@ def globalsqlscriptsmeta(schema):
                 ON dd.weekday = fw.weekday
             )
             select * from final_distribution;
+
+
 
 
 
