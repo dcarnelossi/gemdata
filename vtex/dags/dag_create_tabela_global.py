@@ -109,8 +109,9 @@ with DAG(
               
                 # Inserir os dados no banco de destino
                 insert_query = f"""
+                    TRUNCATE TABLE "{PGSCHEMA}".stg_teamgoal;
                     INSERT INTO "{PGSCHEMA}".stg_teamgoal (id, year, month, goal, integration_id)
-                    VALUES (%s, %s, %s, %s, %s)
+                    VALUES (%s, %s, %s, %s, %s);
                 """
                 for row in dados_integration:
                     target_hook.run(insert_query, parameters=row)
