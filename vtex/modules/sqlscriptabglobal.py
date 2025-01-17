@@ -286,12 +286,14 @@ def globalsqlscriptsmeta(schema):
             DROP TABLE IF EXISTS "{schema}".orders_ia_meta;
 
             CREATE TABLE "{schema}".orders_ia_meta AS
+
+
             -- Parte 1: CTE para cálculo
             WITH fatdiario AS (
             select 
             DATE_TRUNC('day',  creationdate)   as dategenerate,
             cast(round(cast(SUM(revenue) as numeric),2) as float) as faturamento
-            from "{schema}".orders_ia ia 
+            from  "{schema}".orders_ia ia 
             group by 
             1                             
             ),
@@ -323,8 +325,8 @@ def globalsqlscriptsmeta(schema):
                     year,
                     month,
                     goal AS predicted_revenue,
-                    DATE_TRUNC('month', TO_DATE(year || '-' || month, 'YYYY-MM')) AS start_date,
-                    (DATE_TRUNC('month', TO_DATE(year || '-' || month, 'YYYY-MM')) 
+                    DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '00:00:00') AT TIME ZONE 'UTC' ) AS start_date,
+                    (DATE_TRUNC('month', (TO_DATE(year || '-' || month, 'YYYY-MM') + TIME '00:00:00') AT TIME ZONE 'UTC') 
                     + INTERVAL '1 month' - INTERVAL '1 day') AS end_date
                 FROM "{schema}".stg_teamgoal
             ),
@@ -356,6 +358,8 @@ def globalsqlscriptsmeta(schema):
                 ON dd.weekday = fw.weekday
             )
             select * from final_distribution;
+
+
 
     """
     # print(scripts)
