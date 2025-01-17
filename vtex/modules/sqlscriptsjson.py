@@ -421,7 +421,8 @@ def vtexsqlscriptjson(schema):
                                             sum(oi.revenue) as revenue,
                                             0 as projection,
                                             count(1) as orders, 
-                                            sum(oi.revenue) / count(1) as averageTicket
+                                            sum(oi.revenue) / count(1) as averageTicket,
+                                            0 as goal
                                             from "{schema}".orders_ia oi 
                                             group by 
                                             1,2
@@ -434,7 +435,8 @@ def vtexsqlscriptjson(schema):
                                             0 as revenue,
                                             SUM(predicted_revenue) as projection,
                                             0 as orders,
-                                            0 as averageTicket
+                                            0 as averageTicket,
+                                            0 as goal
                                             from "{schema}".orders_ia_forecast oif   
                                             group by 1,2
                                             
