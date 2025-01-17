@@ -193,6 +193,23 @@ with DAG(
             raise e
 
 
+
+    @task(provide_context=True)
+    def tabelametaclientdia(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        try:
+                  
+            from modules.sqlscriptabglobal import globalsqlscriptsmeta
+            sql_script = globalsqlscriptsmeta(PGSCHEMA)    
+            hook3 = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+            hook3.run(sql_script)
+
+        except Exception as e:
+                logging.exception(f"Ocorreu um erro inesperado na hora de criar a tabela meta cliente diaria - {e}")
+                raise e
+
+
+
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
         trigger_dag_id="9-forecast-revenue",  # Substitua pelo nome real da sua segunda DAG
@@ -208,9 +225,10 @@ with DAG(
     try:
         create_tab_meta=tabelametaclient()
         create_tab_global_task = create_tabela_cliente_global()
+        create_tab_meta_dia=tabelametaclientdia()
 
 
-        create_tab_meta >> create_tab_global_task >>   trigger_dag_create_json
+        create_tab_meta >> create_tab_global_task >> create_tab_meta_dia >>   trigger_dag_create_json
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
