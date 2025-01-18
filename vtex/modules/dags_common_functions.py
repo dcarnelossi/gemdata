@@ -100,7 +100,7 @@ def get_api_conection_info(integration_id):
             }
 
             apicliente = {
-                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment'].replace('.myshopify.com','')}.com",
+                "Domain": f"{api_conection_info['api_accountname'].replace('.myshopify.com','')}.{api_conection_info['api_environment']}.com",
                 "headers": headers,
             }
 
