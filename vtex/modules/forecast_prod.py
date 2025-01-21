@@ -74,10 +74,11 @@ api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 
-
 def rmsle(y_true, y_pred):
-    '''Funcao para calcular o RMSLE'''    
-    return np.sqrt(mean_squared_log_error(y_true + 1, y_pred + 1))  # Adiciona 1 para evitar log(0)
+    # Adiciona uma constante para garantir valores positivos
+    y_true_adj = np.maximum(y_true, 0) + 1
+    y_pred_adj = np.maximum(y_pred, 0) + 1
+    return np.sqrt(mean_squared_log_error(y_true_adj, y_pred_adj))
 
 
 def CriaDataFrameFeriado(schema= "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
