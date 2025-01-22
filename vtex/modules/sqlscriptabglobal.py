@@ -192,7 +192,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 LOWER(coalesce(so.shippingcity,so.billingcity)) as selectedaddresses_0_city,
                 LOWER(coalesce(so.shippingprovincecode,so.billingprovincecode)) as selectedaddresses_0_state,
                 LOWER(coalesce(so.shippingcountrycode,so.billingcountrycode)) as selectedaddresses_0_country,
-                so.email as userprofileid,
+                coalesce(so.email,so.name) as userprofileid,
                 coalesce(LOWER(op.gateway),'nao informado') as paymentnames,
                 --,oi.saleschannel as saleschannel
                 LOWER(so.displayfinancialstatus) as statusdescription,
@@ -255,7 +255,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 ,LOWER(coalesce(o.shippingcity,o.billingcity)) as selectedaddresses_0_city
                 ,LOWER(coalesce(o.shippingprovincecode,o.billingprovincecode)) as selectedaddresses_0_state
                 ,LOWER(coalesce(o.shippingcountrycode,o.billingcountrycode)) as selectedaddresses_0_country
-                ,o.email as userprofileid
+                ,coalesce(o.email,o.name)  as userprofileid
                 ,case when cast(o.totalshippingprice as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(o.totalshippingprice as numeric) =0 then  'true' else  'false' end  isFreeShipping 
                 ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
