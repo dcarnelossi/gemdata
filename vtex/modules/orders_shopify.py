@@ -267,8 +267,8 @@ def fetch_orders_list(start_date, end_date,minimum_date):
                             "billingzip": order_data.get("billingAddress", {}).get("zip", None) if order_data.get("billingAddress") else None,
                             "billingprovincecode": order_data.get("billingAddress", {}).get("provinceCode", None) if order_data.get("billingAddress") else None,
                             "billingcountrycode": order_data.get("billingAddress", {}).get("countryCode", None) if order_data.get("billingAddress") else None,
-                            "channelname": order_data.get("channelInformation", {}).get("channelDefinition", {}).get("channelName", None) if order_data.get("channelInformation") or order_data.get("channelInformation").get("channelDefinition")  else None,
-                            "subchannelname": order_data.get("channelInformation", {}).get("channelDefinition", {}).get("subChannelName", None) if order_data.get("channelInformation") or order_data.get("channelInformation").get("channelDefinition")  else None,
+                            "channelname": order_data.get("channelInformation", {}).get("channelDefinition", {}).get("channelName", None) if order_data.get("channelInformation")   else None,
+                            "subchannelname": order_data.get("channelInformation", {}).get("channelDefinition", {}).get("subChannelName", None) if order_data.get("channelInformation")   else None,
                         }
                 orders.append(transformed_order)
             
