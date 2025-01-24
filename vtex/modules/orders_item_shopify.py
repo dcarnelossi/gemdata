@@ -205,12 +205,14 @@ def process_orders(start_date):
             logging.info("Nenhum item para ser processado")
             return
         
-        if(len(orders_ids)>30000):
-           workers = 3
-        else:
-            workers = 1
 
-        print(workers)
+        workers = 3
+        # if(len(orders_ids)>30000):
+        #    workers = 3
+        # else:
+        #     workers = 1
+
+        print(f""" Qtd de workers{workers}""")
         veri=[]
         countloop = 0  # Número máximo de tentativas
         while  countloop < 4 :

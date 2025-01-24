@@ -91,7 +91,7 @@ with DAG(
             if start_date is None:
                 #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
                 if not isdaily :
-                    start_date = end_date - timedelta(days=735)
+                    start_date = end_date - timedelta(days=190)
                    
                     #min_date = end_date - timedelta(days=5)
 
