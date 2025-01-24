@@ -69,7 +69,7 @@ with DAG(
             description="Entre com a qtd de dias retroativo(daily = 10 dias e full = 765 dias).",
             section="Important params",
             min_value=1,
-            min_value=1000
+            max_value=1000
         )
     },
 ) as dag:
