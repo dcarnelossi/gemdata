@@ -61,6 +61,15 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=10,
+        ),
+        "QTDDIAS": Param(
+            default=0,
+            type="int",
+            title="qtd de dias retroativo:",
+            description="Entre com a qtd de dias retroativo(daily = 10 dias e full = 765 dias).",
+            section="Important params",
+            min_value=1,
+            min_value=1000
         )
     },
 ) as dag:
@@ -71,6 +80,7 @@ with DAG(
         conf = kwargs.get("dag_run").conf or {}
         team_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
+        qtddias = kwargs["params"]["QTDDIAS"]
         start_date = conf.get("START_DATE", None)
 
         coorp_conection_info = get_coorp_conection_info()
@@ -88,15 +98,18 @@ with DAG(
             
 
             if start_date is None:
-                #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
-                if not isdaily :
-                    start_date = end_date - timedelta(days=735)
-                    #min_date = end_date - timedelta(days=5)
-
+                if( qtddias == 0):
+                        if not isdaily :
+                            dias = 735
+                        else:
+                            dias = 10     
                 else:
-                    #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                    start_date = end_date - timedelta(days=10)
-                    #min_date = end_date - timedelta(days=360)
+                        dias = qtddias
+                
+                #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
+              
+
+                start_date = end_date - timedelta(days=dias)
             
                 
             orders_payment_shopify.set_globals(
