@@ -202,10 +202,10 @@ def post_analytics_analytics(pg_schema):
                           ('revenue','pedido_por_categoria.json','pcategory'),
                           ('revenue','pedido_por_estado.json','pcities'),
                           ('products','pedido_ecommerce.json','products'),
-                          ('insights','faturamento_categorias.json','category'),
-                          ('insights','faturamento_ecommerce.json','revenue'),
-                          ('insights','faturamento_regiao.json','cities'),
-                          ('insights','faturamento_compradores.json','buyers')
+                          ('digest','faturamento_categorias.json','category'),
+                          ('digest','faturamento_ecommerce.json','revenue'),
+                          ('digest','faturamento_regiao.json','cities'),
+                          ('digest','faturamento_compradores.json','buyers')
                           ]
             distinct_first_column = set(aba[0] for aba in aba_dash) 
 
