@@ -67,58 +67,74 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             import gzip
 
         try:
-                # Conecte-se ao PostgreSQL e execute o script
-                hook = PostgresHook(postgres_conn_id="integrations-data-dev")
-                conn = hook.get_conn()
-                cursor = conn.cursor()
+            # Conecte-se ao PostgreSQL e execute o script
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+            conn = hook.get_conn()
+            cursor = conn.cursor()
 
-                cursor.execute(sql_script)
-                records = cursor.fetchall()
-                colnames = [desc[0] for desc in cursor.description]
+            cursor.execute(sql_script)
+            records = cursor.fetchall()
+            colnames = [desc[0] for desc in cursor.description]
 
-                # Convertendo os dados para JSON
-                data = [dict(zip(colnames, row)) for row in records]
-                json_data = json.dumps(data)
+            # Convertendo os dados para JSON
+            data = [dict(zip(colnames, row)) for row in records]
+            json_data = json.dumps(data)
 
-                # Criando diretório temporário para armazenar o arquivo
-                tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
-                os.makedirs(tmp_dir, exist_ok=True)
+            # Criando diretório temporário para armazenar os arquivos
+            tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
+            os.makedirs(tmp_dir, exist_ok=True)
 
-                # Caminho para o arquivo compactado
-                gzip_filepath = os.path.join(tmp_dir, f"{file_name}.json.gz")
+            # Caminhos para os arquivos JSON e Gzip
+            json_filepath = os.path.join(tmp_dir, f"{file_name}.json")
+            gzip_filepath = os.path.join(tmp_dir, f"{file_name}.json.gz")
 
-                # Salvando o arquivo compactado com Gzip
-                with gzip.open(gzip_filepath, 'wt', encoding='utf-8') as gzip_file:
-                    gzip_file.write(json_data)
+            # Salvando o arquivo JSON
+            with open(json_filepath, 'w', encoding='utf-8') as json_file:
+                json_file.write(json_data)
 
-                # Upload para o Azure Blob Storage
-                wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
-                blob_name_gzip = f"{pg_schema}/{file_name}.json.gz"
+            # Salvando o arquivo compactado com Gzip
+            with gzip.open(gzip_filepath, 'wt', encoding='utf-8') as gzip_file:
+                gzip_file.write(json_data)
 
-                # Verifica se o arquivo já existe no Blob Storage e remove se necessário
-                if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name_gzip):
-                    wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name_gzip)
+            # Upload para o Azure Blob Storage
+            wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
+            blob_name_json = f"{pg_schema}/{file_name}.json"
+            blob_name_gzip = f"{pg_schema}/{file_name}.json.gz"
 
-                # Configurando tarefa de upload para Gzip
-                upload_gzip = LocalFilesystemToWasbOperator(
-                    task_id='upload_gzip_to_blob',
-                    file_path=gzip_filepath,
-                    container_name='jsondashboard-homol',
-                    blob_name=blob_name_gzip,
-                    wasb_conn_id='appgemdata-storage-homol'
-                )
+            # Verifica se os arquivos já existem no Blob Storage e remove se necessário
+            for blob_name in [blob_name_json, blob_name_gzip]:
+                if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name):
+                    wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name)
 
-                # Executa o upload
-                upload_gzip.execute(file_name)
+            # Configurando tarefa de upload para JSON e Gzip
+            upload_json = LocalFilesystemToWasbOperator(
+                task_id='upload_json_to_blob',
+                file_path=json_filepath,
+                container_name='jsondashboard-homol',
+                blob_name=blob_name_json,
+                wasb_conn_id='appgemdata-storage-homol'
+            )
 
-                return gzip_filepath
+            upload_gzip = LocalFilesystemToWasbOperator(
+                task_id='upload_gzip_to_blob',
+                file_path=gzip_filepath,
+                container_name='jsondashboard-homol',
+                blob_name=blob_name_gzip,
+                wasb_conn_id='appgemdata-storage-homol'
+            )
+
+            # Executa os uploads
+            upload_json.execute(file_name)
+            upload_gzip.execute(file_name)
+
+            return gzip_filepath
 
         except Exception as e:
-                logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
-                raise e
+            logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
+            raise e
         finally:
-                cursor.close()
-                conn.close()
+            cursor.close()
+            conn.close()
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def daily_run_date_update(pg_schema):
