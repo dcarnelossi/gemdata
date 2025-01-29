@@ -67,6 +67,14 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             import gzip
 
         try:
+            import msgpack
+        except ImportError:
+            print("msgpack não está instalado. Instalando agora...")
+            install("msgpack")
+            import msgpack
+
+
+        try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             conn = hook.get_conn()
@@ -86,20 +94,20 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 
             # Caminhos para os arquivos JSON e Gzip
             json_filepath = os.path.join(tmp_dir, f"{file_name}.json")
-            gzip_filepath = os.path.join(tmp_dir, f"{file_name}.json.gz")
+            gzip_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack.gz")
 
-            # Salvando o arquivo JSON
+            # Salvando o arquivo JSON puro
             with open(json_filepath, 'w', encoding='utf-8') as json_file:
                 json_file.write(json_data)
 
-            # Salvando o arquivo compactado com Gzip
-            with gzip.open(gzip_filepath, 'wt', encoding='utf-8') as gzip_file:
-                gzip_file.write(json_data)
+            # Criando arquivo MessagePack e compactando diretamente com Gzip
+            with gzip.open(gzip_filepath, 'wb') as gzip_file:
+                gzip_file.write(msgpack.packb(data, use_bin_type=True))
 
             # Upload para o Azure Blob Storage
             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
             blob_name_json = f"{pg_schema}/{file_name}.json"
-            blob_name_gzip = f"{pg_schema}/{file_name}.json.gz"
+            blob_name_gzip = f"{pg_schema}/{file_name}.msgpack.gz"
 
             # Verifica se os arquivos já existem no Blob Storage e remove se necessário
             for blob_name in [blob_name_json, blob_name_gzip]:
@@ -127,7 +135,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             upload_json.execute(file_name)
             upload_gzip.execute(file_name)
 
-            return gzip_filepath
+            return json_filepath, gzip_filepath
 
         except Exception as e:
             logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
