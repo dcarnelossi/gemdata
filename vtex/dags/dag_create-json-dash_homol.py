@@ -53,73 +53,69 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #isdaily = kwargs["params"]["ISDAILY"]
         try:
             
-            import orjson
+        #     import orjson
+        # except ImportError:
+        #     print("matplotlib não está instalado. Instalando agora...")
+        #     install("orjson")
+        #     import orjson
+
+            import msgpack
         except ImportError:
-            print("matplotlib não está instalado. Instalando agora...")
-            install("orjson")
-            import orjson
-        
+            print("msgpack não está instalado. Instalando agora...")
+            install("msgpack")
+            import msgpack
+
         try:
-            
-            
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
-            # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()
 
             cursor.execute(sql_script)
-
-          
             records = cursor.fetchall()
             colnames = [desc[0] for desc in cursor.description]
-            
-            # Transformando os dados em uma lista de dicionários (JSON-like)
-            data = [dict(zip(colnames, row)) for row in records]
-           
-            # Convertendo os dados para JSON string
-            #json_data = json.dumps(data, indent=4)
-            json_data = orjson.dumps(data)
-            # Convertendo bytes para string
-            json_str = json_data.decode('utf-8')
-            
-            # Criando um diretório temporário para armazenar o arquivo JSON
-           # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
-            tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
-        
-            os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
-        
-            output_filepath = os.path.join(tmp_dir, file_name)
-            
-            # Salvando o JSON string em um arquivo temporário
-            with open(output_filepath, 'w') as outfile:
-                outfile.write(json_str)
 
+            # Transformando os dados diretamente em MessagePack sem salvar JSON
+            data = [dict(zip(colnames, row)) for row in records]
+            packed_data = msgpack.packb(data)  # Compactação direta
+
+            # Criando diretório temporário para armazenar o arquivo
+            tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
+            os.makedirs(tmp_dir, exist_ok=True)
+
+            # Caminho para o arquivo compactado
+            msgpack_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack")
+
+            # Salvando o arquivo compactado
+            with open(msgpack_filepath, 'wb') as msgpack_file:
+                msgpack_file.write(packed_data)
+
+            # Upload para o Azure Blob Storage
             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
-            ###   Verifica se o arquivo já existe
-            if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=f"{pg_schema}/{file_name}.json"):
-                wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=f"{pg_schema}/{file_name}.json")
-                
-            upload_task = LocalFilesystemToWasbOperator(
-                task_id=f'upload_to_blob_grafico',
-                file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
-                container_name='jsondashboard-homol',  # Substitua pelo nome do seu container no Azure Blob Storage
-            #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
-                blob_name= f"{pg_schema}/{file_name}.json",
+            blob_name_msgpack = f"{pg_schema}/{file_name}.msgpack"
+
+            # Verifica se o arquivo já existe no Blob Storage e remove se necessário
+            if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name_msgpack):
+                wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name_msgpack)
+
+            # Configurando tarefa de upload para MessagePack
+            upload_msgpack = LocalFilesystemToWasbOperator(
+                task_id='upload_msgpack_to_blob',
+                file_path=msgpack_filepath,
+                container_name='jsondashboard-homol',
+                blob_name=blob_name_msgpack,
                 wasb_conn_id='appgemdata-storage-homol'
             )
-            upload_task.execute(file_name)  # Executa a tarefa de upload
 
-            return output_filepath
+            # Executa o upload
+            upload_msgpack.execute(file_name)
 
-            
+            return msgpack_filepath
+
         except Exception as e:
-            logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
-            )
+            logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
             raise e
         finally:
-            # Fechando o cursor e a conexão
             cursor.close()
             conn.close()
 
