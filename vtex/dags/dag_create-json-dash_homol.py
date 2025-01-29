@@ -138,6 +138,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             install("msgpack")
             import msgpack
 
+        try:
     
             # Conexão com o PostgreSQL e execução do script SQL
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
