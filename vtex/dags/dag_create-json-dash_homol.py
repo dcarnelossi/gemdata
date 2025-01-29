@@ -47,17 +47,90 @@ default_args = {
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
+# # Função para extrair dados do PostgreSQL e salvá-los como JSON
+# def extract_postgres_to_json(sql_script,file_name,pg_schema):
+#         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+#         #isdaily = kwargs["params"]["ISDAILY"]
+#         try:
+            
+#         #     import orjson
+#         # except ImportError:
+#         #     print("matplotlib não está instalado. Instalando agora...")
+#         #     install("orjson")
+#         #     import orjson
+
+#             import msgpack
+#         except ImportError:
+#             print("msgpack não está instalado. Instalando agora...")
+#             install("msgpack")
+#             import msgpack
+
+#         try:
+#             # Conecte-se ao PostgreSQL e execute o script
+#             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+#             conn = hook.get_conn()
+#             cursor = conn.cursor()
+
+#             cursor.execute(sql_script)
+#             records = cursor.fetchall()
+#             colnames = [desc[0] for desc in cursor.description]
+
+#             # Transformando os dados diretamente em MessagePack sem salvar JSON
+#             data = [dict(zip(colnames, row)) for row in records]
+#             packed_data = msgpack.packb(data)  # Compactação direta
+
+#             # Criando diretório temporário para armazenar o arquivo
+#             tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
+#             os.makedirs(tmp_dir, exist_ok=True)
+
+#             # Caminho para o arquivo compactado
+#             msgpack_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack")
+
+#             # Salvando o arquivo compactado
+#             with open(msgpack_filepath, 'wb') as msgpack_file:
+#                 msgpack_file.write(packed_data)
+
+#             # Upload para o Azure Blob Storage
+#             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
+#             blob_name_msgpack = f"{pg_schema}/{file_name}.msgpack"
+
+#             # Verifica se o arquivo já existe no Blob Storage e remove se necessário
+#             if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name_msgpack):
+#                 wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name_msgpack)
+
+#             # Configurando tarefa de upload para MessagePack
+#             upload_msgpack = LocalFilesystemToWasbOperator(
+#                 task_id='upload_msgpack_to_blob',
+#                 file_path=msgpack_filepath,
+#                 container_name='jsondashboard-homol',
+#                 blob_name=blob_name_msgpack,
+#                 wasb_conn_id='appgemdata-storage-homol'
+#             )
+
+#             # Executa o upload
+#             upload_msgpack.execute(file_name)
+
+#             return msgpack_filepath
+
+#         except Exception as e:
+#             logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
+#             raise e
+#         finally:
+#             cursor.close()
+#             conn.close()
+
+
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         try:
             
-        #     import orjson
-        # except ImportError:
-        #     print("matplotlib não está instalado. Instalando agora...")
-        #     install("orjson")
-        #     import orjson
+            import zipfile
+        except ImportError:
+            print("zipfile não está instalado. Instalando agora...")
+            install("zipfile")
+            import zipfile
 
             import msgpack
         except ImportError:
@@ -65,8 +138,8 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             install("msgpack")
             import msgpack
 
-        try:
-            # Conecte-se ao PostgreSQL e execute o script
+    
+            # Conexão com o PostgreSQL e execução do script SQL
             hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             conn = hook.get_conn()
             cursor = conn.cursor()
@@ -75,42 +148,50 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             records = cursor.fetchall()
             colnames = [desc[0] for desc in cursor.description]
 
-            # Transformando os dados diretamente em MessagePack sem salvar JSON
+            # Transformando os dados diretamente para MessagePack
             data = [dict(zip(colnames, row)) for row in records]
-            packed_data = msgpack.packb(data)  # Compactação direta
+            packed_data = msgpack.packb(data)  # Compactação com MessagePack
 
-            # Criando diretório temporário para armazenar o arquivo
+            # Criando diretório temporário
             tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
             os.makedirs(tmp_dir, exist_ok=True)
 
-            # Caminho para o arquivo compactado
-            msgpack_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack")
+            # Nome dos arquivos
+            msgpack_filename = f"{file_name}.msgpack"
+            zip_filename = f"{file_name}.zip"
 
-            # Salvando o arquivo compactado
+            msgpack_filepath = os.path.join(tmp_dir, msgpack_filename)
+            zip_filepath = os.path.join(tmp_dir, zip_filename)
+
+            # Salvando o arquivo MessagePack
             with open(msgpack_filepath, 'wb') as msgpack_file:
                 msgpack_file.write(packed_data)
 
-            # Upload para o Azure Blob Storage
+            # Criando um arquivo ZIP e adicionando o .msgpack dentro dele
+            with zipfile.ZipFile(zip_filepath, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                zipf.write(msgpack_filepath, arcname=msgpack_filename)
+
+            # Upload do ZIP para o Azure Blob Storage
             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
-            blob_name_msgpack = f"{pg_schema}/{file_name}.msgpack"
+            blob_name_zip = f"{pg_schema}/{zip_filename}"
 
             # Verifica se o arquivo já existe no Blob Storage e remove se necessário
-            if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name_msgpack):
-                wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name_msgpack)
+            if wasb_hook.check_for_blob(container_name="jsondashboard-homol", blob_name=blob_name_zip):
+                wasb_hook.delete_file(container_name="jsondashboard-homol", blob_name=blob_name_zip)
 
-            # Configurando tarefa de upload para MessagePack
-            upload_msgpack = LocalFilesystemToWasbOperator(
-                task_id='upload_msgpack_to_blob',
-                file_path=msgpack_filepath,
+            # Configurando a tarefa de upload para o ZIP
+            upload_zip = LocalFilesystemToWasbOperator(
+                task_id='upload_zip_to_blob',
+                file_path=zip_filepath,
                 container_name='jsondashboard-homol',
-                blob_name=blob_name_msgpack,
+                blob_name=blob_name_zip,
                 wasb_conn_id='appgemdata-storage-homol'
             )
 
             # Executa o upload
-            upload_msgpack.execute(file_name)
+            upload_zip.execute(zip_filename)
 
-            return msgpack_filepath
+            return zip_filepath
 
         except Exception as e:
             logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
@@ -118,7 +199,6 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
         finally:
             cursor.close()
             conn.close()
-
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def daily_run_date_update(pg_schema):
