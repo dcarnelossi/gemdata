@@ -131,7 +131,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             print("zipfile não está instalado. Instalando agora...")
             install("zipfile")
             import zipfile
-
+        try:
             import msgpack
         except ImportError:
             print("msgpack não está instalado. Instalando agora...")
