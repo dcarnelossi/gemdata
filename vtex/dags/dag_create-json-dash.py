@@ -47,81 +47,172 @@ default_args = {
 def install(package):
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
+
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def extract_postgres_to_json(sql_script,file_name,pg_schema):
         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         #isdaily = kwargs["params"]["ISDAILY"]
         try:
             
-            import orjson
+            import json
         except ImportError:
-            print("matplotlib não está instalado. Instalando agora...")
-            install("orjson")
-            import orjson
-        
+            print("json não está instalado. Instalando agora...")
+            install("json")
+            import json
+
         try:
-            
-            
+            import gzip
+        except ImportError:
+            print("gzip não está instalado. Instalando agora...")
+            install("gzip")
+            import gzip
+
+        try:
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
-            # Estabelecendo a conexão e criando um cursor
             conn = hook.get_conn()
             cursor = conn.cursor()
 
             cursor.execute(sql_script)
-
-          
             records = cursor.fetchall()
             colnames = [desc[0] for desc in cursor.description]
-            
-            # Transformando os dados em uma lista de dicionários (JSON-like)
-            data = [dict(zip(colnames, row)) for row in records]
-           
-            # Convertendo os dados para JSON string
-            #json_data = json.dumps(data, indent=4)
-            json_data = orjson.dumps(data)
-            # Convertendo bytes para string
-            json_str = json_data.decode('utf-8')
-            
-            # Criando um diretório temporário para armazenar o arquivo JSON
-           # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
-            tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
-        
-            os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
-        
-            output_filepath = os.path.join(tmp_dir, file_name)
-            
-            # Salvando o JSON string em um arquivo temporário
-            with open(output_filepath, 'w') as outfile:
-                outfile.write(json_str)
 
+            # Convertendo os dados para JSON
+            data = [dict(zip(colnames, row)) for row in records]
+            json_data = json.dumps(data)
+
+            # Criando diretório temporário para armazenar os arquivos
+            tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
+            os.makedirs(tmp_dir, exist_ok=True)
+
+            # Caminhos para os arquivos JSON e Gzip
+            json_filepath = os.path.join(tmp_dir, f"{file_name}.json")
+            gzip_filepath = os.path.join(tmp_dir, f"{file_name}.json.gz")
+
+            # Salvando o arquivo JSON
+            with open(json_filepath, 'w', encoding='utf-8') as json_file:
+                json_file.write(json_data)
+
+            # Salvando o arquivo compactado com Gzip
+            with gzip.open(gzip_filepath, 'wt', encoding='utf-8') as gzip_file:
+                gzip_file.write(json_data)
+
+            # Upload para o Azure Blob Storage
             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
-            ###   Verifica se o arquivo já existe
-            if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json"):
-                wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json")
-                
-            upload_task = LocalFilesystemToWasbOperator(
-                task_id=f'upload_to_blob_grafico',
-                file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
-                container_name='jsondashboard-prod',  # Substitua pelo nome do seu container no Azure Blob Storage
-            #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
-                blob_name= f"{pg_schema}/{file_name}.json",
+            blob_name_json = f"{pg_schema}/{file_name}.json"
+            blob_name_gzip = f"{pg_schema}/{file_name}.json.gz"
+
+            # Verifica se os arquivos já existem no Blob Storage e remove se necessário
+            for blob_name in [blob_name_json, blob_name_gzip]:
+                if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=blob_name):
+                    wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=blob_name)
+
+            # Configurando tarefa de upload para JSON e Gzip
+            upload_json = LocalFilesystemToWasbOperator(
+                task_id='upload_json_to_blob',
+                file_path=json_filepath,
+                container_name='jsondashboard-prod',
+                blob_name=blob_name_json,
                 wasb_conn_id='appgemdata-storage-prod'
             )
-            upload_task.execute(file_name)  # Executa a tarefa de upload
 
-            return output_filepath
-
-            
-        except Exception as e:
-            logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+            upload_gzip = LocalFilesystemToWasbOperator(
+                task_id='upload_gzip_to_blob',
+                file_path=gzip_filepath,
+                container_name='jsondashboard-prod',
+                blob_name=blob_name_gzip,
+                wasb_conn_id='appgemdata-storage-prod'
             )
+
+            # Executa os uploads
+            upload_json.execute(file_name)
+            upload_gzip.execute(file_name)
+
+            return gzip_filepath
+
+        except Exception as e:
+            logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
             raise e
         finally:
-            # Fechando o cursor e a conexão
             cursor.close()
             conn.close()
+
+
+# # Função para extrair dados do PostgreSQL e salvá-los como JSON
+# def extract_postgres_to_json(sql_script,file_name,pg_schema):
+#         #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+#         #isdaily = kwargs["params"]["ISDAILY"]
+#         try:
+            
+#             import orjson
+#         except ImportError:
+#             print("matplotlib não está instalado. Instalando agora...")
+#             install("orjson")
+#             import orjson
+        
+#         try:
+            
+            
+#             # Conecte-se ao PostgreSQL e execute o script
+#             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+#             # Estabelecendo a conexão e criando um cursor
+#             conn = hook.get_conn()
+#             cursor = conn.cursor()
+
+#             cursor.execute(sql_script)
+
+          
+#             records = cursor.fetchall()
+#             colnames = [desc[0] for desc in cursor.description]
+            
+#             # Transformando os dados em uma lista de dicionários (JSON-like)
+#             data = [dict(zip(colnames, row)) for row in records]
+           
+#             # Convertendo os dados para JSON string
+#             #json_data = json.dumps(data, indent=4)
+#             json_data = orjson.dumps(data)
+#             # Convertendo bytes para string
+#             json_str = json_data.decode('utf-8')
+            
+#             # Criando um diretório temporário para armazenar o arquivo JSON
+#            # tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+#             tmp_dir = os.path.join(f"/tmp/{pg_schema}/" )  # Gera um diretório temporário único
+        
+#             os.makedirs(tmp_dir, exist_ok=True)  # Garante que o diretório exista
+        
+#             output_filepath = os.path.join(tmp_dir, file_name)
+            
+#             # Salvando o JSON string em um arquivo temporário
+#             with open(output_filepath, 'w') as outfile:
+#                 outfile.write(json_str)
+
+#             wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
+#             ###   Verifica se o arquivo já existe
+#             if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json"):
+#                 wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=f"{pg_schema}/{file_name}.json")
+                
+#             upload_task = LocalFilesystemToWasbOperator(
+#                 task_id=f'upload_to_blob_grafico',
+#                 file_path=output_filepath,  # O arquivo JSON gerado na tarefa anterior
+#                 container_name='jsondashboard-prod',  # Substitua pelo nome do seu container no Azure Blob Storage
+#             #  blob_name=directory_name + 'postgres_data.json',  # Nome do arquivo no Blob Storage dentro do diretório
+#                 blob_name= f"{pg_schema}/{file_name}.json",
+#                 wasb_conn_id='appgemdata-storage-prod'
+#             )
+#             upload_task.execute(file_name)  # Executa a tarefa de upload
+
+#             return output_filepath
+
+            
+#         except Exception as e:
+#             logging.exception(
+#                 f"An unexpected error occurred during extract_postgres_to_json - {e}"
+#             )
+#             raise e
+#         finally:
+#             # Fechando o cursor e a conexão
+#             cursor.close()
+#             conn.close()
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
