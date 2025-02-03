@@ -471,7 +471,10 @@ def getbase(celular,integration,diretorio):
         df_grupo_1=df_merged.loc[df_merged['grupos_finais'] == -1, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod','score_final']]
         df_grupo_2=df_merged.loc[df_merged['grupos_finais'] == -2, ['revenue_without_shipping', 'rating_tendencia', 'tickemedio_quartis', 'grupos_finais', 'idprod','score_final']]
         
-
+        print(df_grupo2)
+        print(df_group1)
+        print(df_grupo_1)
+        print(df_grupo_2)
 
         grafico_dispersao(f"{diretorio}/positivo_grupo2{celular}.png",'Análise grupo verde',df_grupo2.sort_values(by='score_final', ascending=True).head(10))
         grafico_dispersao(f"{diretorio}/positivo_grupo1{celular}.png",'Análise grupo azul',df_group1.sort_values(by='score_final', ascending=True).head(10))
