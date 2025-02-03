@@ -559,6 +559,20 @@ def vtexsqlscriptjson(schema):
 												order by 1 
 													
                     """
+                    ,'compra_cliente': f""" 
+                    select 
+                        DATE_TRUNC('day', creationdate) AS dt,
+                        userprofileid as cl,
+                        idprod as ids,
+                        namesku as nms,
+                        CAST(SUM(revenue_without_shipping) AS FLOAT) AS fat,
+                        CAST(count(distinct orderid) AS INTEGER) AS ped,
+                        CAST(sum(quantityitems)  as INTEGER ) as qti
+
+                        from "{schema}".orders_items_ia
+                        group by 1,2,3,4
+                    """
+
     }
     # Convertendo o dicionário para uma string JSON
   
