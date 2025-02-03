@@ -529,7 +529,7 @@ def grafico_dispersao(nm_imagem,titulo,df_grafico):
     tamanho_bola = df_grafico['tickemedio_quartis']*100
     grupos = df_grafico['grupos_finais']
     ids = df_grafico['idprod']  # IDs dos produtos a serem anotados
-    tipo_grupos = grupos[1] 
+    tipo_grupos = grupos[0] 
     #print(tipo_grupos)
 
    # print(tamanho_bola)
