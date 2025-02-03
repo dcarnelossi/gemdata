@@ -120,7 +120,7 @@ def getbase(celular,integration,diretorio):
     try:
         query =f""" 
 					select 
-                    cast(idprod as int) as idprod,
+                    cast(idprod as varchar(50)) as idprod,
                     namesku,
                     cast(sum(revenue_without_shipping) as float) as  revenue_without_shipping,
                     cast(count(1) as int) as pedidos  ,
@@ -221,7 +221,7 @@ def getbase(celular,integration,diretorio):
                         from "{integration}".orders_items_ia b 
                 )
 				select  
-                    cast(idprod as int) as idprod,
+                    cast(idprod as varchar(50)) as idprod,
                     namesku,
                     CAST(sum(revenue_without_shipping)/6 AS float) AS  revenue_6meses,
                     cast(sum(CASE
