@@ -559,9 +559,10 @@ def vtexsqlscriptjson(schema):
 												order by 1 
 													
                     """
-                    ,'compra_cliente': f""" 
+                    ,'compra_cliente': f"""
+                    SET CLIENT_ENCODING = 'UTF8'; 
                     select 
-                        DATE_TRUNC('day', creationdate) AS dt,
+                        to_char(DATE_TRUNC('day',  creationdate) , 'YYYY-MM-DD') AS dt,
                         userprofileid as cl,
                         idprod as ids,
                         namesku as nms,
