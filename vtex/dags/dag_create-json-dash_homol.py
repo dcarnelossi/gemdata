@@ -225,7 +225,7 @@ def post_analytics_analytics(pg_schema):
                           ('digest','faturamento_categorias.json','category'),
                           ('digest','faturamento_ecommerce.json','revenue'),
                           ('digest','faturamento_regiao.json','cities'),
-                          ('digest','faturamento_compradores.json','buyers')
+                          ('digest','faturamento_compradores.json','buyers'),
                           ('purchase','compra_cliente.json','buyclient')
                           
                           ]
