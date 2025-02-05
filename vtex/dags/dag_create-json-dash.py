@@ -217,19 +217,19 @@ def post_analytics_analytics(pg_schema):
         try:    
            
  
-            aba_dash= [('revenue','faturamento_canais.json','channels'),
-                          ('revenue','faturamento_categorias.json','category'),
-                          ('revenue','faturamento_ecommerce.json','revenue'),
-                          ('revenue','faturamento_regiao.json','cities'),
-                          ('revenue','faturamento_compradores.json','buyers'),
-                          ('revenue','faturamento_mensal.json','revenuemensal'),
-                          ('revenue','pedido_por_categoria.json','pcategory'),
-                          ('revenue','pedido_por_estado.json','pcities'),
-                          ('products','pedido_ecommerce.json','products'),
-                          ('digest','faturamento_categorias.json','category'),
-                          ('digest','faturamento_ecommerce.json','revenue'),
-                          ('digest','faturamento_regiao.json','cities'),
-                          ('digest','faturamento_compradores.json','buyers')
+            aba_dash= [('revenue','faturamento_canais.msgpack.gz','channels'),
+                          ('revenue','faturamento_categorias.msgpack.gz','category'),
+                          ('revenue','faturamento_ecommerce.msgpack.gz','revenue'),
+                          ('revenue','faturamento_regiao.msgpack.gz','cities'),
+                          ('revenue','faturamento_compradores.msgpack.gz','buyers'),
+                          ('revenue','faturamento_mensal.msgpack.gz','revenuemensal'),
+                          ('revenue','pedido_por_categoria.msgpack.gz','pcategory'),
+                          ('revenue','pedido_por_estado.msgpack.gz','pcities'),
+                          ('products','pedido_ecommerce.msgpack.gz','products'),
+                          ('digest','faturamento_categorias.msgpack.gz','category'),
+                          ('digest','faturamento_ecommerce.msgpack.gz','revenue'),
+                          ('digest','faturamento_regiao.msgpack.gz','cities'),
+                          ('digest','faturamento_compradores.msgpack.gz','buyers')
 
                           ]
             distinct_first_column = set(aba[0] for aba in aba_dash) 
