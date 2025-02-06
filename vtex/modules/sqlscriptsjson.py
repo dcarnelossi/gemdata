@@ -565,7 +565,7 @@ def vtexsqlscriptjson(schema):
                         to_char(DATE_TRUNC('day',  creationdate) , 'YYYY-MM-DD') AS dt,
                         userprofileid as cl,
                         idprod as ids,
-                        namesku as nms,
+                        concat(idprod,'-', namesku) as nms,
                         concat(coalesce (c2.estado,upper(trim(selectedaddresses_0_state))),'-',coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
                                             'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
                                             'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
