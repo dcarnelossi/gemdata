@@ -589,7 +589,7 @@ def vtexsqlscriptjson(schema):
 													    ' ',
 													    ''
 													)  = cidade_bate
-                        group by 1,2,3,4,5,6
+                        group by 1,2,3,4,5
                     """
 
     }
