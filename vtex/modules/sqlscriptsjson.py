@@ -576,6 +576,20 @@ def vtexsqlscriptjson(schema):
                         CAST(sum(quantityitems)  as INTEGER ) as qti
 
                         from "{schema}".orders_items_ia
+                         left join public.cidades c2 on 
+                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
+                                            and 
+                                            REPLACE(
+													    INITCAP(
+													        TRANSLATE(
+													            TRIM(selectedaddresses_0_city),
+													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
+													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
+													        )
+													    ),
+													    ' ',
+													    ''
+													)  = cidade_bate
                         group by 1,2,3,4,5,6
                     """
 
