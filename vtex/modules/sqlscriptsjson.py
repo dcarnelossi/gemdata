@@ -566,12 +566,17 @@ def vtexsqlscriptjson(schema):
                         userprofileid as cl,
                         idprod as ids,
                         namesku as nms,
+                        coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
+                        coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
+                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
+                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
+                                            ))) as cid,
                         CAST(SUM(revenue_without_shipping) AS FLOAT) AS fat,
                         CAST(count(distinct orderid) AS INTEGER) AS ped,
                         CAST(sum(quantityitems)  as INTEGER ) as qti
 
                         from "{schema}".orders_items_ia
-                        group by 1,2,3,4
+                        group by 1,2,3,4,5,6
                     """
 
     }
