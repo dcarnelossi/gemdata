@@ -574,7 +574,7 @@ def vtexsqlscriptjson(schema):
                         CAST(count(distinct orderid) AS INTEGER) AS ped,
                         CAST(sum(quantityitems)  as INTEGER ) as qti
 
-                        from "{schema}".orders_items_ia
+                        from "{schema}".orders_items_ia ia 
                          left join public.cidades c2 on 
                                             c2.estado = upper(trim(ia.selectedaddresses_0_state))
                                             and 
