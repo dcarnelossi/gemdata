@@ -259,11 +259,11 @@ def fetch_orders_list(start_date, end_date,minimum_date):
                             "totaltax": order_data.get("totalTaxSet", {}).get("shopMoney", {}).get("amount", None),
                             "totalprice": order_data.get("totalPriceSet", {}).get("shopMoney", {}).get("amount", None),
                             "shippingfirstname": order_data.get("shippingAddress", {}).get("firstName", None)if order_data.get("shippingAddress") else None,
-                            "shippingcity": order_data.get("shippingAddress", {}).get("city", None)if order_data.get("shippingAddress") else None,
+                            "shippingcity": order_data.get("shippingAddress", {}).get("city", None) if order_data.get("shippingAddress") and len(order_data.get("shippingAddress", {}).get("city", "")) <= 99 else None,
                             "shippingzip": order_data.get("shippingAddress", {}).get("zip", None)if order_data.get("shippingAddress") else None,
                             "shippingprovincecode": order_data.get("shippingAddress", {}).get("provinceCode", None)if order_data.get("shippingAddress") else None,
                             "shippingcountrycode": order_data.get("shippingAddress", {}).get("countryCode", None)if order_data.get("shippingAddress") else None,
-                            "billingcity": order_data.get("billingAddress", {}).get("city", None) if order_data.get("billingAddress") else None,
+                            "billingcity": order_data.get("billingAddress", {}).get("city", None) if order_data.get("billingAddress") and len(order_data.get("billingAddress", {}).get("city", "")) <= 99 else None,
                             "billingzip": order_data.get("billingAddress", {}).get("zip", None) if order_data.get("billingAddress") else None,
                             "billingprovincecode": order_data.get("billingAddress", {}).get("provinceCode", None) if order_data.get("billingAddress") else None,
                             "billingcountrycode": order_data.get("billingAddress", {}).get("countryCode", None) if order_data.get("billingAddress") else None,
@@ -331,7 +331,7 @@ def process_orders_and_save(start_date, end_date,minimum_date):
 
     if countloop == 4:
       logging.error("Limite de tentativas alcançado. Interrompendo a execução.")
-      raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date} ")  
+      raise Exception(f"Erro ao processar pedidos após {4} tentativas. Intervalo: {start_date} a {end_date}  ")  
       
 
 
