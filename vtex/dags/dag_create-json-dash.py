@@ -229,7 +229,8 @@ def post_analytics_analytics(pg_schema):
                           ('digest','faturamento_categorias.msgpack.gz','category'),
                           ('digest','faturamento_ecommerce.msgpack.gz','revenue'),
                           ('digest','faturamento_regiao.msgpack.gz','cities'),
-                          ('digest','faturamento_compradores.msgpack.gz','buyers')
+                          ('digest','faturamento_compradores.msgpack.gz','buyers'),
+                         ('purchases','compra_cliente.msgpack.gz','buyclient')
 
                           ]
             distinct_first_column = set(aba[0] for aba in aba_dash) 
