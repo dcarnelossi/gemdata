@@ -201,11 +201,8 @@ def vtexsqlscriptjson(schema):
                                         WITH faturamento_base_atual AS (
                                            select 
                                             DATE_TRUNC('day', creationdate) AS dt,
-                                            coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
-                                            coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
-                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
-                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                            ))) as cid,
+                                            upper(selectedaddresses_0_state) as est,
+                                           INITCAP(selectedaddresses_0_city) as cid,
                                             latitude as lat, 
                                             longitude as lon,
                                             cast(SUM(revenue) as float)   as fat,
@@ -213,20 +210,7 @@ def vtexsqlscriptjson(schema):
                                             CAST(sum(quantityitems)  as INTEGER ) as qti
 											
                                             from "{schema}".orders_ia ia 
-                                           left join public.cidades c2 on 
-                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
-                                            and 
-                                            REPLACE(
-													    INITCAP(
-													        TRANSLATE(
-													            TRIM(selectedaddresses_0_city),
-													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
-													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
-													        )
-													    ),
-													    ' ',
-													    ''
-													)  = cidade_bate
+                                           
 											group by 1,2,3,4,5
                                             order by 1
 
@@ -305,30 +289,14 @@ def vtexsqlscriptjson(schema):
                                             concat(cast(idcat AS VARCHAR(10)), '-', ia.namecategory) AS nmc,
                                             CAST(idprod AS bigint) AS ids,
                                             concat(cast(idprod AS VARCHAR(10)), '-', ia.namesku) AS nms,
-                                            coalesce (c2.estado,upper(trim(selectedaddresses_0_state))) as est,
-                                            coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
-                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
-                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                            ))) as cid,
+                                            upper(selectedaddresses_0_state) as est,
+                                            INITCAP(selectedaddresses_0_city) as cid,
                                             cast(SUM(revenue_without_shipping) as float)   as fat,
                                             cast(SUM(quantityorder) as integer)  as ped,
                                             CAST(sum(quantityitems)  as INTEGER ) as qti
 											
                                             from "{schema}".orders_items_ia ia 
-                                           left join public.cidades c2 on 
-                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
-                                            and 
-                                            REPLACE(
-													    INITCAP(
-													        TRANSLATE(
-													            TRIM(selectedaddresses_0_city),
-													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
-													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
-													        )
-													    ),
-													    ' ',
-													    ''
-													)  = cidade_bate
+                                          
 											group by 1,2,3,4,5,6,7
                                             order by 1
 
@@ -566,29 +534,13 @@ def vtexsqlscriptjson(schema):
                         userprofileid as cl,
                         idprod as ids,
                         concat(idprod,'-', namesku) as nms,
-                        concat(coalesce (c2.estado,upper(trim(selectedaddresses_0_state))),'-',coalesce(c2.cidade,INITCAP(translate(trim(selectedaddresses_0_city),  
-                                            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',  
-                                            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'   
-                                            )))) as cid,
+                        concat(upper(selectedaddresses_0_state),'-',INITCAP(selectedaddresses_0_city) )as cid,
                         CAST(SUM(revenue_without_shipping) AS FLOAT) AS fat,
                         CAST(count(distinct orderid) AS INTEGER) AS ped,
                         CAST(sum(quantityitems)  as INTEGER ) as qti
 
                         from "{schema}".orders_items_ia ia 
-                         left join public.cidades c2 on 
-                                            c2.estado = upper(trim(ia.selectedaddresses_0_state))
-                                            and 
-                                            REPLACE(
-													    INITCAP(
-													        TRANSLATE(
-													            TRIM(selectedaddresses_0_city),
-													            'áàâãäåaaaÁÂÃÄÅAAAÀéèêëeeeeeEEEÉEEÈìíîïìiiiÌÍÎÏÌIIIóôõöoooòÒÓÔÕÖOOOùúûüuuuuÙÚÛÜUUUUçÇñÑýÝ',
-													            'aaaaaaaaaAAAAAAAAAeeeeeeeeeEEEEEEEiiiiiiiiIIIIIIIIooooooooOOOOOOOOuuuuuuuuUUUUUUUUcCnNyY'
-													        )
-													    ),
-													    ' ',
-													    ''
-													)  = cidade_bate
+                        
                         group by 1,2,3,4,5
                     """
 
