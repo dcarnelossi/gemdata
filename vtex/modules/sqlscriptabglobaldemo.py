@@ -45,7 +45,8 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,'marketplace' as origin
                 ,fg.isFreeShipping
                 ,cast(round(cast(((cast(od.value as float)/100)-(cast(ot.shipping as float)/100) )* ROUND(cast(RANDOM()as decimal) * 3, 1) as decimal),2) as float)  as revenue_orders_out_ship
-
+                ,ce.latitude
+                ,ce.longitude
 
                 from "{schema}".orders_items oi 
 
@@ -75,7 +76,9 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
 
                 left join "{schema}".orders_totals ot on 
                 ot.orderid = oi.orderid
-                        
+
+                   left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
 
@@ -119,7 +122,8 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
                 ,case when cast(ot.shipping as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(ot.shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping 
                 ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
-
+                ,ce.latitude
+                ,ce.longitude
 
                 from "{schema}".orders o 
 
@@ -137,6 +141,9 @@ def vtexsqlscriptscreatetabglobaldemo(schema):
 
                 left join qtditemorder qt on 
                 qt.orderid = o.orderid
+                
+                       left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
 
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
