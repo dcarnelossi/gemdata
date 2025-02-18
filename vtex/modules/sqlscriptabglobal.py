@@ -42,7 +42,6 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,ce.latitude
                 ,ce.longitude
 
-
                 from "{schema}".orders_items oi 
 
                 inner join "{schema}".orders_list ol on 
