@@ -29,9 +29,9 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ((cast(oi.price as float)/100) - (cast(oi.sellingprice as float)/100))* cast(oi.quantity as float)  as totaldiscounts,
                 (cast(oi.sellingprice as float)/100)* cast(oi.quantity as float)  as revenue_without_shipping ,
                 oi.isgift
-                ,LOWER(sd.selectedaddresses_0_city) as selectedaddresses_0_city
-                ,LOWER(sd.selectedaddresses_0_state) as selectedaddresses_0_state
-                ,LOWER(sd.selectedaddresses_0_country) as selectedaddresses_0_country
+                ,LOWER(coalesce(nome_codigo_municipio_completo,sd.selectedaddresses_0_city)) as selectedaddresses_0_city
+                ,LOWER(coalesce(abreviado_uf, sd.selectedaddresses_0_state)) as selectedaddresses_0_state
+                ,LOWER(coalesce(so.shippingcountrycode,so.billingcountrycode)) as selectedaddresses_0_country
                 ,cp.userprofileid
                 ,LOWER(ol.paymentnames) as paymentnames
                 --,oi.saleschannel as saleschannel
@@ -69,6 +69,10 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                 left join "{schema}".orders_totals ot on 
                 ot.orderid = oi.orderid
+          
+                left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
+
                         
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
@@ -101,9 +105,9 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,cast(o.value as float)/100  as revenue
                 ,(cast(o.value as float)/100)-(cast(ot.shipping as float)/100)   as revenue_without_shipping
                 ,LOWER(ol.paymentnames) as paymentnames
-                ,LOWER(sd.selectedaddresses_0_city) as selectedaddresses_0_city
-                ,LOWER(sd.selectedaddresses_0_state) as selectedaddresses_0_state
-                ,LOWER(sd.selectedaddresses_0_country) as selectedaddresses_0_country
+                ,LOWER(coalesce(nome_codigo_municipio_completo,sd.selectedaddresses_0_city)) as selectedaddresses_0_city
+                ,LOWER(coalesce(abreviado_uf, sd.selectedaddresses_0_state)) as selectedaddresses_0_state
+                ,LOWER(coalesce(so.shippingcountrycode,so.billingcountrycode)) as selectedaddresses_0_country
                 ,cp.userprofileid
                 ,case when cast(ot.shipping as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(ot.shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping 
@@ -126,6 +130,12 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                 left join qtditemorder qt on 
                 qt.orderid = o.orderid
+
+                    
+                left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
+
+
 
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
@@ -189,8 +199,8 @@ def shopifysqlscriptscreatetabglobal(schema):
                 cast(si.totaldiscountamount as float)  as totaldiscounts,
                 cast((cast(cast(si.originalunitprice as float)*cast(si.quantity as float) as float)) - cast(si.totaldiscountamount as float) as float)  as revenue_without_shipping ,
                 false as isgift,
-                LOWER(coalesce(so.shippingcity,so.billingcity)) as selectedaddresses_0_city,
-                LOWER(coalesce(so.shippingprovincecode,so.billingprovincecode)) as selectedaddresses_0_state,
+                LOWER(coalesce(nome_codigo_municipio_completo,coalesce(so.shippingcity,so.billingcity))) as selectedaddresses_0_city,
+                LOWER(coalesce(abreviado_uf, coalesce(so.shippingprovincecode,so.billingprovincecode))) as selectedaddresses_0_state,
                 LOWER(coalesce(so.shippingcountrycode,so.billingcountrycode)) as selectedaddresses_0_country,
                 coalesce(so.email,so.name) as userprofileid,
                 coalesce(LOWER(op.gateway),'nao informado') as paymentnames,
@@ -218,6 +228,9 @@ def shopifysqlscriptscreatetabglobal(schema):
 
                 left join ordersfretegratis fg 
                 on fg.orderid = si.orderid
+
+                left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(so.shippingzip,'-',''),REPLACE(so.billingzip,'-','') ),5) as int)
 
      
                where 
@@ -252,8 +265,8 @@ def shopifysqlscriptscreatetabglobal(schema):
                 ,(cast(o.totalprice as float))-(cast(o.totalshippingprice as float))   as revenue_without_shipping
                 --IMPORTANTE 
                 ,coalesce(LOWER(op.gateway),'nao informado') as paymentnames
-                ,LOWER(coalesce(o.shippingcity,o.billingcity)) as selectedaddresses_0_city
-                ,LOWER(coalesce(o.shippingprovincecode,o.billingprovincecode)) as selectedaddresses_0_state
+                ,LOWER(coalesce(nome_codigo_municipio_completo,coalesce(o.shippingcity,o.billingcity))) as selectedaddresses_0_city
+                ,LOWER(coalesce(abreviado_uf, coalesce(o.shippingprovincecode,o.billingprovincecode))) as selectedaddresses_0_state
                 ,LOWER(coalesce(o.shippingcountrycode,o.billingcountrycode)) as selectedaddresses_0_country
                 ,coalesce(o.email,o.name)  as userprofileid
                 ,case when cast(o.totalshippingprice as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
@@ -268,6 +281,10 @@ def shopifysqlscriptscreatetabglobal(schema):
                
                 left join qtditemorder qt on 
                 qt.orderid = o.orderid
+                
+                left join public.cep_brasil_consolidado ce on 
+                ce.cep = cast(left(coalesce(REPLACE(o.shippingzip,'-',''),REPLACE(o.billingzip,'-','') ),5) as int)
+                           
 
                 where 
                 LOWER(o.displayfinancialstatus)  in  ('paid') and o.cancelledat is null;
