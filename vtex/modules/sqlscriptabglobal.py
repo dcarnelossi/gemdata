@@ -39,6 +39,8 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,LOWER(ol.origin) as origin
                 ,fg.isFreeShipping
                 ,(cast(od.value as float)/100)-(cast(ot.shipping as float)/100) as revenue_orders_out_ship
+                ,ce.latitude
+                ,ce.longitude
 
 
                 from "{schema}".orders_items oi 
@@ -112,7 +114,8 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ,case when cast(ot.shipping as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(ot.shipping as numeric) =0 then  'true' else  'false' end  isFreeShipping 
                 ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
-
+                ,ce.latitude
+                ,ce.longitude
 
                 from "{schema}".orders o 
 
@@ -209,7 +212,8 @@ def shopifysqlscriptscreatetabglobal(schema):
                 LOWER(coalesce(so.channelname,'nao informado')) as origin,
                 fg.isFreeShipping,
                 (cast(so.totalprice as float))-(cast(so.totalshippingprice as float)) as revenue_orders_out_ship
-
+                ,ce.latitude
+                ,ce.longitude
 
                 from "{schema}".shopify_orders_items si 
 
@@ -272,7 +276,8 @@ def shopifysqlscriptscreatetabglobal(schema):
                 ,case when cast(o.totalshippingprice as numeric) =0 then  'Sem Frete' else  'Com Frete' end  FreeShipping 
                 ,case when cast(o.totalshippingprice as numeric) =0 then  'true' else  'false' end  isFreeShipping 
                 ,case when round( cast(random() * (1 - 0) as numeric),0)=0 then 'F' else 'M' end   as Sexo 
-
+                ,ce.latitude
+                ,ce.longitude
 
                 from "{schema}".shopify_orders o
                 
