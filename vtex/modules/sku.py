@@ -19,12 +19,16 @@ def make_request(method, path, params=None):
     max_tentativas = 3  # Limite de tentativas
     while tentativa <= max_tentativas:
         try:
+            url = f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}"
+            logging.info(f"Tentativa {tentativa}: Fazendo requisição para {url} com params {params}")
+
             response = session.request(
                 method,
-                f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}",
+                url,
                 params=params,
                 headers=api_conection_info["headers"],
             )
+            logging.info(f"Resposta {response.status_code}: {response.text}")
             response.raise_for_status()
 
             # Sucesso: retorna o JSON ou None
