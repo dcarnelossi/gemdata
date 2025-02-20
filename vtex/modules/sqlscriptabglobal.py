@@ -72,8 +72,8 @@ def vtexsqlscriptscreatetabglobal(schema):
                 ot.orderid = oi.orderid
           
                 left join public.cep_brasil_consolidado ce on 
-                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
-
+                ce.cep =  cast(NULLIF(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','')),5), '') as int)
+                
                         
                 where 
                 LOWER(ol.statusdescription)  in  ('faturado','pronto para o manuseio');
@@ -135,7 +135,8 @@ def vtexsqlscriptscreatetabglobal(schema):
 
                     
                 left join public.cep_brasil_consolidado ce on 
-                ce.cep = cast(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','') ),5) as int)
+                ce.cep = cast(NULLIF(left(coalesce(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),REPLACE(sd.address_postalcode,'-','')),5), '') as int)
+                
 
 
 
@@ -233,7 +234,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 on fg.orderid = si.orderid
 
                 left join public.cep_brasil_consolidado ce on 
-                ce.cep = cast(left(coalesce(REPLACE(so.shippingzip,'-',''),REPLACE(so.billingzip,'-','') ),5) as int)
+                ce.cep = cast(NULLIF(left(coalesce(REPLACE(so.shippingzip,'-',''),REPLACE(so.billingzip,'-','')),5), '') as int)
 
      
                where 
@@ -287,7 +288,7 @@ def shopifysqlscriptscreatetabglobal(schema):
                 qt.orderid = o.orderid
                 
                 left join public.cep_brasil_consolidado ce on 
-                ce.cep = cast(left(coalesce(REPLACE(o.shippingzip,'-',''),REPLACE(o.billingzip,'-','') ),5) as int)
+                ce.cep = cast(NULLIF(left(coalesce(REPLACE(o.shippingzip,'-',''),REPLACE(o.billingzip,'-','')),5), '') as int)
                            
 
                 where 
