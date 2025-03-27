@@ -233,13 +233,13 @@ def get_orders_ids_from_db(query_type, start_date):
                 logging.error("Falha após 5 tentativas ao buscar orders no banco.")
                 raise e  # Lança a exceção final se todas as tentativas falharem
 
-def remove_duplicates_by_orderid(order_list):
-    unique_orders = {}
-    for order in order_list:
-        order_id = order.get("orderid")
-        # Always overwrite, so it keeps the last occurrence
-        unique_orders[order_id] = order
-    return list(unique_orders.values())
+# def remove_duplicates_by_orderid(order_list):
+#     unique_orders = {}
+#     for order in order_list:
+#         order_id = order.get("orderid")
+#         # Always overwrite, so it keeps the last occurrence
+#         unique_orders[order_id] = order
+#     return list(unique_orders.values())
 
 
 
@@ -272,7 +272,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                 for attempt in range(1, 6):    
                     try:
                         logging.info(f"Inserindo o batch {start_d} a {end_d}")
-                        remove_duplicates_by_orderid(all_orders_batch)
+                        #remove_duplicates_by_orderid(all_orders_batch)
                         return   process_order_batch(
                                     all_orders_batch,
                                     table,
