@@ -247,57 +247,45 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
         BATCH_SIZE = 100
 
         if query_type == "orders":
-            all_orders_batch = []
-
-            # Gera todas as faixas de data a serem processadas
-            date_ranges = []
-            while data_inicial < data_final:
-                start_d, end_d = increment_one_day(data_inicial)
-                date_ranges.append((start_d, end_d))
-                data_inicial += timedelta(days=1)
-
+            
             def fetch_range_with_retries(start_d, end_d):
                 for attempt in range(1, 6):
                     try:
                         logging.info(f"Processando período {start_d} a {end_d}")
                         return fetch_orders_list(json_type_api, start_d, end_d, min_date)
                     except Exception as e:
-                        logging.warning(f"Tentativa {attempt}/5 falhou para o período {start_d} a {end_d}: {e}")
+                        logging.warning(f"Tentativa {attempt}/5 falhou em puxar o dado api (fetch_orders_list)  para o período {start_d} a {end_d}: {e}")
                         time.sleep(2)
-                logging.error(f"Falha após 5 tentativas no período {start_d} a {end_d}")
-                raise Exception(f"Falha definitiva ao buscar pedido {start_d} a {end_d}")
-
-            #TOMAR CUIDADO PORQUE SE FOR MAIS DE UM WORKERS PODE HAVER DUPLICIDADE NA LISTA DANDO ERRO
-            # PRECISO ARRUMAR NO FUTURO     
-            with ThreadPoolExecutor(max_workers=1) as executor:
-                futures = [
-                    executor.submit(fetch_range_with_retries, start_d, end_d)
-                    for start_d, end_d in date_ranges
-                ]
-
-                for future in as_completed(futures):
+                logging.error(f"Falha após 5 tentativas - dado api (fetch_orders_list)-  no período {start_d} a {end_d}")
+                raise Exception(f"Falha definitiva ao buscar pedido -dado api (fetch_orders_list)- {start_d} a {end_d}")
+            
+            def insert_orders_batch(all_orders_batch,start_d,end_d):
+                for attempt in range(1, 6):    
                     try:
-                        batch = future.result()
-                        if batch: 
-                            all_orders_batch.extend(batch)
-
-                            while len(all_orders_batch) >= BATCH_SIZE:
-                                process_order_batch(
-                                    all_orders_batch[:BATCH_SIZE],
+                        logging.info(f"Inserindo o batch {start_d} a {end_d}")
+                        return   process_order_batch(
+                                    all_orders_batch,
                                     table,
                                     keytable
                                 )
-                                all_orders_batch = all_orders_batch[BATCH_SIZE:]
+                        
                     except Exception as e:
-                        logging.error(f"Erro ao processar batch de orders em paralelo: {e}")
-                        raise
+                        logging.warning(f"Tentativa {attempt}/5 falhou na insercao do postgree para o período {start_d} a {end_d}: {e}")
+                        time.sleep(2)
+                
+                logging.error(f"Falha após 5 tentativas na insercao no postgree no período {start_d} a {end_d}")
+                raise Exception(f"Falha definitiva insercao no postgree ao buscar pedido {start_d} a {end_d}")
+        
+            # Gera todas as faixas de data a serem processadas
+            while data_inicial < data_final:
+                start_d, end_d = increment_one_day(data_inicial)
+                data_inicial += timedelta(days=1)
+          
+                all_orders_batch = {}
+                logging.info(f"Processando período {start_d} a {end_d}")
+                all_orders_batch= fetch_range_with_retries(start_d, end_d)
+                insert_orders_batch(all_orders_batch,start_d, end_d)
 
-            if all_orders_batch:
-                process_order_batch(
-                    all_orders_batch,
-                    table,
-                    keytable
-                )
 
         else:  # query_type == "items"
             list_orders_id = get_orders_ids_from_db(query_type, start_date)
