@@ -105,7 +105,7 @@ with DAG(
 
             else:
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                start_date = end_date - timedelta(days=1)
+                start_date = end_date - timedelta(days=10)
                 min_date = end_date - timedelta(days=735)
 
                 
