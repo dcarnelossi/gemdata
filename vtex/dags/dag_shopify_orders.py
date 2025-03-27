@@ -121,7 +121,9 @@ with DAG(
                 
             )
 
+                
             if(team_id == "d171441b-f439-49ef-9be5-9eba36ab7d72"):
+                logging.info("Iniciando o pyhton de inserção de nome de doacao da empresa cvs")
                 orders_cliente_cvs_doacao.set_globals(
                                 api_conection_info,
                                 data_conection_info,
@@ -132,7 +134,7 @@ with DAG(
                                 
                             )
 
-            
+
 
             print(start_date)
             start_date = start_date.strftime("%Y-%m-%d")
