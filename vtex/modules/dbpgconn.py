@@ -398,7 +398,7 @@ class WriteJsonToPostgres:
         except Exception as e:
             self.connection.rollback()
             print(f"Erro no upsert em lote: {e}")
-            return e
+            raise e
 
         finally:
             if self.connection:

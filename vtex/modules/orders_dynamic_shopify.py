@@ -275,7 +275,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
 
                 for future in as_completed(futures):
                     try:
-                        batch = future.result(),
+                        batch = future.result()
                         if batch: 
                             all_orders_batch.extend(batch)
 
