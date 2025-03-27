@@ -285,6 +285,62 @@ class WriteJsonToPostgres:
             # Garantir que a conexão seja fechada mesmo se uma exceção ocorrer
             if self.connection:
                 self.connection.close()
+    def upsert_data_batch(self, batch_data, isdatainsercao=None):
+        try:
+            with self.connection.connect().cursor() as cursor:
+                if not batch_data:
+                    return True  # Nada a fazer
+
+                columns = list(batch_data[0].keys())
+
+                # Prepara todos os valores
+                values = []
+                for row in batch_data:
+                    row_values = [
+                        json.dumps(row[col]) if isinstance(row[col], (dict, list)) else row[col]
+                        for col in columns
+                    ]
+                    values.append(tuple(row_values))
+
+                # Define o SQL base
+                placeholders = "(" + ", ".join(["%s"] * len(columns)) + ")"
+                values_placeholders = ", ".join([placeholders] * len(values))
+
+                # SQL de UPSERT com ou sem `data_insercao`
+                if isdatainsercao == 1:
+                    update_clause = ", ".join([
+                        f"{col}=EXCLUDED.{col}" for col in columns if col != self.table_key
+                    ]) + ", data_insercao = now()"
+                else:
+                    update_clause = ", ".join([
+                        f"{col}=EXCLUDED.{col}" for col in columns if col != self.table_key
+                    ])
+
+                sql = f"""
+                    INSERT INTO {self.tablename} ({', '.join(columns)})
+                    VALUES {values_placeholders}
+                    ON CONFLICT ({self.table_key}) DO UPDATE SET
+                    {update_clause}
+                """
+
+                # Flattens values into a single tuple
+                flattened_values = tuple(v for row in values for v in row)
+
+                # Executa a query
+                cursor.execute(sql, flattened_values)
+                self.connection.commit()
+
+                print(f"{len(batch_data)} registros upsertados com sucesso.")
+                return True
+
+        except Exception as e:
+            self.connection.rollback()
+            print(f"Erro no upsert em lote: {e}")
+            return e
+
+        finally:
+            if self.connection:
+                self.connection.close()
 
     def upsert_data(self):
         try:
