@@ -345,9 +345,11 @@ class WriteJsonToPostgres:
             if self.connection:
                 self.connection.close()
     
-    def upsert_data_batch(self, batch_data, isdatainsercao=None):
+    def upsert_data_batch(self, isdatainsercao=None):
         try:
+
             with self.connection.connect().cursor() as cursor:
+                batch_data =self.data  
                 if not batch_data:
                     return True  # Nada a fazer
 

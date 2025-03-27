@@ -114,10 +114,11 @@ def process_order_batch(order_list, table, keytable):
     try:
         writer = WriteJsonToPostgres(
             data_conection_info,
-            tablename= table,
-            table_key = keytable
+            order_list,
+            table,
+            keytable
         )
-        writer.upsert_data_batch(order_list,isdatainsercao=1)
+        writer.upsert_data_batch(isdatainsercao=1)
         logging.info(f"{len(order_list)} pedidos upsertados com sucesso.")
     except Exception as e:
         logging.error(f"Erro ao upsertar lote de pedidos: {e}")
