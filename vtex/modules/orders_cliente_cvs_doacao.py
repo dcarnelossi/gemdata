@@ -159,7 +159,7 @@ def process_orders_lists(start_date, end_date):
             logging.error(f"Pedido {order_id} falhou após 5 tentativas.")
             return []
 
-        with ThreadPoolExecutor(max_workers=100) as executor:
+        with ThreadPoolExecutor(max_workers=2) as executor:
             futures = [
                 executor.submit(fetch_with_retries, order_id[0])
                 for order_id in list_orders_id[0]
