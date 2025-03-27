@@ -267,7 +267,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                 logging.error(f"Falha após 5 tentativas no período {start_d} a {end_d}")
                 raise Exception(f"Falha definitiva ao buscar pedido {start_d} a {end_d}")
 
-            with ThreadPoolExecutor(max_workers=3) as executor:
+            with ThreadPoolExecutor(max_workers=10) as executor:
                 futures = [
                     executor.submit(fetch_range_with_retries, start_d, end_d)
                     for start_d, end_d in date_ranges
@@ -316,7 +316,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                 logging.error(f"Pedido {order_id} falhou após 5 tentativas.")
                 raise Exception(f"Falha definitiva ao buscar pedido {order_id}")
 
-            with ThreadPoolExecutor(max_workers=30) as executor:
+            with ThreadPoolExecutor(max_workers=10) as executor:
                 futures = [
                     executor.submit(fetch_with_retries, order_id[0])
                     for order_id in list_orders_id[0]
