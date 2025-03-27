@@ -94,6 +94,7 @@ with DAG(
             raise e
 
         from modules import orders_dynamic_shopify
+        from modules import orders_cliente_cvs_doacao
 
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -119,8 +120,24 @@ with DAG(
                 minimum_date = min_date
                 
             )
+
+            if(team_id == "d171441b-f439-49ef-9be5-9eba36ab7d72"):
+                orders_cliente_cvs_doacao.set_globals(
+                                api_conection_info,
+                                data_conection_info,
+                                coorp_conection_info,
+                                start_date=start_date,
+                                end_date=end_date,
+                                minimum_date = min_date
+                                
+                            )
+
+            
+
             print(start_date)
             start_date = start_date.strftime("%Y-%m-%d")
+            
+            
             return start_date
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
