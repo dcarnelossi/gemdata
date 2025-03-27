@@ -44,7 +44,7 @@ def load_graphql_query(query_type):
                 ORDER BY date_modification DESC
                 LIMIT 1;
             """
-            logging.info(query_modificado)
+            
             result = WriteJsonToPostgres(coorp_conection_info, query_modificado, "integrations_parameter_api")
             result, _ = result.query()
             if not result or not result[0]:
@@ -113,7 +113,7 @@ def substituir_orders_list(query, start_date="", end_date="", minimum_date="", o
 def process_order_batch(order_list, table, keytable):
     try:
         writer = WriteJsonToPostgres(
-            connection= data_conection_info,
+            data_conection_info,
             tablename= table,
             table_key = keytable
         )
@@ -307,6 +307,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
             def fetch_with_retries(order_id):
                 for attempt in range(1, 6):
                     try:
+                        # logging.info(f"Processando orders items ou payment - {order_id}")
                         return fetch_orders_list(json_type_api, start_date, start_date, start_date, order_id)
                     except Exception as e:
                         logging.warning(f"Tentativa {attempt}/5 falhou para o pedido {order_id}: {e}")
