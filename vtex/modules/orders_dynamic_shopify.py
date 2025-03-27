@@ -281,7 +281,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                 start_d, end_d = increment_one_day(data_inicial)
                 data_inicial += timedelta(days=1)
           
-                all_orders_batch = {}
+                all_orders_batch = []
                 logging.info(f"Processando período {start_d} a {end_d}")
                 all_orders_batch= fetch_range_with_retries(start_d, end_d)
                 insert_orders_batch(all_orders_batch,start_d, end_d)
