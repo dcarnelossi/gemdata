@@ -90,7 +90,7 @@ with DAG(
 
      
 
-        from modules import orders_payment_shopify
+        from modules import orders_dynamic_shopify
 
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -112,12 +112,14 @@ with DAG(
                 start_date = end_date - timedelta(days=dias)
             
                 
-            orders_payment_shopify.set_globals(
+            orders_dynamic_shopify.set_globals(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
-                start_date=start_date
-                
+                start_date,
+                start_date,
+                start_date,
+                'payments'                
             )
 
             return True

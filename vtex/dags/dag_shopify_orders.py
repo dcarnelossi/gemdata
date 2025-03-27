@@ -12,9 +12,8 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
-    integrationInfo,
     get_api_conection_info,
-    get_import_last_rum_date,
+
 )
 
 
@@ -65,10 +64,6 @@ with DAG(
     },
 ) as dag:
      
-     
-
-
-
 
     @task(provide_context=True)
     def orders_shopify(**kwargs):
@@ -98,7 +93,7 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
 
-        from modules import orders_shopify
+        from modules import orders_dynamic_shopify
 
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -110,14 +105,15 @@ with DAG(
 
             else:
                 #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                start_date = end_date - timedelta(days=10)
+                start_date = end_date - timedelta(days=1)
                 min_date = end_date - timedelta(days=735)
 
                 
-            orders_shopify.set_globals(
+            orders_dynamic_shopify.set_globals(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
+                type_api= 'orders',
                 start_date=start_date,
                 end_date=end_date,
                 minimum_date = min_date

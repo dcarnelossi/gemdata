@@ -92,7 +92,7 @@ with DAG(
 
      
 
-        from modules import orders_item_shopify
+        from modules import orders_dynamic_shopify
 
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -118,12 +118,15 @@ with DAG(
             else:
                 parsed_date=start_date    
 
-            orders_item_shopify.set_globals(
+            orders_dynamic_shopify.set_globals(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
-                start_date=start_date
-                
+                start_date,
+                start_date,
+                start_date,
+                'items'
+
             )
 
 
