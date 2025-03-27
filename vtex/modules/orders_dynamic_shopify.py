@@ -267,7 +267,9 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                 logging.error(f"Falha após 5 tentativas no período {start_d} a {end_d}")
                 raise Exception(f"Falha definitiva ao buscar pedido {start_d} a {end_d}")
 
-            with ThreadPoolExecutor(max_workers=10) as executor:
+            #TOMAR CUIDADO PORQUE SE FOR MAIS DE UM WORKERS PODE HAVER DUPLICIDADE NA LISTA DANDO ERRO
+            # PRECISO ARRUMAR NO FUTURO     
+            with ThreadPoolExecutor(max_workers=1) as executor:
                 futures = [
                     executor.submit(fetch_range_with_retries, start_d, end_d)
                     for start_d, end_d in date_ranges
