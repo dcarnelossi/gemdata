@@ -12,6 +12,7 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
+
 # Importação dos módulos deve ser feita fora do contexto do DAG
 from modules.sqlscriptsjson import vtexsqlscriptjson
 
@@ -346,13 +347,43 @@ with DAG(
             raise e
 
 
-    # Carregar o script SQL usando o módulo importado
-    try:
-        sql_script = vtexsqlscriptjson("{{ params.PGSCHEMA }}")
-        print ("{{ params.PGSCHEMA }}")
-    except Exception as e:
-        logging.error(f"Erro ao carregar o script SQL: {e}")
-        raise
+
+
+    @task(provide_context=True)
+    def select_parameter_file_json(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        try:
+            
+            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+
+            query_get_especific = f"""
+            select parameter,file_name from public.integrations_parameter_filejson where id = '{PGSCHEMA}'
+            limit 1; 		    
+            """
+            parameter_query = hook.get_records(query_get_especific)
+            
+            if( not parameter_query):
+             
+                query_get_default = f"""
+                    select parameter,file_name from integrations_parameter_filejson where name = 'default'
+                    limit 1; 
+ 		            """
+                parameter_query = hook.get_records(query_get_default)
+
+            logging.info(parameter_query[0])    
+            return parameter_query[0]
+        except Exception as e:
+            logging.exception(
+                f"An unexpected error occurred during create_tabela_global_cliente - {e}"
+            )
+            raise e
+        
+    
+    select_json=select_parameter_file_json()   
+
+      
+
+
 
     # Task inicial para definir `previous_task`
     initial_task = DummyOperator(
@@ -365,7 +396,7 @@ with DAG(
         previous_task = initial_task  # Define o DummyOperator como inicial
 
         # Definir tasks de extração dentro do loop
-        for chave, valor in sql_script.items():
+        for chave, valor in select_json.items():
             extract_task = PythonOperator(
                 task_id=f'extract_postgres_to_json_{chave}',
                 python_callable=extract_postgres_to_json,
