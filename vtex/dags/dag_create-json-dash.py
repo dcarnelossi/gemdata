@@ -12,7 +12,6 @@ from airflow.operators.python_operator import PythonOperator
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.dummy import DummyOperator
 from airflow.utils.task_group import TaskGroup
-
 # Importação dos módulos deve ser feita fora do contexto do DAG
 from modules.sqlscriptsjson import vtexsqlscriptjson
 
@@ -330,115 +329,60 @@ with DAG(
         )
     },
 ) as dag:
+    start = DummyOperator(task_id='start')
 
+    @task()
+    def get_parameters(params):
+        PGSCHEMA = params["PGSCHEMA"]
+        hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+        result = hook.get_records(f"""
+            SELECT parameter, file_name
+            FROM integrations_parameter_filejson
+            WHERE id = '{PGSCHEMA}'
+            LIMIT 1
+        """)
+        if not result:
+            result = hook.get_records("""
+                SELECT parameter, file_name
+                FROM integrations_parameter_filejson
+                WHERE name = 'default'
+                LIMIT 1
+            """)
+        param_dict = {
+                row[1]: row[0].replace("{schema}", PGSCHEMA) for row in result
+                        }
 
-# Função para extrair dados do PostgreSQL e salvá-los como JSON
-    @task(provide_context=True)
-    def cadastro_analytics_analytics(**kwargs):
-        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        #isdaily = kwargs["params"]["ISDAILY"]
-       
-        try:    
-            post_analytics_analytics(PGSCHEMA)
-        except Exception as e:
-            logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
-            )
-            raise e
+        return param_dict
 
+    @task()
+    def run_extract_tasks(param_dict: dict, PGSCHEMA: str):
+        for file_name, sql in param_dict.items():
+            extract_postgres_to_json(sql, file_name, PGSCHEMA)
+        return True
 
+    @task()
+    def update_log(pg_schema):
+        daily_run_date_update(pg_schema)
 
+    @task()
+    def analytics_update(pg_schema):
+        post_analytics_analytics(pg_schema)
 
-    @task(provide_context=True)
-    def select_parameter_file_json(**kwargs):
-        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        try:
-            
-            hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-
-            query_get_especific = f"""
-            select parameter,file_name from public.integrations_parameter_filejson where id = '{PGSCHEMA}'
-            limit 1; 		    
-            """
-            parameter_query = hook.get_records(query_get_especific)
-            
-            if( not parameter_query):
-             
-                query_get_default = f"""
-                    select parameter,file_name from integrations_parameter_filejson where name = 'default'
-                    limit 1; 
- 		            """
-                parameter_query = hook.get_records(query_get_default)
-
-            logging.info(parameter_query[0])    
-            return parameter_query[0]
-        except Exception as e:
-            logging.exception(
-                f"An unexpected error occurred during create_tabela_global_cliente - {e}"
-            )
-            raise e
-        
-    
-    select_json=select_parameter_file_json()   
-
-      
-
-
-
-    # Task inicial para definir `previous_task`
-    initial_task = DummyOperator(
-        task_id='start',
-        dag=dag
-    )
-
-    # Grupo de tarefas para extração de dados
-    with TaskGroup("extract_tasks", dag=dag) as extract_tasks:
-        previous_task = initial_task  # Define o DummyOperator como inicial
-
-        # Definir tasks de extração dentro do loop
-        for chave, valor in select_json.items():
-            extract_task = PythonOperator(
-                task_id=f'extract_postgres_to_json_{chave}',
-                python_callable=extract_postgres_to_json,
-                op_args=[valor, chave, "{{ params.PGSCHEMA }}"],
-                dag=dag
-            )
-
-            # Define dependência entre as tasks
-            previous_task >> extract_task
-            previous_task = extract_task  # Atualiza `previous_task` para a próxima iteração
-
-    # Task de sincronização que será executada após todas as extrações
-    sync_tasks = DummyOperator(
-        task_id='sync_all_extractions',
-        dag=dag
-    )
-
-    # Configurar que a task de sincronização deve ser executada após todas as extrações
-    extract_tasks >> sync_tasks
-
-    # Task para atualizar a data de execução do log
-    log_update_corp = PythonOperator(
-        task_id='log_daily_run_data_update',
-        python_callable=daily_run_date_update,
-        op_args=["{{ params.PGSCHEMA }}"],
-        dag=dag
-    )
-
-    # Garantir que a atualização de log será executada após todas as extrações
-    sync_tasks >> log_update_corp
-
-    # Task para acionar o próximo DAG se ISDAILY for False
-    trigger_dag_disparo_email = TriggerDagRunOperator(
+    trigger_email = TriggerDagRunOperator(
         task_id="trigger_dag_email",
         trigger_dag_id="a11-send-email-firstprocess",
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY": "{{ params.ISDAILY }}"
         },
-        dag=dag
     )
 
-    cad_analytics_analytics=cadastro_analytics_analytics()
-    # Configurar que o trigger será executado após a atualização do log
-    cad_analytics_analytics >>log_update_corp >> trigger_dag_disparo_email
+    # Pipeline
+    param_dict = get_parameters(dag.params)
+    extraction = run_extract_tasks(param_dict, "{{ params.PGSCHEMA }}")
+    log_update = update_log("{{ params.PGSCHEMA }}")
+    analytics = analytics_update("{{ params.PGSCHEMA }}")
+
+    # Dependências
+    start >> param_dict >> extraction >> log_update >> trigger_email
+    start >> analytics >> log_update
