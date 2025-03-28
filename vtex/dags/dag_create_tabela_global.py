@@ -184,7 +184,7 @@ with DAG(
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         try:
                   
-            from gemdata.vtex.modules.metasqlscriptabglobal import globalsqlscriptsmeta
+            from modules.metasqlscriptabglobal import globalsqlscriptsmeta
             sql_script = globalsqlscriptsmeta(PGSCHEMA)    
             hook3 = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook3.run(sql_script)
