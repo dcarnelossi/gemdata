@@ -77,6 +77,7 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
 
 
         try:
+            logging.info(f"""*****Iniciado o processamento json: {pg_schema}-{file_name}""")
             # Conecte-se ao PostgreSQL e execute o script
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             conn = hook.get_conn()
@@ -136,11 +137,11 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             # Executa os uploads
             upload_json.execute(file_name)
             upload_gzip.execute(file_name)
-
+            logging.info(f"""******finalizado o processamento json: {pg_schema}-{file_name}""")
             return json_filepath, gzip_filepath
 
         except Exception as e:
-            logging.exception(f"Erro ao processar extração do PostgreSQL: {e}")
+            logging.exception(f"Erro ao processar extração do PostgreSQL( {pg_schema}-{file_name}): {e}")
             raise e
         finally:
             cursor.close()
@@ -174,7 +175,7 @@ def daily_run_date_update(pg_schema):
             
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+                f"An unexpected error occurred during daily_run_date_update - {e}"
             )
             raise e
        
@@ -203,7 +204,7 @@ def upload_to_blob_directory(file_name,pg_schema):
 
     except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+                f"An unexpected error occurred during upload_to_blob_directory - {e}"
             )
             raise e
 
@@ -296,7 +297,7 @@ def post_analytics_analytics(pg_schema):
 
         except Exception as e:
             logging.exception(
-                f"An unexpected error occurred during extract_postgres_to_json - {e}"
+                f"An unexpected error occurred during post_analytics_analytics (cadastrar nas tabelas analytics coorp) - {e}"
             )
             raise e
 
