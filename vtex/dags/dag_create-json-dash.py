@@ -52,8 +52,7 @@ def install(package):
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
 def extract_postgres_to_json(sql_script,file_name,pg_schema):
-        #PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        #isdaily = kwargs["params"]["ISDAILY"]
+    
         try:
             
             import json
@@ -339,14 +338,14 @@ with DAG(
             SELECT parameter, file_name
             FROM integrations_parameter_filejson
             WHERE id = '{PGSCHEMA}'
-            LIMIT 1
+            
         """)
         if not result:
             result = hook.get_records("""
                 SELECT parameter, file_name
                 FROM integrations_parameter_filejson
                 WHERE name = 'default'
-                LIMIT 1
+                
             """)
         param_dict = {
                 row[1]: row[0].replace("{schema}", PGSCHEMA) for row in result
