@@ -332,8 +332,8 @@ with DAG(
     start = DummyOperator(task_id='start')
 
     @task()
-    def get_parameters(params):
-        PGSCHEMA = params["PGSCHEMA"]
+    def get_parameters(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
         result = hook.get_records(f"""
             SELECT parameter, file_name
@@ -355,18 +355,21 @@ with DAG(
         return param_dict
 
     @task()
-    def run_extract_tasks(param_dict: dict, PGSCHEMA: str):
+    def run_extract_tasks(param_dict: dict,**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
         for file_name, sql in param_dict.items():
             extract_postgres_to_json(sql, file_name, PGSCHEMA)
         return True
 
     @task()
-    def update_log(pg_schema):
-        daily_run_date_update(pg_schema)
+    def update_log(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        daily_run_date_update(PGSCHEMA)
 
     @task()
-    def analytics_update(pg_schema):
-        post_analytics_analytics(pg_schema)
+    def analytics_update(**kwargs):
+        PGSCHEMA = kwargs["params"]["PGSCHEMA"]
+        post_analytics_analytics(PGSCHEMA)
 
     trigger_email = TriggerDagRunOperator(
         task_id="trigger_dag_email",
@@ -378,10 +381,10 @@ with DAG(
     )
 
     # Pipeline
-    param_dict = get_parameters(dag.params)
-    extraction = run_extract_tasks(param_dict, "{{ params.PGSCHEMA }}")
-    log_update = update_log("{{ params.PGSCHEMA }}")
-    analytics = analytics_update("{{ params.PGSCHEMA }}")
+    param_dict = get_parameters()
+    extraction = run_extract_tasks(param_dict)
+    log_update = update_log()
+    analytics = analytics_update()
 
     # Dependências
     start >> param_dict >> extraction >> log_update >> trigger_email
