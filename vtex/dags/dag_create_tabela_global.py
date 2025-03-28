@@ -134,6 +134,21 @@ with DAG(
  		    """
             hosting = hook.get_records(query)
 
+            query_get_especific = f"""
+            select parameter from public.integrations_parameter_query_global where id = '{PGSCHEMA}' and hosting='{hosting[0][0]}'
+            limit 1; 		    
+            """
+            parameter_query,_ = hook.get_records(query_get_especific)
+            process = "query global especifica"
+
+            if( not parameter_query):
+                process = "query global default"
+                query_get_default = f"""
+                    select parameter from integrations_parameter_query_global where name = 'default' and hosting='{hosting[0][0]}'
+                    limit 1; 
+ 		            """
+                parameter_query,_ = hook.get_records(query_get_default)
+                
         
         except Exception as e:
             logging.exception(
@@ -147,43 +162,13 @@ with DAG(
 
       
 
-        logging.info(f"Processing params: {hosting[0][0]}")
+        logging.info(f"Processing params: {hosting[0][0]} - {process} - {PGSCHEMA}")
         try:
-            if hosting[0][0]== "vtex": 
-                #essa parte é do vtex
-                #esse schema usaremos para demo, para fazer videos e etc ..     
-                #copiando do schema 2dd03
-                if(PGSCHEMA == "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
-                    from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
-                    sql_script = vtexsqlscriptscreatetabglobaldemo("5e164a4b-5e09-4f43-9d81-a3d22b09a01b")
-                    
-                else: # Defina o código SQL para criar a tabela
-                    from modules.sqlscriptabglobal import vtexsqlscriptscreatetabglobal
-                    sql_script = vtexsqlscriptscreatetabglobal(PGSCHEMA)    
-                # Conecte-se ao PostgreSQL e execute o script
-                # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
-                # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
-                hook.run(sql_script)
-                
-                
-
-            else:
-                #essa parte é do shopify
-                #copiando do schema 2dd03- probel 
-                if(PGSCHEMA == "5e164a4b-5e09-4f43-9d81-a3d22b09a01b"):
-                    from modules.sqlscriptabglobaldemo import vtexsqlscriptscreatetabglobaldemo
-                    sql_script = vtexsqlscriptscreatetabglobaldemo("5e164a4b-5e09-4f43-9d81-a3d22b09a01b")
-                    
-                else: # Defina o código SQL para criar a tabela
-                    from modules.sqlscriptabglobal import shopifysqlscriptscreatetabglobal
-                    sql_script = shopifysqlscriptscreatetabglobal(PGSCHEMA)    
-                # Conecte-se ao PostgreSQL e execute o script
-                # TODO postgres_conn_id deve ser uma variavel vinda da chamada da DAG
-                # não pode estar cravada aqui no codigo
-                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
-                hook.run(sql_script)
-
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+            
+            sql_ready = parameter_query.replace("{schema}", PGSCHEMA)
+            hook.run(sql_ready)
+            logging.info(f"Query global Executada params: {hosting[0][0]} - {process} - {PGSCHEMA}")
             return True
 
         except Exception as e:
