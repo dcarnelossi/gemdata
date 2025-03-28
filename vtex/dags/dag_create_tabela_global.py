@@ -138,7 +138,7 @@ with DAG(
             select parameter from public.integrations_parameter_query_global where id = '{PGSCHEMA}' and hosting='{hosting[0][0]}'
             limit 1; 		    
             """
-            parameter_query,_ = hook.get_records(query_get_especific)
+            parameter_query = hook.get_records(query_get_especific)
             process = "query global especifica"
 
             if( not parameter_query):
@@ -147,7 +147,7 @@ with DAG(
                     select parameter from integrations_parameter_query_global where name = 'default' and hosting='{hosting[0][0]}'
                     limit 1; 
  		            """
-                parameter_query,_ = hook.get_records(query_get_default)
+                parameter_query = hook.get_records(query_get_default)
                 
         
         except Exception as e:
@@ -166,7 +166,7 @@ with DAG(
         try:
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             
-            sql_ready = parameter_query.replace("{schema}", PGSCHEMA)
+            sql_ready = parameter_query[0][0].replace("{schema}", PGSCHEMA)
             hook.run(sql_ready)
             logging.info(f"Query global Executada params: {hosting[0][0]} - {process} - {PGSCHEMA}")
             return True
