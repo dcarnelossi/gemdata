@@ -111,18 +111,24 @@ def substituir_orders_list(query, start_date="", end_date="", minimum_date="", o
         raise
 
 def process_order_batch(order_list, table, keytable):
-    try:
-        writer = WriteJsonToPostgres(
-            data_conection_info,
-            order_list,
-            table,
-            keytable
-        )
-        writer.upsert_data_batch(isdatainsercao=1)
-        logging.info(f"{len(order_list)} pedidos upsertados com sucesso.")
-    except Exception as e:
-        logging.error(f"Erro ao upsertar lote de pedidos: {e}")
-        raise
+    for attempt in range(1, 6):  # Máximo de 5 tentativas
+        try:
+            writer = WriteJsonToPostgres(
+                data_conection_info,
+                order_list,
+                table,
+                keytable
+            )
+            writer.upsert_data_batch(isdatainsercao=1)
+            
+        
+        except Exception as e:
+                logging.warning(f"[Tentativa {attempt}/5] Erro ao upsertar lote de pedidos: {e}")
+                time.sleep(30)
+                if attempt == 5:
+                    logging.error("Falha após 5 tentativas ao upsertar orders no banco.")
+                    raise e
+    
 
 def fetch_orders_list(json_type_api, start_date, end_date, minimum_date, order_id=""):
    
