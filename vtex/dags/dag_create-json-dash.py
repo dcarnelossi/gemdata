@@ -51,8 +51,8 @@ def install(package):
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
-def extract_postgres_to_json(sql_script,file_name,pg_schema):
-    
+def extract_postgres_to_json(param_dict,pg_schema):
+
         try:
             
             import json
@@ -75,70 +75,71 @@ def extract_postgres_to_json(sql_script,file_name,pg_schema):
             install("msgpack")
             import msgpack
 
-
+        
         try:
-            logging.info(f"""*****Iniciado o processamento json: {pg_schema}-{file_name}""")
-            # Conecte-se ao PostgreSQL e execute o script
-            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
-            conn = hook.get_conn()
-            cursor = conn.cursor()
+            for file_name, sql_script in param_dict.items():
+                logging.info(f"""*****Iniciado o processamento json: {pg_schema}-{file_name}""")
+                # Conecte-se ao PostgreSQL e execute o script
+                hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+                conn = hook.get_conn()
+                cursor = conn.cursor()
 
-            cursor.execute(sql_script)
-            records = cursor.fetchall()
-            colnames = [desc[0] for desc in cursor.description]
+                cursor.execute(sql_script)
+                records = cursor.fetchall()
+                colnames = [desc[0] for desc in cursor.description]
 
-            # Convertendo os dados para JSON
-            data = [dict(zip(colnames, row)) for row in records]
-            json_data = json.dumps(data)
+                # Convertendo os dados para JSON
+                data = [dict(zip(colnames, row)) for row in records]
+                json_data = json.dumps(data)
 
-            # Criando diretório temporário para armazenar os arquivos
-            tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
-            os.makedirs(tmp_dir, exist_ok=True)
+                # Criando diretório temporário para armazenar os arquivos
+                tmp_dir = os.path.join(f"/tmp/{pg_schema}/")
+                os.makedirs(tmp_dir, exist_ok=True)
 
-            # Caminhos para os arquivos JSON e Gzip
-            json_filepath = os.path.join(tmp_dir, f"{file_name}.json")
-            gzip_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack.gz")
+                # Caminhos para os arquivos JSON e Gzip
+                json_filepath = os.path.join(tmp_dir, f"{file_name}.json")
+                gzip_filepath = os.path.join(tmp_dir, f"{file_name}.msgpack.gz")
 
-            # Salvando o arquivo JSON puro
-            with open(json_filepath, 'w', encoding='utf-8') as json_file:
-                json_file.write(json_data)
+                # Salvando o arquivo JSON puro
+                with open(json_filepath, 'w', encoding='utf-8') as json_file:
+                    json_file.write(json_data)
 
-            # Criando arquivo MessagePack e compactando diretamente com Gzip
-            with gzip.open(gzip_filepath, 'wb') as gzip_file:
-                gzip_file.write(msgpack.packb(data, use_bin_type=True))
+                # Criando arquivo MessagePack e compactando diretamente com Gzip
+                with gzip.open(gzip_filepath, 'wb') as gzip_file:
+                    gzip_file.write(msgpack.packb(data, use_bin_type=True))
 
-            # Upload para o Azure Blob Storage
-            wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
-            blob_name_json = f"{pg_schema}/{file_name}.json"
-            blob_name_gzip = f"{pg_schema}/{file_name}.msgpack.gz"
+                # Upload para o Azure Blob Storage
+                wasb_hook = WasbHook(wasb_conn_id='appgemdata-storage-prod')
+                blob_name_json = f"{pg_schema}/{file_name}.json"
+                blob_name_gzip = f"{pg_schema}/{file_name}.msgpack.gz"
 
-            # Verifica se os arquivos já existem no Blob Storage e remove se necessário
-            for blob_name in [blob_name_json, blob_name_gzip]:
-                if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=blob_name):
-                    wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=blob_name)
+                # Verifica se os arquivos já existem no Blob Storage e remove se necessário
+                for blob_name in [blob_name_json, blob_name_gzip]:
+                    if wasb_hook.check_for_blob(container_name="jsondashboard-prod", blob_name=blob_name):
+                        wasb_hook.delete_file(container_name="jsondashboard-prod", blob_name=blob_name)
 
-            # Configurando tarefa de upload para JSON e Gzip
-            upload_json = LocalFilesystemToWasbOperator(
-                task_id='upload_json_to_blob',
-                file_path=json_filepath,
-                container_name='jsondashboard-prod',
-                blob_name=blob_name_json,
-                wasb_conn_id='appgemdata-storage-prod'
-            )
+                # Configurando tarefa de upload para JSON e Gzip
+                upload_json = LocalFilesystemToWasbOperator(
+                    task_id='upload_json_to_blob',
+                    file_path=json_filepath,
+                    container_name='jsondashboard-prod',
+                    blob_name=blob_name_json,
+                    wasb_conn_id='appgemdata-storage-prod'
+                )
 
-            upload_gzip = LocalFilesystemToWasbOperator(
-                task_id='upload_gzip_to_blob',
-                file_path=gzip_filepath,
-                container_name='jsondashboard-prod',
-                blob_name=blob_name_gzip,
-                wasb_conn_id='appgemdata-storage-prod'
-            )
+                upload_gzip = LocalFilesystemToWasbOperator(
+                    task_id='upload_gzip_to_blob',
+                    file_path=gzip_filepath,
+                    container_name='jsondashboard-prod',
+                    blob_name=blob_name_gzip,
+                    wasb_conn_id='appgemdata-storage-prod'
+                )
 
-            # Executa os uploads
-            upload_json.execute(file_name)
-            upload_gzip.execute(file_name)
-            logging.info(f"""******finalizado o processamento json: {pg_schema}-{file_name}""")
-            return json_filepath, gzip_filepath
+                # Executa os uploads
+                upload_json.execute(file_name)
+                upload_gzip.execute(file_name)
+                logging.info(f"""******finalizado o processamento json: {pg_schema}-{file_name}""")
+                return json_filepath, gzip_filepath
 
         except Exception as e:
             logging.exception(f"Erro ao processar extração do PostgreSQL( {pg_schema}-{file_name}): {e}")
@@ -357,9 +358,7 @@ with DAG(
     @task()
     def run_extract_tasks(param_dict: dict,**kwargs):
         PGSCHEMA = kwargs["params"]["PGSCHEMA"]
-        for file_name, sql in param_dict.items():
-            extract_postgres_to_json(sql, file_name, PGSCHEMA)
-        return True
+        extract_postgres_to_json(param_dict, PGSCHEMA)
 
     @task()
     def update_log(**kwargs):
