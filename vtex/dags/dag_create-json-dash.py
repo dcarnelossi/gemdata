@@ -75,9 +75,10 @@ def extract_postgres_to_json(param_dict,pg_schema):
             install("msgpack")
             import msgpack
 
-        
-        try:
-            for file_name, sql_script in param_dict.items():
+        for file_name, sql_script in param_dict.items():
+            try:
+            
+
                 logging.info(f"""*****Iniciado o processamento json: {pg_schema}-{file_name}""")
                 # Conecte-se ao PostgreSQL e execute o script
                 hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
@@ -139,14 +140,16 @@ def extract_postgres_to_json(param_dict,pg_schema):
                 upload_json.execute(file_name)
                 upload_gzip.execute(file_name)
                 logging.info(f"""******finalizado o processamento json: {pg_schema}-{file_name}""")
-                return json_filepath, gzip_filepath
-
-        except Exception as e:
-            logging.exception(f"Erro ao processar extração do PostgreSQL( {pg_schema}-{file_name}): {e}")
-            raise e
-        finally:
-            cursor.close()
-            conn.close()
+                
+                cursor.close()
+                conn.close()
+              
+            except Exception as e:
+                logging.exception(f"Erro ao processar extração do PostgreSQL( {pg_schema}-{file_name}): {e}")
+                raise e
+            finally:
+                cursor.close()
+                conn.close()
 
 
 # Função para extrair dados do PostgreSQL e salvá-los como JSON
