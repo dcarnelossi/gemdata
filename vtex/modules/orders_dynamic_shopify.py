@@ -150,6 +150,9 @@ def fetch_orders_list(json_type_api, start_date, end_date, minimum_date, order_i
 
 
         try:
+            
+            
+            
             orders_data = response.get("data", {}).get("orders", {}) or response.get("data", {}).get("order", {})
             orders_list = transform_shopify_response(response, structure, data_path, order_id)
             
@@ -264,7 +267,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                         return fetch_orders_list(json_type_api, start_d, end_d, min_date)
                     except Exception as e:
                         logging.warning(f"Tentativa {attempt}/5 falhou em puxar o dado api (fetch_orders_list)  para o período {start_d} a {end_d}: {e}")
-                        time.sleep(2)
+                        time.sleep(60)
                 logging.error(f"Falha após 5 tentativas - dado api (fetch_orders_list)-  no período {start_d} a {end_d}")
                 raise Exception(f"Falha definitiva ao buscar pedido -dado api (fetch_orders_list)- {start_d} a {end_d}")
             
@@ -312,7 +315,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                         return fetch_orders_list(json_type_api, start_date, start_date, start_date, order_id)
                     except Exception as e:
                         logging.warning(f"Tentativa {attempt}/5 falhou para o pedido {order_id}: {e}")
-                        time.sleep(2)
+                        time.sleep(60)
                 logging.error(f"Pedido {order_id} falhou após 5 tentativas.")
                 raise Exception(f"Falha definitiva ao buscar pedido {order_id}")
 
