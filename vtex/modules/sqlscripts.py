@@ -628,7 +628,7 @@ def shopifysqlscripts(schema, user):
         OWNER to {user};
 
 
-   CREATE INDEX IF NOT EXISTS idx_orders_item_combined ON "{schema}".shopify_orders_items USING btree (orderid,iditemshopify);
+   CREATE INDEX IF NOT EXISTS idx_orders_item_combined ON "{schema}".shopify_orders_items USING btree (orderid);
   
    
    
@@ -654,7 +654,7 @@ def shopifysqlscripts(schema, user):
     ALTER TABLE IF EXISTS  "{schema}".shopify_orders_payment
         OWNER to {user};
        
-    CREATE INDEX IF NOT EXISTS idx_orders_payment_combined ON "{schema}".shopify_orders_payment USING btree (orderid,idpaymentshopify);
+    CREATE INDEX IF NOT EXISTS idx_orders_payment_combined ON "{schema}".shopify_orders_payment USING btree (orderid);
   
     
     CREATE TABLE IF NOT EXISTS "{schema}".shopify_gemdata_categoria(
