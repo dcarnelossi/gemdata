@@ -57,7 +57,9 @@ with DAG(
                             WHEN daily_run_date_ini > COALESCE(daily_run_date_end, '1900-01-01'::timestamp) THEN 'ERRO - PROCESSO DIARIO'
                             WHEN daily_run_date_ini <= COALESCE(daily_run_date_end, '1900-01-01'::timestamp) THEN 'EXECUTADO COM SUCESSO'
                             ELSE 'ERRO - SEI LA'
-                        END AS status_diario
+                        END AS status_diario,
+                        to_char(daily_run_date_ini,'DD-MM-YYYY HH24:MI') as data_ini,
+                        to_char(daily_run_date_end,'DD-MM-YYYY HH24:MI')as data_fim
                     FROM integrations_integration ii
                     WHERE ii.is_active = TRUE 
                     AND ii.infra_create_status = TRUE;
@@ -87,6 +89,8 @@ with DAG(
                         <th>ID</th>
                         <th>Nome</th>
                         <th>Hosting</th>
+                        <th>data_ini</th>
+                        <th>data_fim</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -107,6 +111,8 @@ with DAG(
                     <tr>
                         <td>{linha[0]}</td>
                         <td>{linha[1]}</td>
+                        <td>{linha[3]}</td>
+                        <td>{linha[4]}</td>
                         <td>{linha[2]}</td>
                         {status_html}
                     </tr>
