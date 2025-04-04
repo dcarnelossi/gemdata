@@ -150,6 +150,8 @@ def fetch_orders_list(json_type_api, start_date, end_date, minimum_date, order_i
         #preciso fazer um loop caso tenha algum problema, para tentar novamente  
         try:
             response = get_orders_list_pages(graphql_query)
+
+           
         except Exception as e:
             logging.error(f"Erro ao pegar o pedido com ID:{graphql_query}  - Erro: {str(e)}")
             raise
@@ -160,6 +162,11 @@ def fetch_orders_list(json_type_api, start_date, end_date, minimum_date, order_i
             
             
             orders_data = response.get("data", {}).get("orders", {}) or response.get("data", {}).get("order", {})
+
+            if not orders_data:
+                logging.info("orders_data está vazio. Pulando para a próxima iteração.")
+                break  # ou `break`, se quiser sair do loop
+
             orders_list = transform_shopify_response(response, structure, data_path, order_id)
             
             print(orders_list)
