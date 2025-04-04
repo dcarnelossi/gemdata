@@ -5,7 +5,6 @@ import os
 
 from airflow import DAG
 from airflow.decorators import task
-from airflow.models.param import Param
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 
@@ -131,4 +130,4 @@ with DAG(
     status_daily = get_statusprocess_integration()
     post_email = enviar_email(status_daily)
 
-    status_daily > post_email
+    status_daily >> post_email
