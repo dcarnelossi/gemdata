@@ -117,8 +117,9 @@ with DAG(
                 'tecnologia@gemdata.com.br',
                 emails_string,
                 assunto,
-                corpo_email
-        
+                corpo_email,
+                False,
+               # is_html=True  # <- importante informar que é HTML
             )
 
         except Exception as e:
