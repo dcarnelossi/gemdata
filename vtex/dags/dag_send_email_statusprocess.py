@@ -111,9 +111,9 @@ with DAG(
                     <tr>
                         <td>{linha[0]}</td>
                         <td>{linha[1]}</td>
-                        <td>{linha[3]}</td>
-                        <td>{linha[4]}</td>
                         <td>{linha[2]}</td>
+                        <td>{linha[4]}</td>
+                        <td>{linha[5]}</td>
                         {status_html}
                     </tr>
                 """
