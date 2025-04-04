@@ -58,8 +58,8 @@ with DAG(
                             WHEN daily_run_date_ini <= COALESCE(daily_run_date_end, '1900-01-01'::timestamp) THEN 'EXECUTADO COM SUCESSO'
                             ELSE 'ERRO - SEI LA'
                         END AS status_diario,
-                        to_char(daily_run_date_ini,'DD-MM-YYYY HH24:MI') as data_ini,
-                        to_char(daily_run_date_end,'DD-MM-YYYY HH24:MI')as data_fim
+                        to_char(daily_run_date_ini,'DD/MM/YYYY HH24:MI') as data_ini,
+                        to_char(daily_run_date_end,'DD/MM/YYYY HH24:MI')as data_fim
                     FROM integrations_integration ii
                     WHERE ii.is_active = TRUE 
                     AND ii.infra_create_status = TRUE;
