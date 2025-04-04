@@ -78,7 +78,7 @@ with DAG(
             emails_string = 'gabriel.pereira.sousa@gmail.com'
             assunto = f"PROCESSO DIARIO - STATUS"
 
-            # Cabeçalho da tabela HTML
+                    # Cabeçalho da tabela HTML
             tabela_html = """
             <p>Segue o status do processo diário:</p>
             <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">
@@ -95,12 +95,20 @@ with DAG(
 
             # Linhas da tabela
             for linha in list_status:
+                status = linha[3]
+                
+                # Verifica se contém "erro" no texto (case insensitive)
+                if "erro" in status.lower():
+                    status_html = f'<td style="color: red; font-weight: bold;">{status}</td>'
+                else:
+                    status_html = f'<td>{status}</td>'
+
                 tabela_html += f"""
                     <tr>
                         <td>{linha[0]}</td>
                         <td>{linha[1]}</td>
                         <td>{linha[2]}</td>
-                        <td>{linha[3]}</td>
+                        {status_html}
                     </tr>
                 """
 
