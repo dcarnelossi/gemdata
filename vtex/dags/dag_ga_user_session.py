@@ -77,7 +77,7 @@ with DAG(
         blob_name = f"5e164a4b-5e09-4f43-9d81-a3d22b09a01b/teste_api_ga.json"
 
         # Lê o conteúdo do blob (como bytes)
-        blob_bytes = hook.read_file(container_name_name='jsondashboard-homol', blob_name=blob_name)
+        blob_bytes = hook.read_file(container_name='jsondashboard-homol', blob_name=blob_name)
 
         # Decodifica e converte para dict
         blob_str = blob_bytes.decode("utf-8")
