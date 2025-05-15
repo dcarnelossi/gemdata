@@ -48,7 +48,15 @@ with DAG(
             title="ISDAILY:",
             description="Enter com False (processo total) ou True (processo diario) .",
             section="Important params",
-        )
+        ),
+         "HOSTING": Param(
+            type="string",
+            title="HOSTING:",
+            description="Enter the integration HOSTING.",
+            section="Important params",
+            min_length=1,
+            max_length=200,
+        ),
     },
 ) as dag:
 
