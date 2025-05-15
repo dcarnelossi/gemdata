@@ -68,7 +68,7 @@ with DAG(
             else:
                 sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
-            sql_script_ga = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+            sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
             
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
