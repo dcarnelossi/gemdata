@@ -79,8 +79,9 @@ with DAG(
         # Lê o conteúdo do blob (como bytes)
         blob_bytes = hook.read_file(container_name='jsondashboard-homol', blob_name=blob_name)
 
+            
         # Decodifica e converte para dict
-        blob_str = blob_bytes.decode("utf-8")
+        blob_str = blob_bytes
         json_data = json.loads(blob_str)
 
 
