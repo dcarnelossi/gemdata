@@ -151,7 +151,7 @@ with DAG(
         task_id="trigger_dag_ga_2_engagement_event",
         trigger_dag_id="ga-2-engagement-event",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "TEAMID": "{{ params.TEAMID  | string}}",
+            "TEAMID": "{{ '' ~ params.TEAMID}}",
             "ISDAILY": "{{ params.ISDAILY }}"
            
         },  # Se precisar passar informações adicionais para a DAG_B
