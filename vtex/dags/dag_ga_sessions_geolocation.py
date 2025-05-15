@@ -151,7 +151,7 @@ with DAG(
         task_id="trigger_dag_ga_7_funnel_events",
         trigger_dag_id="ga-7-funnel-events",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "TEAMID": "{{ params.TEAMID }}",
+            "TEAMID": "'{{ params.TEAMID }}'",
             "ISDAILY": "{{ params.ISDAILY }}",
           
 

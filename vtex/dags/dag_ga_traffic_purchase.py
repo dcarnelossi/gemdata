@@ -151,7 +151,7 @@ with DAG(
         task_id="trigger_dag_ga_5_sessions_technology",
         trigger_dag_id="ga-5-ga-sessions-technology",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "TEAMID": "{{ params.TEAMID }}",
+            "TEAMID": "'{{ params.TEAMID }}'",
             "ISDAILY": "{{ params.ISDAILY }}",
           
 

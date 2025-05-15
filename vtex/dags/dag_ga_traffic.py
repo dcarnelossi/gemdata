@@ -151,7 +151,7 @@ with DAG(
         task_id="trigger_dag_ga_4_traffic_purchase",
         trigger_dag_id="ga-4-ga-traffic-purchase",  # Substitua pelo nome real da sua segunda DAG
         conf={
-            "TEAMID": "{{ params.TEAMID }}",
+            "TEAMID": "'{{ params.TEAMID }}'",
             "ISDAILY": "{{ params.ISDAILY }}",
           
 
