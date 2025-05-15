@@ -96,7 +96,7 @@ def vtexsqlscripts(schema, user):
     CREATE TABLE IF NOT EXISTS "{schema}".orders
     (
         sequence SERIAL PRIMARY KEY,
-        orderid text COLLATE pg_catalog."default",
+        orderid varchar(50) COLLATE pg_catalog."default",
         marketplaceorderid text COLLATE pg_catalog."default",
         marketplaceservicesendpoint text COLLATE pg_catalog."default",
         sellerorderid text COLLATE pg_catalog."default",
@@ -158,11 +158,6 @@ def vtexsqlscripts(schema, user):
     ALTER TABLE IF EXISTS "{schema}".orders
         OWNER to {user};
 
-
-    CREATE INDEX IF NOT EXISTS "idx_orders_orderid"
-        ON "{schema}".orders USING btree
-        (orderid COLLATE pg_catalog."default" ASC NULLS LAST)
-        TABLESPACE pg_default;
 
 
 
@@ -670,16 +665,137 @@ def shopifysqlscripts(schema, user):
 
     CREATE INDEX IF NOT EXISTS  idx_shopify_gemdata_categoria_name ON "{schema}".shopify_gemdata_categoria USING btree (nomecategoria);	
 
-
-
-
     """
 
     return scripts
 
 
+def gasqlscripts(schema, user):
+    scripts = f"""
 
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_sessions_users (
+	creationdate timestamp not NULL,
+	totalusers float NULL,
+	newusers float null,
+	sessions float NULL,
+	engagedSessions float NULL,
+	averageSessionDuration float NULL,
+	bounceRate float NULL,
+	purchaseRevenue float NULL,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	 CONSTRAINT constraint_ga_sessions_users_unique UNIQUE (creationdate)
+        );
 
+    ALTER TABLE IF EXISTS  "{schema}".ga_sessions_users
+    OWNER to {user};	
+
+     CREATE TABLE IF NOT EXISTS  "{schema}".ga_engagement_event (
+	creationdate timestamp not NULL,
+	eventcount float NULL,
+	engagementrate float null,
+	userengagementduration float NULL,
+	screenpageviews float NULL,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	 CONSTRAINT constraint_ga_engagement_event_unique UNIQUE (creationdate)
+    );	
+    ALTER TABLE IF EXISTS  "{schema}".ga_engagement_event
+    OWNER to {user};	
+
+    CREATE TABLE IF NOT EXISTS "{schema}".ga_traffic(
+	creationdate timestamp not NULL,
+	sessionsource varchar(150) not NULL,
+	sessionmedium varchar(150) not null,
+	sessionsourcemedium varchar(150) not NULL,
+	campaignname varchar(250) not NULL,
+	sessions FLOAT,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	CONSTRAINT constraint_ga_traffic_unique UNIQUE (creationdate, sessionsource, sessionmedium, sessionsourcemedium, campaignname)
+	);	
+    ALTER TABLE IF EXISTS  "{schema}".ga_traffic
+    OWNER to {user};	
+
+    
+
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_traffic_purchase(
+        creationdate timestamp not NULL,
+        sessionsource varchar(150) not NULL,
+        sessionmedium varchar(150) not null,
+        sessionsourcemedium varchar(150) not NULL,
+        campaignname varchar(250) not NULL,
+        sessions FLOAT,
+        purchaseRevenue FLOAT,
+        data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+        CONSTRAINT constraint_ga_traffic_purchase_unique UNIQUE (creationdate, sessionsource, sessionmedium, sessionsourcemedium, campaignname)
+        );	
+    ALTER TABLE IF EXISTS  "{schema}".ga_traffic_purchase
+    OWNER to {user};	
+
+    CREATE TABLE IF NOT EXISTS "{schema}".ga_sessions_technology(
+        creationdate timestamp not NULL,
+        devicecategory varchar(150) not NULL,
+        platform varchar(150) not null,
+        browser varchar(150) not NULL,
+        operatingsystem varchar(250) not NULL,
+        sessions FLOAT,
+        data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+        CONSTRAINT constraint_ga_sessions_technology UNIQUE (creationdate, devicecategory, platform, browser, operatingsystem)
+        );
+    ALTER TABLE IF EXISTS  "{schema}".ga_sessions_technology
+    OWNER to {user};	
+    
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_sessions_geolocation(
+	creationdate timestamp not NULL,
+	country text not NULL,
+	region text not null,
+	city text not NULL,
+	language text not NULL,
+	sessions FLOAT,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	CONSTRAINT constraint_ga_sessions_geolocation UNIQUE (creationdate, country, region, city, language)
+	);	
+    ALTER TABLE IF EXISTS  "{schema}".ga_sessions_geolocation
+    OWNER to {user};
+
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_funnel_events(
+	creationdate timestamp not NULL,
+	event_name text not NULL,
+	sessions float not NULL,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	CONSTRAINT constraint_ga_funnel_events UNIQUE (creationdate, event_name)
+	);	
+    ALTER TABLE IF EXISTS  "{schema}".ga_funnel_events
+    OWNER to {user};
+
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_funnel_events_region(
+	creationdate timestamp not NULL,
+	event_name text not NULL,
+	city text not NULL,
+	region text not NULL,
+	sessions float not NULL,
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	CONSTRAINT constraint_ga_funnel_events_region UNIQUE (creationdate, event_name,city,region)
+	);	
+    ALTER TABLE IF EXISTS  "{schema}".ga_funnel_events_region
+    OWNER to {user};
+
+     CREATE TABLE IF NOT EXISTS "{schema}".ga_funnel_events_item(
+	creationdate timestamp not NULL,
+	itemid text not NULL,
+	itemname text not NULL,
+	itemsviewed float not NULL,
+	itemspurchased float not NULL,
+	itemsaddedtocart float not NULL,
+	itemrevenue float not NULL,
+	
+	data_insercao timestamp DEFAULT CURRENT_TIMESTAMP null,
+	CONSTRAINT constraint_ga_funnel_events_item UNIQUE (creationdate, itemid,itemname)
+	);	  
+    ALTER TABLE IF EXISTS  "{schema}".ga_funnel_events_item
+    OWNER to {user};  
+
+    """
+
+    return scripts
 
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:

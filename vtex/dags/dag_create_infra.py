@@ -67,10 +67,17 @@ with DAG(
                 sql_script = scripts.vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             else:
                 sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+            
+            sql_script_ga = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
-           
+            
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook.run(sql_script)
+
+            hook.run(sql_script_ga)
+
+
+
             
             query = """
             UPDATE public.integrations_integration
@@ -84,6 +91,10 @@ with DAG(
             # Execute the query with parameters
             hook2.run(query, parameters=(datetime.now(), PGSCHEMA))
             
+
+
+
+
             return True
 
         except Exception as e:
