@@ -23,7 +23,6 @@ except ImportError:
     from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Dimension, Metric
 
 
-
 # Instalar matplotlib se não estiver instalado
 try:
     from google.api_core.exceptions import InvalidArgument
@@ -32,13 +31,7 @@ except ImportError:
     install("google-api-core")
     from google.api_core.exceptions import InvalidArgument
 
-# Instalar matplotlib se não estiver instalado
-try:
-    from google.oauth2 import service_account
-except ImportError:
-    print("google-auth não está instalado. Instalando agora...")
-    install("google-auth")
-    from google.oauth2 import service_account
+
 
 
 

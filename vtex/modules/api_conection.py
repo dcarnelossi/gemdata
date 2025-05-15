@@ -3,8 +3,30 @@ import logging
 
 import requests
 
-from google.oauth2 import service_account
-from google.analytics.data_v1beta import BetaAnalyticsDataClient
+import subprocess
+import sys
+# Função para instalar um pacote via pip
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from google.oauth2 import service_account
+except ImportError:
+    print("google-auth não está instalado. Instalando agora...")
+    install("google-auth")
+    from google.oauth2 import service_account
+
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+except ImportError:
+    print("google-analytics-data não está instalado. Instalando agora...")
+    install("google-analytics-data")
+    from google.analytics.data_v1beta import BetaAnalyticsDataClient
+
 
 
 def vtex_test_conection(domain, method, path, params=None, headers=None):
