@@ -1,12 +1,45 @@
 import pandas as pd
 from datetime import datetime, timedelta
-from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Dimension, Metric
-from google.api_core.exceptions import InvalidArgument
 from dbpgconn import WriteJsonToPostgres
 import logging
 import time
+import subprocess
+import sys
 
 from modules.api_conection import make_request_ga
+
+
+# Função para instalar um pacote via pip
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Dimension, Metric
+ 
+except ImportError:
+    print("google-analytics-data não está instalado. Instalando agora...")
+    install("google-analytics-data")
+    from google.analytics.data_v1beta.types import RunReportRequest, DateRange, Dimension, Metric
+
+
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from google.api_core.exceptions import InvalidArgument
+except ImportError:
+    print("google-api-core não está instalado. Instalando agora...")
+    install("google-api-core")
+    from google.api_core.exceptions import InvalidArgument
+
+# Instalar matplotlib se não estiver instalado
+try:
+    from google.oauth2 import service_account
+except ImportError:
+    print("google-auth não está instalado. Instalando agora...")
+    install("google-auth")
+    from google.oauth2 import service_account
+
 
 
 # Variáveis globais
