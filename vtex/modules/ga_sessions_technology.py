@@ -51,7 +51,7 @@ property_id = "481670222"
 metrics_list = ["sessions"]
 
 dimensions_list = [
-    "deviceCategory", "platform", "browser", "operatingSystem"
+   "date", "deviceCategory", "platform", "browser", "operatingSystem"
 ]
 
 

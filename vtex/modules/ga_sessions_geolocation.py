@@ -51,7 +51,7 @@ property_id = "481670222"
 metrics_list = ["sessions"]
 
 dimensions_list = [
-    "country", "region", "city", "language"
+   "date", "country", "region", "city", "language"
 ]
 
 
