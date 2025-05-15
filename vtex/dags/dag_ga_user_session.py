@@ -69,7 +69,7 @@ with DAG(
 
     @task(provide_context=True)
     def orders_shopify(**kwargs):
-        team_id = kwargs["params"]["team_id"]
+        team_id = kwargs["params"]["TEAMID"]
         isdaily = kwargs["params"]["ISDAILY"]
 
         hook = WasbHook(wasb_conn_id='appgemdata-storage-homol')
