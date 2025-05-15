@@ -80,6 +80,7 @@ def run_report_ga(start_date, end_date):
         data = []
 
         for row in response.rows:
+            
             row_data = {}
             for idx, dim in enumerate(dimensions_list):
                 if dim == "date":
@@ -90,7 +91,7 @@ def run_report_ga(start_date, end_date):
             for idx, metric in enumerate(metrics_list):
                 val = row.metric_values[idx].value
                 row_data[metric] = float(val) if val else None
-
+            logging.info(row_data)
             data.append(row_data)
 
         return data
