@@ -149,6 +149,17 @@ def date_process(start_date, end_date, delta=None):
             end_date= end_date_d.strftime("%Y-%m-%d")
             start_date = (end_date_d - timedelta(days=delta)).strftime("%Y-%m-%d")
         
+  
+                # Se vierem como string, converter para datetime
+        if isinstance(start_date, str):
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        if isinstance(end_date, str):
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+
+        # Agora sim formatar
+        start_date = start_date.strftime("%Y-%m-%d")
+        end_date = end_date.strftime("%Y-%m-%d")
+
         execute_process_ga(start_date, end_date)
         logging.info("Processamento concluído com sucesso.")
     except Exception as e:
