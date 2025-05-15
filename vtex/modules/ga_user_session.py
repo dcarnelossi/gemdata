@@ -70,6 +70,8 @@ def get_account():
 
 
 def run_report_ga(start_date, end_date):
+    logging.info(f"start: {start_date}")
+    logging.info(f"end: {end_date}")
     
     try:
         request = RunReportRequest(
