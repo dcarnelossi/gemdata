@@ -39,11 +39,11 @@ default_args = {
 
 
 with DAG(
-    "ga-1-user-session",
+    "ga-5-ga-sessions-technology",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["import", "sessionuser", "ga"],
+    tags=["import", "technology", "ga"],
     render_template_as_native_obj=True,
     params={
         "TEAMID": Param(
@@ -111,7 +111,7 @@ with DAG(
         #     logging.exception(f"An unexpected error occurred during DAG - {e}")
         #     raise e
 
-        from modules import ga_user_session
+        from modules import ga_sessions_technology
         
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -127,7 +127,7 @@ with DAG(
         #        min_date = end_date - timedelta(days=735)
 
                 
-            ga_user_session.set_globals(
+            ga_sessions_technology.set_globals(
                 api_conection_info,
                 data_conection_info,
                 start_date=start_date,
@@ -147,18 +147,19 @@ with DAG(
 
     pyhton_task = run_python()
         
-    trigger_dag_ga_2_engagement_event = TriggerDagRunOperator(
-        task_id="trigger_dag_ga_2_engagement_event",
-        trigger_dag_id="ga-2-engagement-event",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_ga_6_sessions_geolocation = TriggerDagRunOperator(
+        task_id="trigger_dag_ga_6_sessions_geolocation",
+        trigger_dag_id="ga-6-sessions-geolocation",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "TEAMID": "{{ params.TEAMID }}",
-            "ISDAILY": "{{ params.ISDAILY }}"
-           
+            "ISDAILY": "{{ params.ISDAILY }}",
+          
+
         },  # Se precisar passar informações adicionais para a DAG_B
     )
        
 
 
-    pyhton_task >>  trigger_dag_ga_2_engagement_event 
+    pyhton_task >>  trigger_dag_ga_6_sessions_geolocation 
     
     
