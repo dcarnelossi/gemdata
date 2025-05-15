@@ -1,6 +1,6 @@
 import pandas as pd
 from datetime import datetime, timedelta
-from dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 import logging
 import time
 import subprocess
