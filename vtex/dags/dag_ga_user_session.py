@@ -12,9 +12,8 @@ from airflow.providers.microsoft.azure.hooks.wasb import WasbHook
 
 
 from modules.dags_common_functions import (
-    get_coorp_conection_info,
     get_data_conection_info,
-    get_api_conection_info_ga,
+
 
 )
 

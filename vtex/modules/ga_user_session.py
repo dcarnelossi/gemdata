@@ -18,7 +18,7 @@ client= None
 
 
 # === CONFIG ===
-SERVICE_ACCOUNT_FILE = "C:/Python/Teste_api_shopify/proven-entropy-451418-b6-aadd279357bc.json"
+# SERVICE_ACCOUNT_FILE = "C:/Python/Teste_api_shopify/proven-entropy-451418-b6-aadd279357bc.json"
 property_id = "481670222"
 
 
