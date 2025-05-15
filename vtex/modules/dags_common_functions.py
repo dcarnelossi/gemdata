@@ -112,6 +112,69 @@ def get_api_conection_info(integration_id):
         raise
 
 
+#VOCE TERIA QUE FAZER ALGO PARA PEGAR DA INTEGRATION 
+
+
+# def integrationInfo_ga(connection_info, integration_id):
+#     try:
+#         print("integrationInfo")
+
+#         start_time = time.time()
+
+#         # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+#         query = f"""SELECT
+#                         *
+#                     FROM
+#                         public.integrations_integration 
+#                     WHERE
+#                         id = '{integration_id}'
+#                     AND
+#                         is_active = TRUE;
+#                     """
+
+#         select = WriteJsonToPostgres(connection_info, query)
+#         result = select.query()
+
+#         if result:
+#             return result[1]
+#         else:
+#             logging.error(
+#                 f"Erro na def integrationinfo da dags_common_functions. Tempo de execução: \
+#                 {time.time() - start_time:.2f} segundos"
+#             )
+#             return False
+#     except Exception as e:
+#         logging.exception("Erro na def integrationinfo da dags_common_functions" - e)
+#         raise
+
+
+
+# def get_api_conection_info_ga():
+#     try:
+#         # print(integration_id)
+
+#         # connection_info = get_coorp_conection_info()
+
+#        # data = integrationInfo(connection_info, integration_id)
+
+#        # print(data)
+ 
+#        #api_conection_info = data[0]
+
+#        # print(api_conection_info)
+
+
+#         return apicliente
+
+
+#     except Exception as e:
+#         logging.exception(f"An unexpected error occurred during DAG - {e}")
+#         raise
+
+
+
+
 def get_import_last_rum_date(connection_info, integration_id):
     try:
         print("get_import_last_rum_date")

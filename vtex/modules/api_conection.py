@@ -3,6 +3,9 @@ import logging
 
 import requests
 
+from google.oauth2 import service_account
+from google.analytics.data_v1beta import BetaAnalyticsDataClient
+
 
 def vtex_test_conection(domain, method, path, params=None, headers=None):
     try:
@@ -48,5 +51,19 @@ def make_request(domain, method, path, params=None, headers=None,json=None):
         raise
 
 
-if __name__ == "__main__":
-    vtex_test_conection(1)
+def make_request_ga(account_file):
+    try:
+        
+        credentials = service_account.Credentials.from_service_account_info(account_file)
+        client = BetaAnalyticsDataClient(credentials=credentials)
+
+        return client 
+    except requests.RequestException as e:
+        logging.error(f"Request failed: {e}")
+        raise
+
+
+
+
+# if __name__ == "__main__":
+#     vtex_test_conection(1)
