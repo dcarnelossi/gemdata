@@ -39,7 +39,7 @@ default_args = {
 
 
 with DAG(
-    "LI-2-Categories",
+    "LI-3-Categories",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
@@ -75,7 +75,7 @@ with DAG(
         api_conection_info = get_api_conection_info(team_id)
         # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
-        from modules import li_categories
+        from modules import li_categories   
 
         try:
             end_date = datetime.now() + timedelta(days=1)
@@ -91,7 +91,7 @@ with DAG(
                 min_date = end_date - timedelta(days=735)   
 
 
-            li_category.set_globals(
+            li_categories.set_globals(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
