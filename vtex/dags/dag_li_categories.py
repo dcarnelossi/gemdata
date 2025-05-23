@@ -39,11 +39,11 @@ default_args = {
 
 
 with DAG(
-    "LI-2-Category",
+    "LI-2-Categories",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["LI", "category", "IMPORT"],
+    tags=["LI", "categories", "IMPORT"],
     render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
@@ -75,7 +75,7 @@ with DAG(
         api_conection_info = get_api_conection_info(team_id)
         # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
-        from modules import li_category
+        from modules import li_categories
 
         try:
             end_date = datetime.now() + timedelta(days=1)
