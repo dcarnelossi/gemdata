@@ -106,19 +106,19 @@ with DAG(
             raise e
     
         
-    # trigger_dag_update_orders_list = TriggerDagRunOperator(
-    #     task_id="trigger_dag_update_orders_list",
-    #     trigger_dag_id="3-DagUpdate-Orders-List",  # Substitua pelo nome real da sua segunda DAG
-    #     conf={
-    #         "PGSCHEMA": "{{ params.PGSCHEMA }}",
-    #          "ISDAILY": "{{ params.ISDAILY }}",
-    #     },  # Se precisar passar informações adicionais para a DAG_B
-    # )
+    trigger_dag_products = TriggerDagRunOperator(
+        task_id="trigger_dag_products",
+        trigger_dag_id="LI-2-Products",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+             "ISDAILY": "{{ params.ISDAILY }}",
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
     try:
         orders_list_task = orders_list()
 
 
-        orders_list_task #>>  trigger_dag_update_orders_list 
+        orders_list_task >>  trigger_dag_products 
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
