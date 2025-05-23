@@ -797,6 +797,295 @@ def gasqlscripts(schema, user):
 
     return scripts
 
+
+
+def lojaintegradasqlscripts(schema, user):
+    scripts = f"""
+
+     
+    CREATE TABLE IF NOT EXISTS "{schema}".lojaintegrada_list_products (
+            id BIGINT PRIMARY KEY,
+            name TEXT,
+            alias TEXT,
+            sku TEXT,
+            active BOOLEAN,
+            blocked BOOLEAN,
+            removed BOOLEAN,
+            type TEXT,
+            url TEXT,
+            description TEXT,
+            gtin TEXT,
+            mpn TEXT,
+            ncm TEXT,
+            external_id TEXT,
+            youtube_url TEXT,
+            categories JSONB,
+            variations JSONB,
+            grades JSONB,
+            children JSONB,
+            tags JSONB,
+            resource_uri TEXT,
+            seo_uri TEXT,
+            data_insercao TIMESTAMPTZ DEFAULT now()
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_list_products
+    OWNER to {user};	
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_products (
+        id BIGINT PRIMARY KEY,
+        sku TEXT,
+        name TEXT,
+        alias TEXT,
+        type TEXT,
+        url TEXT,
+        description TEXT,
+        gtin TEXT,
+        mpn TEXT,
+        ncm TEXT,
+        external_id TEXT,
+        youtube_url TEXT,
+        active BOOLEAN,
+        blocked BOOLEAN,
+        removed BOOLEAN,
+        used BOOLEAN,
+        highlight BOOLEAN,
+        brand TEXT,
+        parent TEXT,
+        main_image TEXT,
+        resource_uri TEXT,
+        seo_uri TEXT,
+        cost_price NUMERIC,
+        full_price NUMERIC,
+        promotional_price NUMERIC,
+        price_on_request BOOLEAN,
+        stock_controlled BOOLEAN,
+        stock_quantity NUMERIC,
+        stock_in_stock_status INTEGER,
+        stock_out_stock_status INTEGER,
+        height NUMERIC,
+        width NUMERIC,
+        depth NUMERIC,
+        weight NUMERIC,
+        created_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ,
+        tags TEXT,
+        grades TEXT,
+        images TEXT,
+        children TEXT,
+        categories TEXT,
+        variations TEXT,
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_products
+    OWNER to {user};	
+
+     CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_categories (
+            id BIGINT PRIMARY KEY,
+            name TEXT,
+            description TEXT,
+            external_id TEXT,
+            parent_category TEXT,
+            url TEXT,
+            resource_uri TEXT,
+            seo_uri TEXT,
+            data_insercao TIMESTAMPTZ DEFAULT now()
+        );
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_categories
+        OWNER to {user};	
+
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_list_orders (
+        id BIGINT PRIMARY KEY,
+        order_number INTEGER,
+        customer_uri TEXT,
+        
+        status_id INTEGER,
+        status_code TEXT,
+        status_name TEXT,
+        status_final BOOLEAN,
+        status_approved BOOLEAN,
+        status_canceled BOOLEAN,
+        status_notify_customer BOOLEAN,
+        status_uri TEXT,
+        
+        subtotal_value NUMERIC,
+        shipping_value NUMERIC,
+        discount_value NUMERIC,
+        total_value NUMERIC,
+        real_weight NUMERIC,
+        
+        external_id TEXT,
+        anymarket_id TEXT,
+        utm_campaign TEXT,
+        integration_data JSONB,
+        
+        resource_uri TEXT,
+        
+        created_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ,
+        expiration_date TIMESTAMPTZ,
+        
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_list_orders
+        OWNER to {user};
+
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_orders (
+        id BIGINT PRIMARY KEY,
+        order_number INTEGER,
+        resource_uri TEXT,
+
+        created_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ,
+        expiration_date TIMESTAMPTZ,
+
+        subtotal_value NUMERIC,
+        shipping_value NUMERIC,
+        discount_value NUMERIC,
+        total_value NUMERIC,
+        real_weight NUMERIC,
+
+        external_id TEXT,
+        anymarket_id TEXT,
+        utm_campaign TEXT,
+        integration_data JSONB,
+
+        status_id INTEGER,
+        status_code TEXT,
+        status_name TEXT,
+        status_final BOOLEAN,
+        status_approved BOOLEAN,
+        status_canceled BOOLEAN,
+        status_notify_customer BOOLEAN,
+        status_uri TEXT,
+
+        client_id BIGINT,
+        client_name TEXT,
+        client_email TEXT,
+        client_cpf TEXT,
+        client_birthdate DATE,
+        client_gender TEXT,
+        client_mobile TEXT,
+        client_uri TEXT,
+
+        delivery_zipcode TEXT,
+        delivery_city TEXT,
+        delivery_state TEXT,
+        delivery_address TEXT,
+        delivery_number TEXT,
+        delivery_complement TEXT,
+        delivery_neighborhood TEXT,
+        delivery_country TEXT,
+
+        shipments JSONB,
+        items JSONB,
+        payments JSONB,
+
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+    
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_orders
+        OWNER to {user};
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_shipments (
+        id BIGINT PRIMARY KEY,
+        order_uri TEXT,
+        object TEXT,
+        delivery_time INTEGER,
+        shipping_price NUMERIC,
+
+        carrier_id INTEGER,
+        carrier_code TEXT,
+        carrier_name TEXT,
+        carrier_type TEXT,
+
+        created_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ,
+        
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );  
+    
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_shipments
+        OWNER to {user};  
+
+        
+     CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_orders_items (
+        id BIGINT PRIMARY KEY,
+        order_uri TEXT,
+        product_uri TEXT,
+        parent_product_uri TEXT,
+
+        sku TEXT,
+        name TEXT,
+        type TEXT,
+        ncm TEXT,
+        line INTEGER,
+        availability INTEGER,
+
+        height INTEGER,
+        width INTEGER,
+        depth INTEGER,
+        weight NUMERIC,
+
+        quantity NUMERIC,
+        full_price NUMERIC,
+        cost_price NUMERIC,
+        sale_price NUMERIC,
+        promotional_price NUMERIC,
+        subtotal_price NUMERIC,
+
+        variation JSONB,
+
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+
+      ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_orders_items
+        OWNER to {user};  
+
+
+    CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_order_payments (
+        id BIGINT PRIMARY KEY,
+        amount NUMERIC,
+        amount_paid NUMERIC,
+        payment_type TEXT,
+        transaction_id TEXT,
+
+        authorization_code TEXT,
+        gateway_message TEXT,
+        gateway_return_code TEXT,
+        identifier_id TEXT,
+
+        bank TEXT,
+        brand TEXT,
+        pix_code TEXT,
+        pix_qrcode TEXT,
+        boleto_url TEXT,
+
+        installments_number INTEGER,
+        installment_value NUMERIC,
+
+        payment_method_id INTEGER,
+        payment_method_name TEXT,
+        payment_method_code TEXT,
+        payment_method_uri TEXT,
+        payment_method_logo TEXT,
+        payment_method_active BOOLEAN,
+        payment_method_available BOOLEAN,
+
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+    
+    ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_order_payments
+        OWNER to {user};  
+
+    """
+
+    return scripts
+
+
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:
 #         text_file.write(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
