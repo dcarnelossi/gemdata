@@ -3,9 +3,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 import time
 import requests
-from teste_dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
-from helpers import increment_one_day
+from modules.helpers import increment_one_day
 
 # from modules.api_conection import make_request_lojaintegrada
 #from modules.dbpgcon import WriteJsonToPostgres
