@@ -29,7 +29,7 @@ def make_request_lojaintegrada(offset):
         else:
             url = 'https://api.awsli.com.br/v1/produto/'
         
-        
+        logging.info(url)
         params = {
             'format': 'json',
             'chave_api': api_conection_info["apptoken"],
@@ -98,7 +98,6 @@ def load_graphql_query(query_type):
                     ORDER BY date_modification DESC
                     LIMIT 1;
                 """
-                #result = WriteJsonToPostgres(coorp_conection_info, query_default, "integrations_parameter_api")
                 result = WriteJsonToPostgres(coorp_conection_info, query_default, "integrations_parameter_api")
                 
                 result, _ = result.query()
