@@ -114,13 +114,13 @@ with DAG(
     #          "ISDAILY": "{{ params.ISDAILY }}",
     #     },  # Se precisar passar informações adicionais para a DAG_B
     # )
-    # try:
-    #     orders_list_task = orders_list()
+    try:
+        orders_list_task = orders_list()
 
 
-    #     orders_list_task >>  trigger_dag_update_orders_list 
+        orders_list_task #>>  trigger_dag_update_orders_list 
     
-    # except Exception as e:
-    #     logging.error(f"Error inserting log diario: {e}")
+    except Exception as e:
+        logging.error(f"Error inserting log diario: {e}")
     
-    #     raise  # Ensure failure is propagated to Airflow
+        raise  # Ensure failure is propagated to Airflow
