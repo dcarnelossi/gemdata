@@ -109,6 +109,8 @@ def get_api_conection_info(integration_id):
                 "appapplication": 'a3ed7334-73c0-44c4-9461-bdfa37b1403c',
             }
 
+    #   "apptoken": api_conection_info["api_apptoken"],
+          
         return apicliente
 
 
