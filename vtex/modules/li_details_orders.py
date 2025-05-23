@@ -16,7 +16,7 @@ start_date_info = None
 
 
 def get_details_orders(column_orders):
-    query = f"SELECT {column_orders}  FROM lojaintegrada_order swhere data_insercao >= '{start_date_info}' ORDER BY id"
+    query = f"SELECT {column_orders}  FROM lojaintegrada_orders where data_insercao >= '{start_date_info}' ORDER BY id"
 
 
     logging.info(query)

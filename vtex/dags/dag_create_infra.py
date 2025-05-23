@@ -73,8 +73,10 @@ with DAG(
             # Defina o código SQL para criar a tabela
             if(HOSTING == 'vtex'):
                 sql_script = scripts.vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
-            else:
+            elif(HOSTING == 'shopify'):
                 sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+            else:
+                sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
             sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
