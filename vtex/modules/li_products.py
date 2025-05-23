@@ -187,7 +187,7 @@ def fetch_and_process(query_type):
         logging.error(f"Erro no processo de fetch/process: {e}")
         raise
 
-def set_globals(api_info, data_conection, coorp_conection, query_type,start_date):
+def set_globals(api_info, data_conection, coorp_conection, type_api,start_date):
     global api_conection_info
     api_conection_info = api_info
 
@@ -200,7 +200,7 @@ def set_globals(api_info, data_conection, coorp_conection, query_type,start_date
     global start_date_info 
     start_date_info = start_date
 
-    fetch_and_process(query_type)
+    fetch_and_process(type_api)
 
 
 # set_globals("a","integrations-data-dev","appgemdata-homol","products_detailed")
