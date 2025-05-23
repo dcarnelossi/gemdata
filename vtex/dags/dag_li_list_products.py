@@ -95,7 +95,7 @@ with DAG(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
-                type_api= 'products',
+                type_api= 'list_products',
                 start_date=start_date,
                 isdaily = isdaily 
             )
