@@ -20,7 +20,7 @@ def get_details_orders(column_orders):
 
 
     logging.info(query)
-    result = WriteJsonToPostgres(data_conection_info, query, "lojaintegrada_list_orders")
+    result = WriteJsonToPostgres(data_conection_info, query, "lojaintegrada_orders")
     rows, _ = result.query()
     return [row[0] for row in rows]
 
@@ -173,6 +173,9 @@ def set_globals(api_info, data_conection, coorp_conection, type_api,start_date):
 
     global data_conection_info
     data_conection_info = data_conection
+    
+    global coorp_conection_info
+    coorp_conection_info = coorp_conection
 
     global start_date_info 
     start_date_info = start_date
