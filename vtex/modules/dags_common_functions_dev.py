@@ -92,7 +92,7 @@ def get_api_conection_info(integration_id):
                 "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com.br",
                 "headers": headers,
             }
-        else:
+        elif (api_conection_info["hosting"]=='shopify'):
             #shopify    
             headers = {
                 "Content-Type": "application/json",
@@ -102,6 +102,11 @@ def get_api_conection_info(integration_id):
             apicliente = {
                 "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com",
                 "headers": headers,
+            }
+        else:
+            apicliente = {
+                "apptoken": 'b8f67d126c58b69b8f66',
+                "appapplication": 'a3ed7334-73c0-44c4-9461-bdfa37b1403c',
             }
 
         return apicliente
