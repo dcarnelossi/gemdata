@@ -39,7 +39,7 @@ default_args = {
 
 
 with DAG(
-    "'LI-2-Products'",
+    "LI-2-Products",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
