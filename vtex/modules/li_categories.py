@@ -196,4 +196,4 @@ def set_globals(api_info, data_conection, coorp_conection,type_api):
     fetch_and_process(type_api)
 
 
-set_globals("a","integrations-data-dev","appgemdata-homol","categories")
+# set_globals("a","integrations-data-dev","appgemdata-homol","categories")
