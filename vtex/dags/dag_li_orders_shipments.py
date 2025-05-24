@@ -9,7 +9,7 @@ from airflow.models.param import Param
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 
-from modules.dags_common_functions_dev import (
+from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
     integrationInfo,
@@ -106,19 +106,19 @@ with DAG(
             raise e
     
         
-    # trigger_dag_update_orders_list = TriggerDagRunOperator(
-    #     task_id="trigger_dag_update_orders_list",
-    #     trigger_dag_id="3-DagUpdate-Orders-List",  # Substitua pelo nome real da sua segunda DAG
-    #     conf={
-    #         "PGSCHEMA": "{{ params.PGSCHEMA }}",
-    #          "ISDAILY": "{{ params.ISDAILY }}",
-    #     },  # Se precisar passar informações adicionais para a DAG_B
-    # )
+    trigger_dag_create_tb_client = TriggerDagRunOperator(
+        task_id="trigger_dag_create_tb_client",
+        trigger_dag_id="9-create-table-client",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+             "ISDAILY": "{{ params.ISDAILY }}",
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
     try:
         orders_details_task = orders_details()
 
 
-        orders_details_task #>>  trigger_dag_update_orders_list 
+        orders_details_task >>  trigger_dag_create_tb_client 
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
