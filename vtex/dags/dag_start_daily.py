@@ -81,7 +81,7 @@ with DAG(
         elif hosting.lower()=='shopify': 
             return 'trigger_shopify_orders_import'
         elif hosting.lower()=='loja_integrada':
-            return 'trigger_dag_li'
+            return 'trigger_li_list_products'
         else:
             return ''
 
