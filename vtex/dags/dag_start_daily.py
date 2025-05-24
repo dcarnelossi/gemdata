@@ -78,8 +78,12 @@ with DAG(
         #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
         if hosting.lower() == "vtex":
             return 'trigger_vtex_import'
-        else: 
+        elif hosting.lower()=='shopify': 
             return 'trigger_shopify_orders_import'
+        elif hosting.lower()=='loja_integrada':
+            return 'trigger_dag_li'
+        else:
+            return ''
 
     branch_task = BranchPythonOperator(
         task_id='choose_trigger_dag',
@@ -115,6 +119,21 @@ with DAG(
                 },
             )
             trigger.execute(context=context)
+    
+    def trigger_dag_run_li(ti, **context):
+            integration_data = ti.xcom_pull(task_ids="get_postgres_id")
+            integration_id = integration_data["id"]
+
+            trigger = TriggerDagRunOperator(
+                task_id=f"trigger_li_list-products-{integration_id}",
+                trigger_dag_id="LI-1-List-Products",  # Substitua pelo nome real da sua segunda DAG
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": True,
+                },
+            )
+            trigger.execute(context=context)
+
 
     # trigger_dag_choose = PythonOperator(
     #         task_id="check_integration_id",
@@ -130,10 +149,15 @@ with DAG(
             task_id="trigger_shopify_orders_import",
             python_callable=trigger_dag_run_shopify,
         )
+    
+    trigger_dag_li = PythonOperator(
+            task_id="trigger_li_list_products",
+            python_callable=trigger_dag_run_li,
+        )
  
      # Definição das outras tarefas e dependências
     get_id_task = get_postgres_id()
     # Continue com a definição das outras tarefas e suas dependências
     
-    get_id_task >> branch_task >> [trigger_dag_vtex, trigger_dag_shopify]
+    get_id_task >> branch_task >> [trigger_dag_vtex, trigger_dag_shopify,trigger_dag_li]
 
