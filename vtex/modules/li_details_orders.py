@@ -126,46 +126,49 @@ def process_data_batch(data_list, table, keytable):
 
 def fetch_and_process(query_type):
     try:
-        #json_type_api = load_graphql_query(query_type)
-        
         json_details_orders = get_details_orders(query_type)
-
         json_type_api = load_graphql_query(query_type)
-        #  endpoint = json_type_api.get("endpoint", "/api/v1/produto")
+
         structure = json_type_api["structure"]
         data_path = json_type_api["data_path"]
         table = json_type_api["tablepg"]
         keytable = json_type_api["keytablepg"]
 
-
         all_data = []
-        print (json_details_orders)
-        for data in json_details_orders:
-            
-            if data:
-                all_data.extend(data) 
-            
-            # Evitar sobrecarga na API
-            time.sleep(0.5)
 
-            print(all_data)
+        for pedido in json_details_orders:
+            if not pedido:
+                continue
 
-            # Opcional: salvamento em lotes
+            # Caso especial: pagamentos precisam de order_id manualmente
+            if query_type == "payments":
+                order_id = safe_get(pedido, "id")
+                pagamentos = safe_get(pedido, "pagamentos", [])
+                for pagamento in pagamentos:
+                    pagamento["order_id"] = order_id
+                    all_data.append(pagamento)
+            else:
+                data = safe_get(pedido, query_type, [])
+                if isinstance(data, dict):
+                    all_data.append(data)
+                else:
+                    all_data.extend(data)
+
+            time.sleep(0.5)  # evitar sobrecarga
+
             if len(all_data) >= 50:
                 parsed = transform_api_response(all_data, structure, data_path)
-                process_data_batch(parsed["list"],table,keytable)
+                process_data_batch(parsed["list"], table, keytable)
                 all_data = []
 
         if all_data:
-            #print(all_data)
             parsed = transform_api_response(all_data, structure, data_path)
-           
-            process_data_batch(parsed["list"],table,keytable)
-            
+            process_data_batch(parsed["list"], table, keytable)
 
     except Exception as e:
         logging.error(f"Erro no processo de fetch/process: {e}")
         raise
+    
 
 def set_globals(api_info, data_conection, coorp_conection, type_api,start_date):
     global api_conection_info
