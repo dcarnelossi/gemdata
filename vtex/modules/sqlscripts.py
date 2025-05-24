@@ -1048,6 +1048,7 @@ def lojaintegradasqlscripts(schema, user):
 
     CREATE TABLE IF NOT EXISTS  "{schema}".lojaintegrada_order_payments (
         id BIGINT PRIMARY KEY,
+        order_id bigint not null ,
         amount NUMERIC,
         amount_paid NUMERIC,
         payment_type TEXT,

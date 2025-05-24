@@ -16,13 +16,13 @@ start_date_info = None
 
 
 def get_details_orders(column_orders):
-    query = f"SELECT {column_orders}  FROM lojaintegrada_orders where data_insercao >= '{start_date_info}' ORDER BY id"
+    query = f"SELECT {column_orders},order_number  FROM lojaintegrada_orders where data_insercao >= '{start_date_info}' ORDER BY id"
 
 
     logging.info(query)
     result = WriteJsonToPostgres(data_conection_info, query, "lojaintegrada_orders")
     rows, _ = result.query()
-    return [row[0] for row in rows]
+    return rows
 
 
 
@@ -124,6 +124,7 @@ def process_data_batch(data_list, table, keytable):
                 logging.error("Falha após 5 tentativas ao salvar dados no banco.")
                 raise e
 
+
 def fetch_and_process(query_type):
     try:
         json_details_orders = get_details_orders(query_type)
@@ -135,20 +136,19 @@ def fetch_and_process(query_type):
         keytable = json_type_api["keytablepg"]
 
         all_data = []
-
-        for pedido in json_details_orders:
-            if not pedido:
+     
+        for row in json_details_orders:
+            pedido_json, order_number = row
+            if not pedido_json:
                 continue
 
-            # Caso especial: pagamentos precisam de order_id manualmente
             if query_type == "payments":
-                order_id = safe_get(pedido, "id")
-                pagamentos = safe_get(pedido, "pagamentos", [])
+                pagamentos = pedido_json
                 for pagamento in pagamentos:
-                    pagamento["order_id"] = order_id
+                    pagamento["order_id"] = order_number
                     all_data.append(pagamento)
             else:
-                data = safe_get(pedido, query_type, [])
+                data = pedido_json
                 if isinstance(data, dict):
                     all_data.append(data)
                 else:
@@ -168,7 +168,6 @@ def fetch_and_process(query_type):
     except Exception as e:
         logging.error(f"Erro no processo de fetch/process: {e}")
         raise
-    
 
 def set_globals(api_info, data_conection, coorp_conection, type_api,start_date):
     global api_conection_info
