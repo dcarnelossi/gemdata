@@ -1101,9 +1101,9 @@ def moovinsqlscripts(schema, user):
             video TEXT,
             active BOOLEAN,
             external_link TEXT,
-            category_id UUID,
+            category_id TEXT,
             category_label TEXT,
-            brand_id UUID,
+            brand_id TEXT,
             brand_label TEXT,
             specifications JSONB,
             variation_attributes JSONB,
@@ -1123,14 +1123,14 @@ def moovinsqlscripts(schema, user):
     OWNER to {user};	
 
     CREATE TABLE IF NOT EXISTS "{schema}".moovin_categories (
-              id UUID ,
+              id TEXT ,
             name TEXT,
             description TEXT,
             seo_uri TEXT,
             banner_desktop TEXT,
             banner_mobile TEXT,
             banner_link TEXT,
-            parent_category UUID,
+            parent_category TEXT,
             children JSONB,
             data_insercao timestamptz DEFAULT now() NULL,
             CONSTRAINT moovin_categories_pkey PRIMARY KEY (id)
@@ -1141,7 +1141,7 @@ def moovinsqlscripts(schema, user):
 
 
     CREATE TABLE IF NOT EXISTS "{schema}".moovin_orders (
-            id UUID ,
+            id TEXT ,
             order_number INTEGER,
 
             created_at TIMESTAMPTZ,
@@ -1161,7 +1161,7 @@ def moovinsqlscripts(schema, user):
 
             status TEXT,
 
-            client_id UUID,
+            client_id TEXT,
             client_name TEXT,
             client_email TEXT,
             client_document TEXT,
@@ -1203,7 +1203,7 @@ def moovinsqlscripts(schema, user):
 
 
     CREATE TABLE IF NOT EXISTS "{schema}".moovin_order_shippings (
-            id UUID ,
+            id TEXT ,
             order_number bigint, 
             post_date TIMESTAMPTZ,
             delivery_date TIMESTAMPTZ,
@@ -1211,9 +1211,9 @@ def moovinsqlscripts(schema, user):
             status TEXT,
             processed BOOLEAN,
 
-            quote_id UUID,
+            quote_id TEXT,
 
-            carrier_id UUID,
+            carrier_id TEXT,
             carrier_code TEXT,
             carrier_name TEXT,
             carrier_type TEXT,
@@ -1236,7 +1236,7 @@ def moovinsqlscripts(schema, user):
 
 
     CREATE TABLE IF NOT EXISTS "{schema}".moovin_order_payments (
-            id UUID ,
+            id TEXT ,
             order_number bigint,
             payment_type TEXT,
             credit_card_brand TEXT,
@@ -1260,11 +1260,11 @@ def moovinsqlscripts(schema, user):
 
 
     CREATE TABLE IF NOT EXISTS "{schema}".moovin_shipping_items (
-            id UUID ,
+            id TEXT ,
             order_number INTEGER,
 
             description TEXT,
-            product_id UUID,
+            product_id TEXT,
             gtin TEXT,
             variation_sku TEXT,
             image TEXT,
