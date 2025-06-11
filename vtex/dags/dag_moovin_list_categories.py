@@ -9,7 +9,7 @@ from airflow.models.param import Param
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 
-from modules.dags_common_functions_dev import (
+from modules.dags_common_functions import (
     get_coorp_conection_info,
     get_data_conection_info,
     integrationInfo,
