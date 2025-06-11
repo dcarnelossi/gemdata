@@ -72,24 +72,24 @@ with DAG(
             
             # Defina o código SQL para criar a tabela
             if(HOSTING == 'vtex'):
-                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             elif(HOSTING == 'shopify'):
-                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             elif(HOSTING == 'loja_integrada'):
-                sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+                sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
             elif(HOSTING == 'moovin'):
-                 sql_script = scripts.moovinsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+                 sql_script = scripts.moovinsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
             else:
                 sql_script ="erro"
             
-            sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
 
             #Prod
-            #hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             #homol
-            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
+            #hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             
             hook.run(sql_script)
 
@@ -106,9 +106,9 @@ with DAG(
 
             # Initialize the PostgresHook
             #Prod
-            #hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
             #Homol
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-homol")
+            #hook2 = PostgresHook(postgres_conn_id="appgemdata-homol")
 
 
             # Execute the query with parameters
