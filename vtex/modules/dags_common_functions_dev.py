@@ -100,17 +100,23 @@ def get_api_conection_info(integration_id):
             }
 
             apicliente = {
-                "Domain": f"{api_conection_info['api_accountname']}.{api_conection_info['api_environment']}.com",
+                "Domain": f"{api_conection_info['api_accountname'].replace('.myshopify.com','')}.{api_conection_info['api_environment']}.com",
                 "headers": headers,
             }
-        else:
+        elif (api_conection_info["hosting"]=='loja_integrada'):
             apicliente = {
                 "apptoken": 'b8f67d126c58b69b8f66',
                 "appapplication": 'a3ed7334-73c0-44c4-9461-bdfa37b1403c',
             }
+        elif (api_conection_info["hosting"]=='moovin'):
+            apicliente = {
+                "apikey": '7c832460-3f47-4b6d-9379-067c0411df80',
+                "apisecret": 'Mc6R5oKQoqfyp0g03O5oov1JuURfckUpU43xWtjSfc5a6W70aWR/5wzAutWKyMdt',
+                "accountclientid": api_conection_info["api_appkey"],
 
-    #   "apptoken": api_conection_info["api_apptoken"],
-          
+            }
+        else: 
+            apicliente ={}
         return apicliente
 
 
@@ -119,6 +125,62 @@ def get_api_conection_info(integration_id):
         raise
 
 
+def get_import_last_rum_date(connection_info, integration_id):
+    try:
+        print("get_import_last_rum_date")
+
+        # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+        query = f"""SELECT
+                        import_last_run_date
+                    FROM
+                        public.integrations_integration
+                    WHERE
+                        id = '{integration_id}'
+                    AND
+                        is_active = TRUE;"""
+
+        result = WriteJsonToPostgres(connection_info, query).query()
+
+        if result:
+            print(result[1])
+            return result[1]
+        else:
+            logging.error("Importação das get_import_last_rum_date deu pau")
+            return False
+    except Exception as e:
+        logging.exception("An unexpected error occurred during BRANDS import" - e)
+        raise
+
+
+def update_import_last_rum_date(connection_info, integration_id):
+    try:
+        print("update_import_last_rum_date")
+
+        # postgres_conn = dbpgconn.PostgresConnection(connection_info)
+
+        query = f"""SELECT
+                        import_last_run_date
+                    FROM
+                        public.integrations_integration
+                    WHERE
+                        id = '{integration_id}'
+                    AND
+                        is_active = TRUE;"""
+
+        result = WriteJsonToPostgres(connection_info, query).query()
+
+        if result:
+            print(result[1])
+            return result[1]
+        else:
+            logging.error("Importação das get_import_last_rum_date deu pau")
+            return False
+    except Exception as e:
+        logging.exception("An unexpected error occurred during BRANDS import" - e)
+        raise
+
+    
 def get_import_last_rum_date(connection_info, integration_id):
     try:
         print("get_import_last_rum_date")

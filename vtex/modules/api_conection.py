@@ -2,6 +2,7 @@ import http.client
 import logging
 
 import requests
+import base64
 
 import subprocess
 import sys
@@ -84,6 +85,54 @@ def make_request_ga(account_file):
         logging.error(f"Request failed: {e}")
         raise
 
+
+def make_request_token_moovin(apikey,apisecret,accountclientid):
+    try:
+
+        # Monta o header Authorization Basic
+        user_pass = f"{apikey}:{apisecret}"
+        basic_auth = base64.b64encode(user_pass.encode()).decode()
+
+        headers = {
+            '1eg-Account-Id': accountclientid,
+            '1eg-User-RoleType': 'MANAGER',
+            '1eg-App-Auth': 'true',
+            'Authorization': f'Basic {basic_auth}',
+            'Accept': 'application/json'
+        }
+
+        response = requests.post("https://api.moovin.store/iam-manager/authentication", headers=headers)
+        response.raise_for_status()
+
+        token_info = response.json()
+        print(token_info)
+        # Verifique o campo correto onde vem o token na resposta (ex: 'access_token', 'token', etc)
+        access_token = token_info['token']  
+        return access_token
+
+    except requests.RequestException as e:
+        logging.error(f"Token request failed: {e}")
+        raise
+
+
+
+def make_request_api_moovin(access_token,url_api,limit):
+    try:
+
+        headers = {
+                    'X-Authorization': f'Bearer {access_token}',
+                    'Accept': 'application/json'
+                }
+
+        response = requests.get(url_api, headers=headers)
+       
+
+        return response.json() if response.status_code == 200 else None
+
+
+    except requests.RequestException as e:
+        logging.error(f"Token request failed: {e}")
+        raise
 
 
 
