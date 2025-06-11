@@ -221,7 +221,7 @@ def post_analytics_analytics(pg_schema):
         try:    
            
  
-            aba_dash= [('revenue','faturamento_canais.msgpack.gz','channels'),
+            aba_dash= [
                           ('revenue','faturamento_categorias.msgpack.gz','category'),
                           ('revenue','faturamento_ecommerce.msgpack.gz','revenue'),
                           ('revenue','faturamento_regiao.msgpack.gz','cities'),
