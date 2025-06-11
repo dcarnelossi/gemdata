@@ -72,16 +72,25 @@ with DAG(
             
             # Defina o código SQL para criar a tabela
             if(HOSTING == 'vtex'):
-                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+                sql_script = scripts.vtexsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
             elif(HOSTING == 'shopify'):
-                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+                sql_script = scripts.shopifysqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            elif(HOSTING == 'loja_integrada'):
+                sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            
+            elif(HOSTING == 'moovin'):
+                 sql_script = scripts.moovinsqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
+            
             else:
-                sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+                sql_script ="erro"
             
-            sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+            sql_script_ga = scripts.gasqlscripts(PGSCHEMA, "appgemdatapgserveradmin")
 
+            #Prod
+            #hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
+            #homol
+            hook = PostgresHook(postgres_conn_id="integrations-data-dev")
             
-            hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook.run(sql_script)
 
             hook.run(sql_script_ga)
@@ -96,7 +105,11 @@ with DAG(
             """
 
             # Initialize the PostgresHook
-            hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            #Prod
+            #hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+            #Homol
+            hook2 = PostgresHook(postgres_conn_id="appgemdata-homol")
+
 
             # Execute the query with parameters
             hook2.run(query, parameters=(datetime.now(), PGSCHEMA))
@@ -120,16 +133,20 @@ with DAG(
         #logging.info(f"Escolhido o branch com base no HOSTING: {hosting}")
         if hosting.lower() == "vtex":
             return 'trigger_vtex_import'
-        else: 
+        elif hosting.lower() == 'shopify':
             return 'trigger_shopify_orders_import'
+        elif hosting.lower() == 'loja_integrada':
+            return 'trigger_li_orders_import'
+        elif hosting.lower() == 'moovin':
+            return 'trigger_moovin_orders_import'
+        else:
+            return "erro"
 
     branch_task = BranchPythonOperator(
         task_id='choose_trigger_dag',
         provide_context=True,
         python_callable=choose_trigger_dag
     )
-
-
 
     # Trigger para VTEX
     trigger_vtex_import_ini = TriggerDagRunOperator(
@@ -151,10 +168,31 @@ with DAG(
         },
     )
 
+        # Trigger para Shopify
+    trigger_li_orders_import_ini = TriggerDagRunOperator(
+        task_id="trigger_li_orders_import",
+        trigger_dag_id="LI-1-List-Products",
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY": "{{ params.ISDAILY }}",
+        },
+    )
+
+        # Trigger para Shopify
+    trigger_moovin_orders_import_ini = TriggerDagRunOperator(
+        task_id="trigger_moovin_orders_import",
+        trigger_dag_id="moovin-1-Products",
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY": "{{ params.ISDAILY }}",
+        },
+    )
+
+
     # Configurando a dependência entre as tarefas
     create_postgres_infra_task = create_postgres_infra()
    # choose_trigger_dag_task = choose_trigger_dag()
 
 
-    create_postgres_infra_task >> branch_task >> [trigger_vtex_import_ini, trigger_shopify_orders_import_ini]
+    create_postgres_infra_task >> branch_task >> [trigger_vtex_import_ini, trigger_shopify_orders_import_ini,trigger_li_orders_import_ini,trigger_moovin_orders_import_ini]
 

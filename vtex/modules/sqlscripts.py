@@ -802,7 +802,8 @@ def gasqlscripts(schema, user):
 def lojaintegradasqlscripts(schema, user):
     scripts = f"""
 
-     
+    CREATE SCHEMA IF NOT EXISTS "{schema}";
+    
     CREATE TABLE IF NOT EXISTS "{schema}".lojaintegrada_list_products (
             id BIGINT PRIMARY KEY,
             name TEXT,
@@ -1084,6 +1085,205 @@ def lojaintegradasqlscripts(schema, user):
 
     """
 
+    return scripts
+
+
+
+def moovinsqlscripts(schema, user):
+    scripts = f"""
+
+    CREATE SCHEMA IF NOT EXISTS "{schema}";
+    
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_list_products (
+            id TEXT ,
+            title TEXT,
+            description TEXT,
+            video TEXT,
+            active BOOLEAN,
+            external_link TEXT,
+            category_id UUID,
+            category_label TEXT,
+            brand_id UUID,
+            brand_label TEXT,
+            specifications JSONB,
+            variation_attributes JSONB,
+            additional_categories JSONB,
+            images JSONB,
+            groups JSONB,
+            variations JSONB,
+            hotsites JSONB,
+            metadata JSONB,
+            created_at TIMESTAMPTZ,
+            updated_at TIMESTAMPTZ,
+            data_insercao timestamptz DEFAULT now() NULL,
+            CONSTRAINT moovin_list_products_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_list_products
+    OWNER to {user};	
+
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_categories (
+              id UUID ,
+            name TEXT,
+            description TEXT,
+            seo_uri TEXT,
+            banner_desktop TEXT,
+            banner_mobile TEXT,
+            banner_link TEXT,
+            parent_category UUID,
+            children JSONB,
+            data_insercao timestamptz DEFAULT now() NULL,
+            CONSTRAINT moovin_categories_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_categories
+    OWNER to {user};	
+
+
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_orders (
+            id UUID ,
+            order_number INTEGER,
+
+            created_at TIMESTAMPTZ,
+            updated_at TIMESTAMPTZ,
+            approved_at TIMESTAMPTZ,
+            canceled_at TIMESTAMPTZ,
+
+            subtotal_value NUMERIC(10,2),
+            shipping_value NUMERIC(10,2),
+            discount_value NUMERIC(10,2),
+            total_value NUMERIC(10,2),
+
+            external_id TEXT,
+            observation TEXT,
+            channel TEXT,
+            channel_identifier TEXT,
+
+            status TEXT,
+
+            client_id UUID,
+            client_name TEXT,
+            client_email TEXT,
+            client_document TEXT,
+            client_phone TEXT,
+            client_type TEXT,
+
+            billing_zipcode TEXT,
+            billing_city TEXT,
+            billing_state TEXT,
+            billing_address TEXT,
+            billing_number TEXT,
+            billing_complement TEXT,
+            billing_neighborhood TEXT,
+
+            delivery_zipcode TEXT,
+            delivery_city TEXT,
+            delivery_state TEXT,
+            delivery_address TEXT,
+            delivery_number TEXT,
+            delivery_complement TEXT,
+            delivery_neighborhood TEXT,
+
+            metadata_ip TEXT,
+            metadata_device_type TEXT,
+            metadata_browser TEXT,
+            metadata_os TEXT,
+            metadata_os_version TEXT,
+            metadata_entry_url TEXT,
+
+            shippings JSONB,
+            payments JSONB,
+            data_insercao timestamptz DEFAULT now() NULL,
+            CONSTRAINT mmoovin_orders_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_orders
+    OWNER to {user};	
+
+
+
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_order_shippings (
+            id UUID ,
+            order_number bigint, 
+            post_date TIMESTAMPTZ,
+            delivery_date TIMESTAMPTZ,
+            shipping_price NUMERIC(10,2),
+            status TEXT,
+            processed BOOLEAN,
+
+            quote_id UUID,
+
+            carrier_id UUID,
+            carrier_code TEXT,
+            carrier_name TEXT,
+            carrier_type TEXT,
+            carrier_method TEXT,
+            delivery_time INTEGER,
+
+            tracking_code TEXT,
+            tracking_link TEXT,
+
+            items JSONB,
+            invoices JSONB,
+
+            updated_at TIMESTAMPTZ,
+            data_insercao timestamptz DEFAULT now() NULL,
+            CONSTRAINT moovin_order_shippings_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_order_shippings
+    OWNER to {user};	
+
+
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_order_payments (
+            id UUID ,
+            order_number bigint,
+            payment_type TEXT,
+            credit_card_brand TEXT,
+            payment_gateway TEXT,
+
+            boleto_barcode TEXT,
+            boleto_expiration TIMESTAMPTZ,
+            boleto_url TEXT,
+
+            amount NUMERIC(10,2),
+            amount_paid NUMERIC(10,2),
+
+            installments_number INTEGER,
+            data_insercao timestamptz DEFAULT now() NULL,
+            CONSTRAINT moovin_order_payments_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_order_payments
+    OWNER to {user};	
+
+
+
+    CREATE TABLE IF NOT EXISTS "{schema}".moovin_shipping_items (
+            id UUID ,
+            order_number INTEGER,
+
+            description TEXT,
+            product_id UUID,
+            gtin TEXT,
+            variation_sku TEXT,
+            image TEXT,
+
+            specifications JSONB,
+            warehouses JSONB,
+
+            quantity INTEGER,
+            price NUMERIC(10,2),
+            price_paid NUMERIC(10,2),
+            data_insercao timestamptz DEFAULT now() NULL,
+            constraint moovin_shipping_items_pkey PRIMARY KEY (id)
+        );
+
+    ALTER TABLE IF EXISTS  "{schema}".moovin_shipping_items
+    OWNER to {user};	
+
+
+    """
     return scripts
 
 
