@@ -116,8 +116,13 @@ with DAG(
 
     },
 ) as dag:
-    print("eee")
+    def gerar_report_id():
+        print("eee")
 
+    report_id=gerar_report_id()
+
+    report_id    
+   
         
     # @task(provide_context=True)
     # def report_baixar_pdf(**kwargs):
