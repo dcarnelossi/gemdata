@@ -402,7 +402,7 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
             # Se não for o último dia, ajustar para o último
             data_futura = data_futura.replace(day=ultimo_dia)
 
-        dias_projecao = (data_futura - data_inicio_datetime).days
+        dias_projecao = (data_futura - data_inicio_datetime).days +1
         df = TratarBase()
         if(len(df) >= 365):     
             
