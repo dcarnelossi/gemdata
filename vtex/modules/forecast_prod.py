@@ -830,9 +830,21 @@ def inserir_forecast(future_df: pd.DataFrame):
     primeira_execucao = res[0]["qtd"] == 0
 
     if primeira_execucao:
+        print("primeira execucao")
         df_realizado = CriaDataFrameRealizado()
-        df_hist = df_realizado[df_realizado["dt_pedido"] < hoje_dt][["dt_pedido","sum_revenue"]].copy()
-        df_hist.columns = ["creationdateforecast","predicted_revenue"]
+
+        # -- garanta que dt_pedido é datetime, se ainda não for
+        df_realizado["dt_pedido"] = pd.to_datetime(df_realizado["dt_pedido"])
+
+        hoje_dt = pd.to_datetime(hoje_dt)          # caso hoje_dt ainda seja string ou date
+        primeiro_dia_mes = hoje_dt.replace(day=1)  # 1º dia do mês de hoje
+
+        # pedidos do mês corrente, até ontem (hoje_dt não incluso)
+        filtro = (df_realizado["dt_pedido"] < hoje_dt) & \
+                (df_realizado["dt_pedido"] >= primeiro_dia_mes)
+
+        df_hist = df_realizado.loc[filtro, ["dt_pedido", "sum_revenue"]].copy()
+        df_hist.columns = ["creationdateforecast", "predicted_revenue"]
         df_hist["predicted_revenue"] = df_hist["predicted_revenue"].astype(float).round(2)
         WriteJsonToPostgres(data_conection_info, df_hist.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(df_hist.to_dict("records"))
 
