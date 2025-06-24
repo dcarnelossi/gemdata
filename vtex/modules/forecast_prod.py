@@ -126,6 +126,7 @@ def CriaDataFrameRealizado():
                         --count(1) as sum_revenue, 
                         'realizado' as nm_tipo_registro 
                     from orders_ia as o 
+                    where date_trunc('day',o.creationdate)  <CURRENT_DATE
                     group by date_trunc('day',o.creationdate) order by 1 asc 
                         """
         _, realizado = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
@@ -636,32 +637,53 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
 
-def inserir_forecast(future_df):
 
-    try:
-            
-        final_df = future_df[['creationdateforecast', 'predicted_revenue']]
+def inserir_forecast(future_df: pd.DataFrame):
+    """Insere ou atualiza previsões na tabela, preservando passado."""
+    if future_df.empty:
+        logging.warning("DataFrame de futuro vazio – nada a inserir.")
+        return
 
-        final_df.loc[:, 'predicted_revenue'] = final_df['predicted_revenue'].round(2)
-    
-        query= f"""
-                        DROP TABLE IF EXISTS orders_ia_forecast;
-                        CREATE TABLE orders_ia_forecast (
-                        creationdateforecast timestamp not NULL,
-                        predicted_revenue numeric not NULL,
-                        CONSTRAINT constraint_orders_forecast UNIQUE (creationdateforecast)
-        );
-                        
-        """
+    final_df = future_df[["creationdateforecast","predicted_revenue"]].copy()
+    final_df["predicted_revenue"] = final_df["predicted_revenue"].round(2)
 
-        WriteJsonToPostgres(data_conection_info, query).execute_query_ddl()
+    hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoje_str = hoje_dt.strftime("%Y-%m-%d")
 
-        bath=final_df.to_dict(orient='records')
+    create_sql = """CREATE TABLE IF NOT EXISTS orders_ia_forecast (
+        creationdateforecast TIMESTAMP PRIMARY KEY,
+        predicted_revenue NUMERIC NOT NULL
+    );"""
+    WriteJsonToPostgres(data_conection_info, create_sql).execute_query_ddl()
 
-        WriteJsonToPostgres(data_conection_info, bath,"orders_ia_forecast","creationdateforecast").insert_data_batch(bath)
-    except Exception as e: 
-        logging.error(f"An unexpected error occurred while processing the page: {e}")
-        raise  # Ensure any error fails the Airflow task
+    delete_sql = f"DELETE FROM orders_ia_forecast WHERE creationdateforecast >= '{hoje_str}';"
+    WriteJsonToPostgres(data_conection_info, delete_sql).execute_query_ddl()
+
+    count_sql = "SELECT COUNT(1) AS qtd FROM orders_ia_forecast;"
+    _, res = WriteJsonToPostgres(data_conection_info, count_sql).query()
+    primeira_execucao = res[0]["qtd"] == 0
+
+    if primeira_execucao:
+        print("primeira execucao")
+        df_realizado = CriaDataFrameRealizado()
+
+        # -- garanta que dt_pedido é datetime, se ainda não for
+        df_realizado["dt_pedido"] = pd.to_datetime(df_realizado["dt_pedido"])
+
+        hoje_dt = pd.to_datetime(hoje_dt)          # caso hoje_dt ainda seja string ou date
+        primeiro_dia_mes = hoje_dt.replace(day=1)  # 1º dia do mês de hoje
+
+        # pedidos do mês corrente, até ontem (hoje_dt não incluso)
+        filtro = (df_realizado["dt_pedido"] < hoje_dt) & \
+                (df_realizado["dt_pedido"] >= primeiro_dia_mes)
+
+        df_hist = df_realizado.loc[filtro, ["dt_pedido", "sum_revenue"]].copy()
+        df_hist.columns = ["creationdateforecast", "predicted_revenue"]
+        df_hist["predicted_revenue"] = df_hist["predicted_revenue"].astype(float).round(2)
+        WriteJsonToPostgres(data_conection_info, df_hist.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(df_hist.to_dict("records"))
+
+    WriteJsonToPostgres(data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(final_df.to_dict("records"))
+
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info, data_conection_info, coorp_conection_info,isdaily
