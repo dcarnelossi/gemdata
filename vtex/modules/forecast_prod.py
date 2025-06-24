@@ -684,3 +684,167 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
 
 
 
+
+
+
+# ===========================
+# Utility added dynamically
+# ===========================
+def last_day_of_month(dt):
+    """Return the last calendar day of the month for a given date (dt can be date or datetime)."""
+    from datetime import timedelta
+    next_month = dt.replace(day=28) + timedelta(days=4)  # always next month
+    return next_month - timedelta(days=next_month.day)
+
+
+# ===========================
+# MODIFIED FUNCTIONS (override originals)
+# ===========================
+
+def _apply_feature_engineering(df_futuro: pd.DataFrame, base_lag: pd.DataFrame) -> pd.DataFrame:
+    """Replica toda a lógica de criação de features para a base futura."""
+    import math
+    # Lags de faturamento
+    for lag in range(1, 8):
+        df_futuro[f"faturamento_lag{lag}"] = base_lag["sum_revenue"].shift(lag).values[-len(df_futuro):]
+
+    df_futuro["media_movel_7dias"] = base_lag["sum_revenue"].rolling(window=7).mean().values[-len(df_futuro):]
+    df_futuro["media_movel_30dias"] = base_lag["sum_revenue"].rolling(window=30).mean().values[-len(df_futuro):]
+
+    # Shifts de feriados
+    for n in range(1, 8):
+        df_futuro[f"fl_feriado_shift_{n}"] = df_futuro["fl_feriado_ativo"].shift(-n).fillna(0).astype(int)
+    for tag in ["bf", "cm", "nt"]:
+        col = f"fl_feriado_{tag if tag!='bf' else 'bf'}"
+        sign = +1 if tag == "bf" else -1
+        for n in range(1, 8):
+            name = f"fl_{tag}_shift_{'p' if tag=='bf' else ''}{n}"
+            df_futuro[name] = df_futuro[col].shift(sign*n).fillna(0).astype(int)
+
+    # Calendário
+    df_futuro["id_dds"] = df_futuro["dt_pedido"].apply(lambda x: int(x.weekday()) + 2 if int(x.weekday()) + 2 != 8 else 1)
+    df_futuro["id_dia"] = df_futuro["dt_pedido"].dt.day
+    df_futuro["id_semana_do_mes"] = df_futuro["dt_pedido"].apply(lambda x: math.ceil(x.day/7))
+    df_futuro["id_mes"] = df_futuro["dt_pedido"].dt.month
+    df_futuro["id_ano"] = df_futuro["dt_pedido"].dt.year
+    df_futuro["id_semana_do_ano"] = df_futuro["dt_pedido"].dt.isocalendar().week
+
+    dias_semana = ["fl_domingo", "fl_segunda", "fl_terca", "fl_quarta", "fl_quinta", "fl_sexta", "fl_sabado"]
+    for i, nome in enumerate(dias_semana, start=1):
+        df_futuro[nome] = (df_futuro["id_dds"] == i).astype(int)
+
+    for sem in range(2, 6):
+        df_futuro[f"fl_sem{sem}_mes"] = (df_futuro["id_semana_do_mes"] == sem).astype(int)
+
+    meses_tags = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"]
+    for m, tag in enumerate(meses_tags, start=1):
+        df_futuro[f"fl_{tag}"] = (df_futuro["id_mes"] == m).astype(int)
+
+    drop_cols = ["id_dds","id_dia","id_mes","id_ano","fl_domingo","fl_jan","id_semana_do_ano"]
+    df_futuro.drop(columns=drop_cols, inplace=True)
+    return df_futuro
+
+
+def gerar_projecao_a_partir_de_data(data_inicio: str):
+    """Gera projeção diária do faturamento a partir da data_inicio até o último dia do mês corrente.
+
+    * Mantém previsões passadas.
+    * Projeta até o último dia do mês para fechar o período.
+    """
+    from datetime import timedelta
+    data_inicio_dt = datetime.strptime(data_inicio, "%Y-%m-%d").date()
+    fim_mes_dt = last_day_of_month(data_inicio_dt)
+    dias_projecao = (fim_mes_dt - data_inicio_dt).days + 1
+
+    df = TratarBase()
+
+    # Caso base longa ▸ usa modelo
+    if len(df) >= 365:
+        df.set_index("dt_pedido", inplace=True)
+        df_historico = df[df.index < datetime.combine(data_inicio_dt, datetime.min.time())]
+
+        X = df_historico.drop(columns=["sum_revenue"])
+        y = df_historico["sum_revenue"]
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+        melhor_modelo = SelecionarMelhorModelo(X_train, y_train, X_test, y_test)
+
+        ultimos_dados = df.iloc[-dias_projecao:]
+        futuras_datas = [datetime.combine(data_inicio_dt, datetime.min.time()) + timedelta(days=i) for i in range(dias_projecao)]
+        df_futuro = pd.DataFrame(index=futuras_datas)
+        df_futuro["dt_pedido"] = pd.to_datetime(df_futuro.index.values)
+
+        df_feriado = CriaDataFrameFeriado()
+        df_futuro = df_futuro.merge(df_feriado, on="dt_pedido", how="left")
+        for col in ["fl_feriado_ativo","fl_feriado_bf","fl_feriado_cm","fl_feriado_nt"]:
+            df_futuro[col] = df_futuro[col].apply(lambda x: 0 if (pd.isna(x) or x == 0) else 1)
+
+        df_futuro = _apply_feature_engineering(df_futuro, ultimos_dados)
+        df_futuro.set_index("dt_pedido", inplace=True)
+        df_futuro = df_futuro[X_train.columns]
+
+        previsoes = melhor_modelo.predict(df_futuro)
+        df_resultado = pd.DataFrame({"creationdateforecast": futuras_datas, "predicted_revenue": np.round(previsoes,2)})
+        return df_resultado
+
+    # Caso base curta ▸ média móvel
+    else:
+        hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        seis_meses_atras = hoje - timedelta(days=6*30)
+        df_ultimos = df[df["dt_pedido"] >= seis_meses_atras]
+        df_ultimos["dia_semana"] = df_ultimos["dt_pedido"].dt.dayofweek
+        media_por_dia_semana = df_ultimos.groupby("dia_semana")["sum_revenue"].mean().reset_index()
+        media_por_dia_semana.columns = ["dia_semana","predicted_revenue"]
+
+        datas_futuras = pd.date_range(start=hoje+timedelta(days=1), end=fim_mes_dt)
+        df_futuro = pd.DataFrame({"creationdateforecast": datas_futuras})
+        df_futuro["dia_semana"] = df_futuro["creationdateforecast"].dt.dayofweek
+        df_futuro = df_futuro.merge(media_por_dia_semana, on="dia_semana", how="left")
+        df_futuro["predicted_revenue"] = pd.to_numeric(df_futuro["predicted_revenue"], errors="coerce")
+        return df_futuro[["creationdateforecast","predicted_revenue"]]
+
+
+def inserir_forecast(future_df: pd.DataFrame):
+    """Insere ou atualiza previsões na tabela, preservando passado."""
+    if future_df.empty:
+        logging.warning("DataFrame de futuro vazio – nada a inserir.")
+        return
+
+    final_df = future_df[["creationdateforecast","predicted_revenue"]].copy()
+    final_df["predicted_revenue"] = final_df["predicted_revenue"].round(2)
+
+    hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoje_str = hoje_dt.strftime("%Y-%m-%d")
+
+    create_sql = """CREATE TABLE IF NOT EXISTS orders_ia_forecast (
+        creationdateforecast TIMESTAMP PRIMARY KEY,
+        predicted_revenue NUMERIC NOT NULL
+    );"""
+    WriteJsonToPostgres(data_conection_info, create_sql).execute_query_ddl()
+
+    delete_sql = f"DELETE FROM orders_ia_forecast WHERE creationdateforecast >= '{hoje_str}';"
+    WriteJsonToPostgres(data_conection_info, delete_sql).execute_query_ddl()
+
+    count_sql = "SELECT COUNT(1) AS qtd FROM orders_ia_forecast;"
+    _, res = WriteJsonToPostgres(data_conection_info, count_sql).query()
+    primeira_execucao = res[0]["qtd"] == 0
+
+    if primeira_execucao:
+        df_realizado = CriaDataFrameRealizado()
+        df_hist = df_realizado[df_realizado["dt_pedido"] < hoje_dt][["dt_pedido","sum_revenue"]].copy()
+        df_hist.columns = ["creationdateforecast","predicted_revenue"]
+        df_hist["predicted_revenue"] = df_hist["predicted_revenue"].round(2)
+        WriteJsonToPostgres(data_conection_info, df_hist.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(df_hist.to_dict("records"))
+
+    WriteJsonToPostgres(data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(final_df.to_dict("records"))
+
+
+def set_globals(api_info, data_conection, coorp_conection, **kwargs):
+    global api_conection_info, data_conection_info, coorp_conection_info
+    api_conection_info = api_info
+    data_conection_info = data_conection
+    coorp_conection_info = coorp_conection
+
+    hoje_str = datetime.now().strftime("%Y-%m-%d")
+    projecao = gerar_projecao_a_partir_de_data(hoje_str)
+    inserir_forecast(projecao)
