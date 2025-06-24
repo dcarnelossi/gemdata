@@ -833,7 +833,7 @@ def inserir_forecast(future_df: pd.DataFrame):
         df_realizado = CriaDataFrameRealizado()
         df_hist = df_realizado[df_realizado["dt_pedido"] < hoje_dt][["dt_pedido","sum_revenue"]].copy()
         df_hist.columns = ["creationdateforecast","predicted_revenue"]
-        df_hist["predicted_revenue"] = df_hist["predicted_revenue"].round(2)
+        df_hist["predicted_revenue"] = df_hist["predicted_revenue"].astype(float).round(2)
         WriteJsonToPostgres(data_conection_info, df_hist.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(df_hist.to_dict("records"))
 
     WriteJsonToPostgres(data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(final_df.to_dict("records"))
