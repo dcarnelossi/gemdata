@@ -7,6 +7,7 @@ import numpy as np
 import subprocess
 import sys
 
+import calendar
 from modules.dbpgconn import WriteJsonToPostgres
 
 def install(package):
@@ -393,14 +394,22 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
     """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
         # Trata a base e retorna o DataFrame tratado
-        dias_projecao=60
+        data_inicio_datetime = datetime.strptime(data_inicio, "%Y-%m-%d")
+        data_futura = data_inicio_datetime + timedelta(days=60)
+        ultimo_dia = calendar.monthrange(data_futura.year, data_futura.month)[1]
+
+        if data_futura.day != ultimo_dia:
+            # Se não for o último dia, ajustar para o último
+            data_futura = data_futura.replace(day=ultimo_dia)
+
+        dias_projecao = (data_futura - data_inicio_datetime).days
         df = TratarBase()
         if(len(df) >= 365):     
             
             df.set_index('dt_pedido', inplace=True)
 
             # Filtrar os dados históricos até a data anterior a data_inicio
-            data_inicio_datetime = datetime.strptime(data_inicio, "%Y-%m-%d")
+           
             df = df[df.index < data_inicio_datetime]
 
             # Preparar dados para treinamento
