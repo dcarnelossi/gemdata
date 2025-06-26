@@ -374,7 +374,7 @@ def retirar_duplicata_id(batch):
     vistos = set()
     resultado = []
     for item in batch:
-        id_item = item['id'] if isinstance(item, dict) else item[0]
+        id_item = item['orderid'] if isinstance(item, dict) else item[0]
         if id_item not in vistos:
             resultado.append(item)
             vistos.add(id_item)
