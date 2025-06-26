@@ -345,7 +345,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                             all_orders_batch.extend(batch)
 
                             while len(all_orders_batch) >= BATCH_SIZE:
-                                all_orders_batch=retirar_duplicata_id(all_orders_batch)    
+                               # all_orders_batch=retirar_duplicata_id(all_orders_batch)    
                                 process_order_batch(
                                     all_orders_batch[:BATCH_SIZE],
                                     table,
@@ -358,7 +358,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                         raise
                          
             if all_orders_batch:
-                all_orders_batch=retirar_duplicata_id(all_orders_batch)  
+                #all_orders_batch=retirar_duplicata_id(all_orders_batch)  
                 process_order_batch(
                     all_orders_batch,
                     table,
