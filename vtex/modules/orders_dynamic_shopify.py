@@ -345,6 +345,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                             all_orders_batch.extend(batch)
 
                             while len(all_orders_batch) >= BATCH_SIZE:
+                                all_orders_batch=retirar_duplicata_id(all_orders_batch)    
                                 process_order_batch(
                                     all_orders_batch[:BATCH_SIZE],
                                     table,
@@ -357,6 +358,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
                         raise
                          
             if all_orders_batch:
+                all_orders_batch=retirar_duplicata_id(all_orders_batch)  
                 process_order_batch(
                     all_orders_batch,
                     table,
@@ -368,7 +370,15 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
         raise
 
     
-
+def retirar_duplicata_id(batch):
+    vistos = set()
+    resultado = []
+    for item in batch:
+        id_item = item['id'] if isinstance(item, dict) else item[0]
+        if id_item not in vistos:
+            resultado.append(item)
+            vistos.add(id_item)
+    return resultado
 
 def set_globals(api_info, data_conection, coorp_conection,start_date,end_date,minimum_date,type_api,**kwargs):
     global api_conection_info
