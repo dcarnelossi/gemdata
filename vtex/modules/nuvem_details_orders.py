@@ -165,7 +165,7 @@ def fetch_and_process(query_type,table_ref):
         raise
 
 
-def set_globals(api_info, data_conection, coorp_conection, query_type, table_ref):
+def set_globals(api_info, data_conection, coorp_conection, start_date,query_type, table_ref):
     global api_conection_info
     api_conection_info = api_info
 
@@ -174,6 +174,11 @@ def set_globals(api_info, data_conection, coorp_conection, query_type, table_ref
 
     global coorp_conection_info
     coorp_conection_info = coorp_conection
+
+        
+    global start_date_info 
+    start_date_info = start_date
+
 
     fetch_and_process(query_type,table_ref)
 

@@ -78,17 +78,17 @@ with DAG(
         from modules import moovin_details_orders  
 
         try:
-            end_date = datetime.now() + timedelta(days=1)
+            start_date = datetime.now() - timedelta(days=1)
 
-            #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
-            if not isdaily :
-                start_date = end_date - timedelta(days=735)
-                # min_date = end_date - timedelta(days=735)
+            # #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
+            # if not isdaily :
+            #     start_date = end_date - timedelta(days=735)
+            #     # min_date = end_date - timedelta(days=735)
 
-            else:
-                #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                start_date = end_date - timedelta(days=10)
-                # min_date = end_date - timedelta(days=735)   
+            # else:
+            #     #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+            #     start_date = end_date - timedelta(days=10)
+            #     # min_date = end_date - timedelta(days=735)   
 
 
             moovin_details_orders.set_globals(
