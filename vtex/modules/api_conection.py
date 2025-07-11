@@ -136,5 +136,23 @@ def make_request_api_moovin(access_token,url_api,limit):
 
 
 
+
+
+def make_request_token_nuvem(domain, path,headers,page):
+    try:
+        
+        response = requests.get(
+            f"{domain}/{path}",
+            headers=headers,
+            params={'page': page, 'per_page':50}
+        )
+        
+        
+        return response.json() if response.status_code == 200 else None
+
+    except requests.RequestException as e:
+        logging.error(f"Request failed: {e}")
+        raise
+
 # if __name__ == "__main__":
 #     vtex_test_conection(1)

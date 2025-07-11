@@ -81,6 +81,9 @@ with DAG(
             elif(HOSTING == 'moovin'):
                  sql_script = scripts.moovinsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
+            elif(HOSTING == 'nuvem_shop'):
+                 sql_script = scripts.nuvemsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
+            
             else:
                 sql_script ="erro"
             
@@ -139,6 +142,8 @@ with DAG(
             return 'trigger_li_orders_import'
         elif hosting.lower() == 'moovin':
             return 'trigger_moovin_orders_import'
+        elif hosting.lower() == 'nuvem_shop':
+            return 'trigger_nuvem_shop_orders_import'
         else:
             return "erro"
 
@@ -188,11 +193,20 @@ with DAG(
         },
     )
 
+    trigger_nuvem_shop_orders_import_ini = TriggerDagRunOperator(
+        task_id="trigger_nuvem_shop_orders_import",
+        trigger_dag_id="nuvem-1-Categories",
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "ISDAILY": "{{ params.ISDAILY }}",
+        },
+    )
+
 
     # Configurando a dependência entre as tarefas
     create_postgres_infra_task = create_postgres_infra()
    # choose_trigger_dag_task = choose_trigger_dag()
 
 
-    create_postgres_infra_task >> branch_task >> [trigger_vtex_import_ini, trigger_shopify_orders_import_ini,trigger_li_orders_import_ini,trigger_moovin_orders_import_ini]
+    create_postgres_infra_task >> branch_task >> [trigger_vtex_import_ini, trigger_shopify_orders_import_ini,trigger_li_orders_import_ini,trigger_moovin_orders_import_ini,trigger_nuvem_shop_orders_import_ini]
 

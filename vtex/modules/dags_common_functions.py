@@ -115,6 +115,17 @@ def get_api_conection_info(integration_id):
                 "accountclientid": api_conection_info["api_appkey"],
 
             }
+        elif (api_conection_info["hosting"]=='nuvem_shop'):
+            
+            headers = {
+                'Authentication': f'bearer {api_conection_info["api_apptoken"]}',
+                'Content-Type': 'application/json',
+                'User-Agent': 'gemdata (tecnologia@gemdata.com.br)'  # Recomendado
+            }
+            apicliente = {
+                "Domain": f"https://api.tiendanube.com/v1/{api_conection_info["api_appkey"]}",
+                "headers": headers,
+            }
         else: 
             apicliente ={}
         return apicliente
