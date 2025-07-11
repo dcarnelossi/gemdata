@@ -161,10 +161,10 @@ def process_data_batch(data_list, table, keytable):
                 logging.error("Falha após 5 tentativas ao salvar dados no banco.")
                 raise e
 
-def fetch_and_process(query_type,start_date,end_date):
+def fetch_and_process(json_type_api,start_date,end_date):
     try:
         #json_type_api = load_graphql_query(query_type)
-        json_type_api = load_graphql_query(query_type)
+        
       
       
       #  endpoint = json_type_api.get("endpoint", "/api/v1/produto")
@@ -189,6 +189,8 @@ def process_orders_lists(type_api):
     try:
         
         data_inicial, data_final = validate_and_convert_dates(start_date_info, end_date_info)
+
+        json_type_api = load_graphql_query(type_api)
         
         while data_inicial <= data_final:
             start_date, end_date = increment_one_day(data_inicial)
@@ -196,7 +198,7 @@ def process_orders_lists(type_api):
             logging.info(f"Processing orders from {start_date} to {end_date}.")
             # print(f"aaaaaaaaaaaaaa{start_date}")
             # if(start_date=='2024-10-09T02:00:00.000000Z'):
-            fetch_and_process(type_api,start_date,end_date)
+            fetch_and_process(json_type_api,start_date,end_date)
             data_inicial += timedelta(days=1)
 
     except Exception as e:
