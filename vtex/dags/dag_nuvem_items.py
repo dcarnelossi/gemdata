@@ -89,12 +89,14 @@ with DAG(
             #     #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
             #     start_date = end_date - timedelta(days=10)
             #     # min_date = end_date - timedelta(days=735)   
-
+            
+            start_date = datetime.now() - timedelta(days=1)
 
             nuvem_details_orders.set_globals(
                 api_conection_info,
                 data_conection_info,
                 coorp_conection_info,
+                start_date= start_date,
                 query_type= 'items',
                 table_ref='nuvem_orders'
                 # start_date=start_date,

@@ -78,18 +78,20 @@ with DAG(
         from modules import li_details_orders
 
         try:
-            end_date = datetime.now() + timedelta(days=1)
+            # end_date = datetime.now() + timedelta(days=1)
 
-            #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
-            if not isdaily :
-                start_date = end_date - timedelta(days=735)
-                min_date = end_date - timedelta(days=735)
+            # #alterado por gabiru de: timedelta(days=1) coloquei timedelta(days=90)
+            # if not isdaily :
+            #     start_date = end_date - timedelta(days=735)
+            #     min_date = end_date - timedelta(days=735)
 
-            else:
-                #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
-                start_date = end_date - timedelta(days=10)
-                min_date = end_date - timedelta(days=735)   
+            # else:
+            #     #start_date = last_rum_date["import_last_run_date"] - timedelta(days=90)
+            #     start_date = end_date - timedelta(days=10)
+            #     min_date = end_date - timedelta(days=735)   
 
+
+            start_date = datetime.now() - timedelta(days=1)
 
             li_details_orders.set_globals(
                 api_conection_info,
