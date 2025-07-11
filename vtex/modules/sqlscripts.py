@@ -1287,6 +1287,116 @@ def moovinsqlscripts(schema, user):
     return scripts
 
 
+
+def nuvemsqlscripts(schema, user):
+    scripts = f"""
+
+    CREATE SCHEMA IF NOT EXISTS "{schema}";
+    
+    CREATE TABLE IF NOT EXISTS "{schema}".nuvem_orders (
+    order_id              bigint     ,
+    store_id              int,
+    created_at            timestamptz,
+    updated_at            timestamptz,
+    completed_at          timestamptz,
+    next_action           text,
+    status                text,
+    currency              char(3),
+    subtotal_value        numeric(12,2),
+    discount_value        numeric(12,2),
+    total_value           numeric(12,2),
+    shipping_cost_owner   numeric(12,2),
+    shipping_cost_customer numeric(12,2),
+    shipping_tracking_number text,
+    gateway               text,
+    gateway_name          text,
+    payment_count         int,
+    customer_id           bigint,
+    customer_name         text,
+    customer_email        text,
+    customer_document     text,
+    customer_phone        text,
+    billing_zipcode       text,
+    billing_city          text,
+    billing_state         text,
+    billing_address       text,
+    billing_number        text,
+    billing_locality      text,
+    items              		jsonb,
+    method_payment           text,   
+    credit_card_brand_payment   text,
+    data_insercao         timestamptz DEFAULT now() null,  
+    CONSTRAINT nuvem_orders_pkey PRIMARY KEY (order_id)
+);
+
+    ALTER TABLE IF EXISTS  "{schema}".nuvem_orders
+    OWNER to {user};	
+
+    
+    CREATE TABLE "{schema}".nuvem_order_items (
+    id                   bigint,
+    order_id             bigint ,
+    product_id           bigint,
+    variant_id           bigint,
+    sku                  text,
+    barcode              text,
+    name                 text,
+    name_without_variants text,
+    price                numeric(12,2),
+    cost                 numeric(12,2),
+    quantity             int,
+    weight               numeric(12,3),
+    width                numeric(12,3),
+    height               numeric(12,3),
+    depth                numeric(12,3),
+    free_shipping        boolean,
+    data_insercao        timestamptz DEFAULT now(),
+    CONSTRAINT constraint_nuvem_order_items_unique UNIQUE (id, order_id)
+	
+);
+
+    ALTER TABLE IF EXISTS  "{schema}".nuvem_order_items
+    OWNER to {user};	
+
+    
+    CREATE TABLE "{schema}".nuvem_products (
+    id bigint PRIMARY KEY,
+    name text,
+    handle text,
+    published boolean,
+    free_shipping boolean,
+    requires_shipping boolean,
+    created_at timestamptz,
+    updated_at timestamptz,
+    tags text,
+    categories jsonb,               -- ← array completo vindo da API
+    category_main_id bigint,        -- ← ID da primeira categoria principal
+    category_main_name text,        -- ← Nome da categoria principal
+    data_insercao timestamptz DEFAULT now()
+);
+
+    ALTER TABLE IF EXISTS  "{schema}".nuvem_products
+    OWNER to {user};	
+
+    
+    CREATE TABLE "{schema}".nuvem_categories (
+    id bigint PRIMARY KEY,
+    name text,
+    handle text,
+    subcategories jsonb,
+    google_shopping_category text,
+    created_at timestamptz,
+    updated_at timestamptz,
+    data_insercao timestamptz DEFAULT now()
+);
+
+    ALTER TABLE IF EXISTS  "{schema}".nuvem_categories
+    OWNER to {user};	
+
+
+    """
+    return scripts
+
 # if __name__ == "__main__":
 #     with open("Output.txt", "w") as text_file:
 #         text_file.write(vtexsqlscripts("6d41d249-d875-41ef-800e-eb0941f6d86f"))
