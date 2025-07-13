@@ -173,7 +173,7 @@ with DAG(
     
         
     trigger_dag_nuvem = PythonOperator(
-            task_id="trigger_nuvem_shop_categories",
+            task_id="trigger_nuvem_categories",
             python_callable=trigger_dag_run_nuvem_shop,
         )
  
