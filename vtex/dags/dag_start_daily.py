@@ -82,6 +82,8 @@ with DAG(
             return 'trigger_shopify_orders_import'
         elif hosting.lower()=='loja_integrada':
             return 'trigger_li_list_products'
+        elif hosting.lower()=='nuvem_shop':
+            return 'trigger_nuvem_categories'
         else:
             return ''
 
@@ -133,6 +135,20 @@ with DAG(
                 },
             )
             trigger.execute(context=context)
+  
+    def trigger_dag_run_nuvem_shop(ti, **context):
+            integration_data = ti.xcom_pull(task_ids="get_postgres_id")
+            integration_id = integration_data["id"]
+
+            trigger = TriggerDagRunOperator(
+                task_id=f"trigger_nuvem_shop_categories-{integration_id}",
+                trigger_dag_id="nuvem-1-Categories",  # Substitua pelo nome real da sua segunda DAG
+                conf={
+                    "PGSCHEMA": integration_id,
+                    "ISDAILY": True,
+                },
+            )
+            trigger.execute(context=context)
 
 
     # trigger_dag_choose = PythonOperator(
@@ -154,10 +170,16 @@ with DAG(
             task_id="trigger_li_list_products",
             python_callable=trigger_dag_run_li,
         )
+    
+        
+    trigger_dag_nuvem = PythonOperator(
+            task_id="trigger_nuvem_shop_categories",
+            python_callable=trigger_dag_run_nuvem_shop,
+        )
  
      # Definição das outras tarefas e dependências
     get_id_task = get_postgres_id()
     # Continue com a definição das outras tarefas e suas dependências
     
-    get_id_task >> branch_task >> [trigger_dag_vtex, trigger_dag_shopify,trigger_dag_li]
+    get_id_task >> branch_task >> [trigger_dag_vtex, trigger_dag_shopify,trigger_dag_li,trigger_dag_nuvem]
 
