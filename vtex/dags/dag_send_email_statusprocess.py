@@ -65,6 +65,7 @@ with DAG(
                     FROM integrations_integration ii
                     WHERE ii.is_active = TRUE 
                     AND ii.infra_create_status = TRUE;
+                    
 
             """
         
