@@ -54,7 +54,9 @@ with DAG(
                         hosting,
                         CASE
                             WHEN COALESCE(daily_run_date_ini, '1900-01-01'::timestamp) = '1900-01-01'::timestamp THEN 'ERRO - PROCESSO NOVO NÃO INICIADO'
-                            WHEN daily_run_date_ini > COALESCE(daily_run_date_end, '1900-01-01'::timestamp) THEN 'ERRO - PROCESSO DIARIO'
+                            WHEN daily_run_date_ini > COALESCE(daily_run_date_end, '1900-01-01'::timestamp) 
+                                    OR TO_CHAR(COALESCE(daily_run_date_end, '1900-01-01'::timestamp), 'YYYY-MM-DD') <> TO_CHAR(NOW(), 'YYYY-MM-DD')
+                                THEN 'ERRO - PROCESSO DIARIO'
                             WHEN daily_run_date_ini <= COALESCE(daily_run_date_end, '1900-01-01'::timestamp) THEN 'EXECUTADO COM SUCESSO'
                             ELSE 'ERRO - SEI LA'
                         END AS status_diario,
