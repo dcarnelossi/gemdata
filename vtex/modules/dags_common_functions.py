@@ -107,12 +107,12 @@ def get_api_conection_info(integration_id):
         elif (api_conection_info["hosting"]=='lintegrada'):
             apicliente = {
                 "apptoken": api_conection_info["api_appkey"],
-                "appapplication": Variable.get("SECRET_APP_LOJA_INTEGRADA"),
+                "appapplication": Variable.get("LOJA_INTEGRADA_SECRET_APP"),
             }
         elif (api_conection_info["hosting"]=='moovin'):
             apicliente = {
-                "apikey": '7c832460-3f47-4b6d-9379-067c0411df80',
-                "apisecret": 'Mc6R5oKQoqfyp0g03O5oov1JuURfckUpU43xWtjSfc5a6W70aWR/5wzAutWKyMdt',
+                "apikey":  Variable.get("MOOVIN_APP_KEY"),
+                "apisecret": Variable.get("MOOVIN_SECRET_APP"),
                 "accountclientid": api_conection_info["api_appkey"],
 
             }
