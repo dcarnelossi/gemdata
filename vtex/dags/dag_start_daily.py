@@ -80,7 +80,7 @@ with DAG(
             return 'trigger_vtex_import'
         elif hosting.lower()=='shopify': 
             return 'trigger_shopify_orders_import'
-        elif hosting.lower()=='loja_integrada':
+        elif hosting.lower()=='lintegrada':
             return 'trigger_li_list_products'
         elif hosting.lower()=='nuvem_shop':
             return 'trigger_nuvem_categories'

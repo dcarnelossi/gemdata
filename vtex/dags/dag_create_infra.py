@@ -75,7 +75,7 @@ with DAG(
                 sql_script = scripts.vtexsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             elif(HOSTING == 'shopify'):
                 sql_script = scripts.shopifysqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
-            elif(HOSTING == 'loja_integrada'):
+            elif(HOSTING == 'lintegrada'):
                 sql_script = scripts.lojaintegradasqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
             elif(HOSTING == 'moovin'):
@@ -138,7 +138,7 @@ with DAG(
             return 'trigger_vtex_import'
         elif hosting.lower() == 'shopify':
             return 'trigger_shopify_orders_import'
-        elif hosting.lower() == 'loja_integrada':
+        elif hosting.lower() == 'lintegrada':
             return 'trigger_li_orders_import'
         elif hosting.lower() == 'moovin':
             return 'trigger_moovin_orders_import'
