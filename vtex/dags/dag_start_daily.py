@@ -50,8 +50,8 @@ with DAG(
                     select id,hosting,daily_run_date_ini from public.integrations_integration
                             where is_active = true 
                             and infra_create_status = true 
-                            and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE 
-                                    and COALESCE(daily_run_date_end::date, CURRENT_DATE + INTERVAL '1 day') < CURRENT_DATE )
+                            and ( (COALESCE(daily_run_date_ini::date, CURRENT_DATE - INTERVAL '1 day') < CURRENT_DATE 
+                                    and COALESCE(daily_run_date_end::date, CURRENT_DATE - INTERVAL '1 day') < CURRENT_DATE )
                                             or  isdaily_manual is true )
                             AND (CURRENT_TIME AT TIME ZONE 'UTC')::time > '03:00:00'::time  
                             order by 3	
