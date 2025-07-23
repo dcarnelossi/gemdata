@@ -106,10 +106,12 @@ with DAG(
             print(emails_string)
             assunto = f"{nome_team} - dados processados e disponíveis para acesso"
             corpo_email = (
-                f"Gostaria de informar que os dados {nome_team} foram processados com sucesso "
-                "e estão disponíveis na plataforma e WhatsApp.<br><br>" 
-                "Em caso de qualquer dúvida ou problema, entre em contato pelo e-mail suporte@gemdata.com.br.<br><br>"
-
+                f"Gostaria de informar que os dados do time <strong>{nome_team}</strong> foram processados com sucesso "
+                "e já estão disponíveis tanto na plataforma.<br><br>"
+                "Você também ja possuí acesso ao nosso WhatsApp de reports por IA. Para utilizá-lo, basta enviar uma mensagem para: "
+                "<a href='https://wa.me/5511934027546' target='_blank'>+55 11 93402-7546</a>.<br><br><br>"
+                "Em caso de dúvidas ou qualquer problema, entre em contato diretamente com Marcos pelo WhatsApp: "
+                "<a href='https://wa.me/5511981482496' target='_blank'>+55 11 98148-2496</a>.<br><br>"
             )
               
             from modules import send_email
