@@ -29,7 +29,7 @@ default_args = {
 
 with DAG(
     "000-send-email-StatusProcess",
-    schedule_interval="0 5 * * *",  # Todos os dias às 5:00 da manhã
+    schedule_interval="0 8 * * *",  # Todos os dias às 5:00 da manhã
     catchup=False,
     default_args=default_args,
     tags=["status", "v1", "reportstatus"],
