@@ -149,7 +149,7 @@ def transform_api_response(data, structure, data_path):
 def process_data_batch(data_list, table, keytable):
     for attempt in range(1, 6):
         try:
-            print(data_list)    
+           
             writer = WriteJsonToPostgres(
                 data_conection_info,
                 data_list,
@@ -169,23 +169,73 @@ def process_data_batch(data_list, table, keytable):
                 logging.error("Falha após 5 tentativas ao salvar dados no banco.")
                 raise e
 
+# >>> ADICIONE PERTO DOS IMPORTS/HELPERS
+def dedup_por_chave(rows, key_name: str, keep: str = "last"):
+    """
+    Remove duplicatas da lista de dicts com base em key_name.
+    keep='last' mantém a última ocorrência; keep='first' mantém a primeira.
+    """
+    if keep not in ("last", "first"):
+        keep = "last"
+
+    if keep == "last":
+        # última ocorrência vence
+        mapa = {r.get(key_name): r for r in rows if r.get(key_name) is not None}
+        unicos = list(mapa.values())
+    else:
+        vistos = set()
+        unicos = []
+        for r in rows:
+            k = r.get(key_name)
+            if k is None:
+                continue
+            if k not in vistos:
+                vistos.add(k)
+                unicos.append(r)
+
+    # opcional: manter ordem estável por conveniência (não obrigatório)
+    # ordena por primeira aparição do id original (quando keep='last')
+    if keep == "last":
+        ordem = {}
+        for i, r in enumerate(rows):
+            k = r.get(key_name)
+            if k is not None and k not in ordem:
+                ordem[k] = i
+        unicos.sort(key=lambda r: ordem.get(r.get(key_name), 10**12))
+
+    return unicos
+
 def fetch_and_process(query_type):
     try:
-        #json_type_api = load_graphql_query(query_type)
         json_type_api = load_graphql_query(query_type)
-      
-      
-      #  endpoint = json_type_api.get("endpoint", "/api/v1/produto")
+
         structure = json_type_api["structure"]
         data_path = json_type_api["data_path"]
         table = json_type_api["tablepg"]
-        keytable = json_type_api["keytablepg"]
+        keytable = json_type_api["keytablepg"]  # ex.: "id"
 
         response = get_api_data()
         parsed = transform_api_response(response, structure, data_path)
 
-        # print(parsed)
-        process_data_batch(parsed["list"], table, keytable)
+        # >>> DEDUP AQUI <<<
+        lista_original = parsed["list"]
+        lista_unica = dedup_por_chave(lista_original, keytable, keep="last")
+
+        # Logs úteis
+        removidos = len(lista_original) - len(lista_unica)
+        if removidos > 0:
+            # coleta alguns ids repetidos para log (sem poluir)
+            ids_orig = [r.get(keytable) for r in lista_original if r.get(keytable) is not None]
+            repetidos = []
+            vistos = set()
+            for _id in ids_orig:
+                if _id in vistos and _id not in repetidos:
+                    repetidos.append(_id)
+                else:
+                    vistos.add(_id)
+            logging.info(f"[dedup] Removidos {removidos} duplicados por '{keytable}'. Exemplos: {repetidos[:5]}")
+
+        process_data_batch(lista_unica, table, keytable)
 
     except Exception as e:
         logging.error(f"Erro no processo de fetch/process: {e}")
