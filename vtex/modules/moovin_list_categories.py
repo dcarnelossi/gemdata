@@ -149,14 +149,14 @@ def transform_api_response(data, structure, data_path):
 def process_data_batch(data_list, table, keytable):
     for attempt in range(1, 6):
         try:
-
+            print(data_list)    
             writer = WriteJsonToPostgres(
                 data_conection_info,
                 data_list,
                 table,
                 keytable
             )
-       
+            
             writer.upsert_data_batch(isdatainsercao=1)
 
         #    writer = WriteJsonToPostgres(data_conection_info, data_list, table, keytable)
