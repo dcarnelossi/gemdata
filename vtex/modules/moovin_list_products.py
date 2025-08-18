@@ -26,6 +26,9 @@ LIMIT = 50  # limite máximo por página
 
 def get_access_token():
     try:
+        print("TESTE",api_conection_info["apikey"])
+        print("TESTE2",api_conection_info["apikey"])
+        print("TESTE3",api_conection_info["apikey"])
         return make_request_token_moovin(api_conection_info["apikey"],
                                          api_conection_info["apisecret"],
                                          api_conection_info["accountclientid"])
