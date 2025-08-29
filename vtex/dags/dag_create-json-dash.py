@@ -236,7 +236,8 @@ def post_analytics_analytics(pg_schema):
                           ('digest','faturamento_compradores.msgpack.gz','buyers'),
                          ('purchases','compra_cliente.msgpack.gz','buyclient'),
                          ('purchases','rfm_cliente.msgpack.gz','rfm'),
-                         ('export','export_orders.msgpack.gz','exportorders')
+                         ('export','export_orders.msgpack.gz','exportorders'),
+                         ('export','export_items.msgpack.gz','exportitems')
                          
 
                           ]
