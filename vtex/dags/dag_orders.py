@@ -67,6 +67,8 @@ with DAG(
     def orders(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
 
+        isdaily = kwargs["params"]["ISDAILY"]
+
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
@@ -75,7 +77,7 @@ with DAG(
 
         try:
             orders.set_globals(
-                api_conection_info, data_conection_info, coorp_conection_info
+                api_conection_info, data_conection_info, coorp_conection_info,isdaily
             )
 
             # Pushing data to XCom

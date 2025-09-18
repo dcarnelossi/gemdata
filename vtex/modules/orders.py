@@ -11,9 +11,17 @@ coorp_conection_info = None
 
 def get_orders_ids_from_db():
     try:
-        query = """   SELECT DISTINCT ora.orderid    
-                        FROM orders_list ora      
-                         WHERE  is_change = true    """
+        if not gb_daily : 
+            query = """  	SELECT DISTINCT ora.orderid    
+                        FROM orders_list ora   
+                        left join orders ord on
+                        ora.orderid = ord.orderid
+    					where  ord.orderid is null    """
+        else:
+
+            query = """   SELECT DISTINCT ora.orderid    
+                            FROM orders_list ora      
+                            WHERE  is_change = true    """
         result = WriteJsonToPostgres(data_conection_info, query, "orders_list")
         result = result.query()
         return result
@@ -78,7 +86,7 @@ def process_orders():
 
 
 
-def set_globals(api_info, data_conection, coorp_conection, **kwargs):
+def set_globals(api_info, data_conection, coorp_conection, isdaily, **kwargs):
     global api_conection_info
     api_conection_info = api_info
 
@@ -87,6 +95,11 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
 
     global coorp_conection_info
     coorp_conection_info = coorp_conection
+
+    global gb_daily
+    gb_daily = isdaily
+
+
     try:
         process_orders()
     except Exception as e:
