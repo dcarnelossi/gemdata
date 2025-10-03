@@ -42,6 +42,7 @@ def make_request_lojaintegrada(offset):
         }
 
         response = requests.get(url, params=params)
+        logging.info(response.json() if response.status_code == 200 else None)
         return response.json() if response.status_code == 200 else None
 
     except requests.RequestException as e:
