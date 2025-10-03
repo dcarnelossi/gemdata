@@ -179,7 +179,7 @@ def fetch_and_process(query_type):
             if data:
                 all_data.append(data)
             
-            time.sleep(0.25)
+            time.sleep(0.35)
 
             # Opcional: salvamento em lotes
             if len(all_data) >= 50:
