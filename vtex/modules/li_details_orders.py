@@ -154,7 +154,7 @@ def fetch_and_process(query_type):
                 else:
                     all_data.extend(data)
 
-            time.sleep(0.5)  # evitar sobrecarga
+            #time.sleep(0.5)  # evitar sobrecarga
 
             if len(all_data) >= 50:
                 parsed = transform_api_response(all_data, structure, data_path)
