@@ -168,7 +168,7 @@ def fetch_and_process(query_type):
 
         all_data = []
         # Concurrency control (threads) — ajuste conforme I/O/CPU
-        max_workers = 6  # 4–8 costuma ir bem para I/O
+        max_workers = 3  # 4–8 costuma ir bem para I/O
         futures = []
 
         with ThreadPoolExecutor(max_workers=max_workers) as ex:
@@ -187,6 +187,7 @@ def fetch_and_process(query_type):
                         parsed = transform_api_response(all_data, structure, data_path)
                         process_data_batch(parsed["list"], table, keytable)
                         all_data = []
+                        time.sleep(10)
                 except Exception as e:
                     logging.error(f"Falha ao obter/processar item: {e}")
 
