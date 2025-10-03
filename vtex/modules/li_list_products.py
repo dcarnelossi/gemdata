@@ -28,6 +28,9 @@ def make_request_lojaintegrada(offset):
             url = f'https://api.awsli.com.br/v1/produto?data_modificacao__gte={start_date_info}'
         else:
             url = 'https://api.awsli.com.br/v1/produto/'
+
+        logging.info(api_conection_info["apptoken"])
+        logging.info(api_conection_info["appapplication"])
         
         logging.info(url)
         params = {
