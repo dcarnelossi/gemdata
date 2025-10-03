@@ -29,8 +29,8 @@ def make_request_lojaintegrada(offset):
         else:
             url = 'https://api.awsli.com.br/v1/produto/'
 
-        logging.info(api_conection_info["apptoken"])
-        logging.info(api_conection_info["appapplication"])
+        # logging.info(api_conection_info["apptoken"])
+        # logging.info(api_conection_info["appapplication"])
         
         logging.info(url)
         params = {
@@ -42,7 +42,7 @@ def make_request_lojaintegrada(offset):
         }
 
         response = requests.get(url, params=params)
-        logging.info(response.json() if response.status_code == 200 else None)
+        # logging.info(response.json() if response.status_code == 200 else None)
         return response.json() if response.status_code == 200 else None
 
     except requests.RequestException as e:
