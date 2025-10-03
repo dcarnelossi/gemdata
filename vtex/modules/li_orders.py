@@ -36,15 +36,15 @@ def make_request_lojaintegrada(idorders):
         raise
 
 def get_ids_orders():
-    #query = f"SELECT order_number FROM lojaintegrada_list_orders where data_insercao >= '{start_date_info}' ORDER BY id"
+    query = f"SELECT order_number FROM lojaintegrada_list_orders where data_insercao >= '{start_date_info}' ORDER BY id"
     
-    #para pegar tudo que ainda não foi , caso de erro :
-    query =f"""SELECT o.order_number FROM lojaintegrada_list_orders o
+    #para pegar onde parou caso de erro :
+    # query =f"""SELECT o.order_number FROM lojaintegrada_list_orders o
 
-                left join lojaintegrada_orders i on 
-                i.order_number = o.order_number
+    #             left join lojaintegrada_orders i on 
+    #             i.order_number = o.order_number
 
-                where i.order_number is null """
+    #             where i.order_number is null """
     
     logging.info(query)
     result = WriteJsonToPostgres(data_conection_info, query, "lojaintegrada_list_orders")
@@ -152,94 +152,54 @@ def process_data_batch(data_list, table, keytable):
             return
         except Exception as e:
             logging.warning(f"[Tentativa {attempt}/5] Erro ao salvar dados: {e}")
-            time.sleep(10)
+            time.sleep(40)
             if attempt == 5:
                 logging.error("Falha após 5 tentativas ao salvar dados no banco.")
                 raise e
 
 def fetch_and_process(query_type):
     try:
+        #json_type_api = load_graphql_query(query_type)
+        
         ids = get_ids_orders()
         json_type_api = load_graphql_query(query_type)
+        #  endpoint = json_type_api.get("endpoint", "/api/v1/produto")
         structure = json_type_api["structure"]
         data_path = json_type_api["data_path"]
         table = json_type_api["tablepg"]
         keytable = json_type_api["keytablepg"]
 
+
         all_data = []
-        # Concurrency control (threads) — ajuste conforme I/O/CPU
-        max_workers = 3  # 4–8 costuma ir bem para I/O
-        futures = []
 
-        with ThreadPoolExecutor(max_workers=max_workers) as ex:
-            for idorders in ids:
-                futures.append(ex.submit(get_api_data, idorders))
+        for idorders in ids:
+            data = get_api_data(idorders)
+           
+            
+            if data:
+                all_data.append(data)
+            
+            time.sleep(0.25)
 
-            for fut in as_completed(futures):
-                try:
-                    
-                    data = fut.result()
-                    
-                    if data:
-                        all_data.append(data)
-                    # Loteia a cada 50, como no seu código
-                    if len(all_data) >= 50:
-                        parsed = transform_api_response(all_data, structure, data_path)
-                        process_data_batch(parsed["list"], table, keytable)
-                        all_data = []
-                        time.sleep(10)
-                except Exception as e:
-                    logging.error(f"Falha ao obter/processar item: {e}")
+            # Opcional: salvamento em lotes
+            if len(all_data) >= 50:
+                parsed = transform_api_response(all_data, structure, data_path)
+                process_data_batch(parsed["list"],table,keytable)
+                all_data = []
+                               
+                # Evitar sobrecarga na API
+               
 
         if all_data:
+            #print(all_data)
             parsed = transform_api_response(all_data, structure, data_path)
-            process_data_batch(parsed["list"], table, keytable)
+           
+            process_data_batch(parsed["list"],table,keytable)
+            
 
     except Exception as e:
         logging.error(f"Erro no processo de fetch/process: {e}")
         raise
-
-# def fetch_and_process(query_type):
-#     try:
-#         #json_type_api = load_graphql_query(query_type)
-        
-#         ids = get_ids_orders()
-#         json_type_api = load_graphql_query(query_type)
-#         #  endpoint = json_type_api.get("endpoint", "/api/v1/produto")
-#         structure = json_type_api["structure"]
-#         data_path = json_type_api["data_path"]
-#         table = json_type_api["tablepg"]
-#         keytable = json_type_api["keytablepg"]
-
-
-#         all_data = []
-
-#         for idorders in ids:
-#             data = get_api_data(idorders)
-           
-            
-#             if data:
-#                 all_data.append(data)
-            
-#             # Evitar sobrecarga na API
-#             time.sleep(0.5)
-
-#             # Opcional: salvamento em lotes
-#             if len(all_data) >= 50:
-#                 parsed = transform_api_response(all_data, structure, data_path)
-#                 process_data_batch(parsed["list"],table,keytable)
-#                 all_data = []
-
-#         if all_data:
-#             #print(all_data)
-#             parsed = transform_api_response(all_data, structure, data_path)
-           
-#             process_data_batch(parsed["list"],table,keytable)
-            
-
-#     except Exception as e:
-#         logging.error(f"Erro no processo de fetch/process: {e}")
-#         raise
 
 def set_globals(api_info, data_conection, coorp_conection, type_api,start_date):
     global api_conection_info
