@@ -36,15 +36,15 @@ def make_request_lojaintegrada(idorders):
         raise
 
 def get_ids_orders():
-    query = f"SELECT order_number FROM lojaintegrada_list_orders where data_insercao >= '{start_date_info}' ORDER BY id"
+    #query = f"SELECT order_number FROM lojaintegrada_list_orders where data_insercao >= '{start_date_info}' ORDER BY id"
     
     #para pegar onde parou caso de erro :
-    # query =f"""SELECT o.order_number FROM lojaintegrada_list_orders o
+    query =f"""SELECT o.order_number FROM lojaintegrada_list_orders o
 
-    #             left join lojaintegrada_orders i on 
-    #             i.order_number = o.order_number
+                left join lojaintegrada_orders i on 
+                i.order_number = o.order_number
 
-    #             where i.order_number is null """
+                where i.order_number is null """
     
     logging.info(query)
     result = WriteJsonToPostgres(data_conection_info, query, "lojaintegrada_list_orders")
