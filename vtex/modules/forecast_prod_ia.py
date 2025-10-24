@@ -270,6 +270,8 @@ def inserir_forecast(future_df: pd.DataFrame):
         df_hist["predicted_revenue"] = df_hist["predicted_revenue"].astype(float).round(2)
         WriteJsonToPostgres(data_conection_info, df_hist.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(df_hist.to_dict("records"))
 
+
+
     WriteJsonToPostgres(data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(final_df.to_dict("records"))
     logger.info("Inserção de forecast concluída.")
 
@@ -356,6 +358,7 @@ def executar():
         "predicted_revenue": pd.to_numeric(fc[col_fore], errors="coerce").astype(float)
     }).dropna(subset=["creationdateforecast", "predicted_revenue"])
 
+    logger.info(df_out)
     # INSERE NO BANCO
     inserir_forecast(df_out)
 
@@ -392,9 +395,11 @@ def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
 
-    executar()
+    
 
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logger.error("Informações globais de conexão incompletas.")
         raise ValueError("All global connection information must be provided.")
     logger.info("Variáveis globais setadas com sucesso.")
+
+    executar()
