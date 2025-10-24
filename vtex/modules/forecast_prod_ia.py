@@ -13,13 +13,24 @@ import csv
 import json
 import logging
 from io import StringIO
-from pathlib import Path
 from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
-from openai import OpenAI
+import subprocess
 
 from modules.dbpgconn import WriteJsonToPostgres
+
+
+def install(package):
+    '''Funcao para instalar os pacotes via pip'''  
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+# Instalar pacotes da lib sklearn se não estiver instalado
+try:
+   from openai import OpenAI
+except ImportError:
+    print("openai não está instalado. Instalando agora...")
+    install("openai")
 
 # =========================================================
 # LOGGING
