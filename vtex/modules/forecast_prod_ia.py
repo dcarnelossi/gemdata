@@ -17,6 +17,8 @@ from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
 import subprocess
+import sys
+
 
 from modules.dbpgconn import WriteJsonToPostgres
 
