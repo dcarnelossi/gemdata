@@ -63,7 +63,7 @@ Você é um modelador de séries temporais. Regras obrigatórias:
    - faturamento (numérico),
    - nm_feriado (string, opcional),
    - fl_feriado_ativo (boolean/0-1/true/false, opcional).
-   A base pode NÃO estar diária; normalize para DIÁRIA.
+   A base sempre vai estar diária;
 2) Tratamento:
    - Parse de datas, ordenação, agregação por dia.
    - Reindexe diário (freq='D'). Preencha faltantes de faturamento com interpolação temporal
@@ -218,6 +218,8 @@ def CriaDataFrameRealizado():
             from  orders_ia ord
             left join "5e164a4b-5e09-4f43-9d81-a3d22b09a01b".tb_forecast_feriado fff on
               to_char(date_trunc('day', dt_feriado), 'YYYY-MM-DD') = to_char(date_trunc('day', creationdate), 'YYYY-MM-DD') 
+            
+             where date_trunc('day', creationdate) < date_trunc('day', now())
             group by 
               to_char(date_trunc('day', creationdate), 'YYYY-MM-DD'),
               fff.nm_feriado,
@@ -243,6 +245,10 @@ def inserir_forecast(future_df: pd.DataFrame):
 
     hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     hoje_str = hoje_dt.strftime("%Y-%m-%d")
+
+
+    drop_sql = """DROP TABLE IF NOT EXISTS orders_ia_forecast"""
+    WriteJsonToPostgres(data_conection_info, drop_sql).execute_query_ddl()
 
     create_sql = """CREATE TABLE IF NOT EXISTS orders_ia_forecast (
         creationdateforecast TIMESTAMP PRIMARY KEY,
