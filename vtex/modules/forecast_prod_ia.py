@@ -18,7 +18,7 @@ import pandas as pd
 from dotenv import load_dotenv
 import subprocess
 import sys
-
+from airflow.models import Variable
 
 from modules.dbpgconn import WriteJsonToPostgres
 
@@ -278,7 +278,7 @@ def inserir_forecast(future_df: pd.DataFrame):
 # =========================================================
 def executar():
     load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = Variable.get("OPENAI_API_KEY")
     if not api_key:
         raise RuntimeError("❌ OPENAI_API_KEY não encontrada no .env")
 
