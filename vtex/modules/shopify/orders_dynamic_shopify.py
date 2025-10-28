@@ -271,7 +271,7 @@ def process_orders_lists(query_type, start_date, end_date, minimum_date):
         keytable = json_type_api["keytablepg"]
         BATCH_SIZE = 100
 
-        if query_type == "orders":
+        if query_type == "orders" or query_type == "real_time_orders":
             
             def fetch_range_with_retries(start_d, end_d):
                 for attempt in range(1, 6):
