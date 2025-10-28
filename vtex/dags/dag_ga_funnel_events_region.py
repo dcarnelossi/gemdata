@@ -111,7 +111,7 @@ with DAG(
         #     logging.exception(f"An unexpected error occurred during DAG - {e}")
         #     raise e
 
-        from modules import ga_funnel_events_region
+        from gemdata.vtex.modules.ga import ga_funnel_events_region
         
         try:
             end_date = datetime.now() + timedelta(days=1)

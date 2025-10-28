@@ -71,7 +71,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from modules import orders_shipping
+        from gemdata.vtex.modules.vtex import orders_shipping
 
         try:
             orders_shipping.set_globals(

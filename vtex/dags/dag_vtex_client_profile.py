@@ -73,7 +73,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from modules import client_profile
+        from gemdata.vtex.modules.vtex import client_profile
 
         try:
             client_profile.set_globals(

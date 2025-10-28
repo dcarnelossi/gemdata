@@ -93,8 +93,8 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
 
-        from modules import orders_dynamic_shopify
-        from modules import orders_cliente_cvs_doacao
+        from gemdata.vtex.modules.shopify import orders_dynamic_shopify
+        from gemdata.vtex.modules.shopify import orders_cliente_cvs_doacao
 
         try:
             end_date = datetime.now() + timedelta(days=1)

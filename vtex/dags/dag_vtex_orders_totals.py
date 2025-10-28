@@ -1,11 +1,12 @@
 import logging
-
+import time
 from datetime import datetime,timedelta
 
 from airflow import DAG
 from airflow.decorators import task
-from airflow.operators.trigger_dagrun import TriggerDagRunOperator
+from airflow.models import Variable
 from airflow.models.param import Param
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python_operator import PythonOperator
 from modules.dags_common_functions import (
     get_coorp_conection_info,
@@ -32,15 +33,17 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
 
+    
+
 }
 
 
 with DAG(
-    "4-ImportVtex-Orders",
+    "6-ImportVtex-Orders-Totals",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
-    tags=["vtex", "orders", "IMPORT"],
+    tags=["vtex", "orders-Totals", "PROCESS"],
      render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
@@ -62,22 +65,20 @@ with DAG(
     },
 ) as dag:
     
-
+    
     @task(provide_context=True)
-    def orders(**kwargs):
+    def orders_totals(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
-
-        isdaily = kwargs["params"]["ISDAILY"]
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from modules import orders
+        from gemdata.vtex.modules.vtex import orders_totals
 
         try:
-            orders.set_globals(
-                api_conection_info, data_conection_info, coorp_conection_info,isdaily
+            orders_totals.set_globals(
+                api_conection_info, data_conection_info, coorp_conection_info
             )
 
             # Pushing data to XCom
@@ -92,26 +93,27 @@ with DAG(
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
+        finally:
+            pass
+
+      
     
- 
-    
-    trigger_dag_orders_items = TriggerDagRunOperator(
-        task_id="trigger_dag_orders_items",
-        trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
+    trigger_dag_orders_shipping = TriggerDagRunOperator(
+        task_id="trigger_dag_orders_shipping",
+        trigger_dag_id="7-ImportVtex-Orders-Shipping",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
             "ISDAILY":"{{ params.ISDAILY }}"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
-    # Configurando a dependência entre as tasks
-
-    try:
-
-        orders_task = orders()
-        
-        
-        orders_task  >> trigger_dag_orders_items
     
+    # Configurando a dependência entre as tasks
+    try:
+        orders_totals_task = orders_totals()
+        
+        orders_totals_task >>  trigger_dag_orders_shipping
+    
+        
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")
     

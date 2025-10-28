@@ -93,7 +93,7 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
 
-        from modules import nuvem_categories  
+        from gemdata.vtex.modules.nuvemshop import nuvem_categories  
 
         try:
             # end_date = datetime.now() + timedelta(days=1)

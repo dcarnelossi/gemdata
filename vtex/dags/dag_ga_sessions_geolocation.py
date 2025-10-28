@@ -111,7 +111,7 @@ with DAG(
         #     logging.exception(f"An unexpected error occurred during DAG - {e}")
         #     raise e
 
-        from modules import ga_sessions_geolocation
+        from gemdata.vtex.modules.ga import ga_sessions_geolocation
         
         try:
             end_date = datetime.now() + timedelta(days=1)

@@ -95,7 +95,7 @@ with DAG(
             raise e
         
         
-        from modules import li_list_products
+        from gemdata.vtex.modules.lojaintegrada import li_list_products
 
         try:
             end_date = datetime.now() + timedelta(days=1)
