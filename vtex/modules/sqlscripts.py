@@ -160,6 +160,72 @@ def vtexsqlscripts(schema, user):
 
 
 
+    CREATE TABLE IF NOT EXISTS "{schema}".realtime_vtex_orders
+    (
+        sequence SERIAL PRIMARY KEY,
+        orderid varchar(50) COLLATE pg_catalog."default",
+        marketplaceorderid text COLLATE pg_catalog."default",
+        marketplaceservicesendpoint text COLLATE pg_catalog."default",
+        sellerorderid text COLLATE pg_catalog."default",
+        origin text COLLATE pg_catalog."default",
+        affiliateid text COLLATE pg_catalog."default",
+        saleschannel text COLLATE pg_catalog."default",
+        merchantname text COLLATE pg_catalog."default",
+        status text COLLATE pg_catalog."default",
+        workflowisinerror boolean,
+        statusdescription text COLLATE pg_catalog."default",
+        value integer,
+        creationdate timestamp without time zone,
+        lastchange timestamp without time zone,
+        ordergroup text COLLATE pg_catalog."default",
+        totals jsonb,
+        items jsonb,
+        marketplaceitems jsonb,
+        clientprofiledata jsonb,
+        giftregistrydata jsonb,
+        marketingdata jsonb,
+        ratesandbenefitsdata jsonb,
+        shippingdata jsonb,
+        paymentdata jsonb,
+        packageattachment jsonb,
+        sellers jsonb,
+        callcenteroperatordata jsonb,
+        followupemail text COLLATE pg_catalog."default",
+        lastmessage jsonb,
+        hostname text COLLATE pg_catalog."default",
+        invoicedata jsonb,
+        changesattachment jsonb,
+        opentextfield jsonb,
+        roundingerror numeric,
+        orderformid text COLLATE pg_catalog."default",
+        commercialconditiondata jsonb,
+        iscompleted boolean,
+        customdata jsonb,
+        storepreferencesdata jsonb,
+        allowcancellation boolean,
+        allowedition boolean,
+        ischeckedin boolean,
+        marketplace jsonb,
+        authorizeddate timestamp without time zone,
+        invoiceddate timestamp without time zone,
+        cancelreason text COLLATE pg_catalog."default",
+        itemmetadata jsonb,
+        subscriptiondata jsonb,
+        taxdata jsonb,
+        checkedinpickuppointid text COLLATE pg_catalog."default",
+        cancellationdata jsonb,
+        clientpreferencesdata jsonb,
+        data_insercao timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+        cancellationrequests character varying COLLATE pg_catalog."default",
+        CONSTRAINT constraint_realtime_vtex_orders_orderid UNIQUE (orderid)
+    )
+
+    TABLESPACE pg_default;
+
+    ALTER TABLE IF EXISTS "{schema}".realtime_vtex_orders
+        OWNER to {user};
+
+
 
     CREATE TABLE IF NOT EXISTS "{schema}".orders_items
     (
