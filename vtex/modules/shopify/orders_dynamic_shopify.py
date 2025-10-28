@@ -390,7 +390,8 @@ def set_globals(api_info, data_conection, coorp_conection,start_date,end_date,mi
     global coorp_conection_info
     coorp_conection_info = coorp_conection
 
-  
+    #star_date ou end_date -> vai na data de update dentro da api 
+    #minimum_date -> vai data de criação do pedido 
     try:
         execute_process_orders(type_api,start_date,end_date,minimum_date)
     except Exception as e:
