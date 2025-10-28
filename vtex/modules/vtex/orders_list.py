@@ -14,12 +14,11 @@ coorp_conection_info = None
 isdaily = None
 
 
+# =====================================
+# CHAMADA À API (ORDERS)
+# =====================================
 def get_orders_list_pages(query_params):
     try:
-        # print(api_conection_info["Domain"])
-        # print(query_params)
-        # print(api_conection_info["headers"])
-        
         return make_request(
             api_conection_info["Domain"],
             "GET",
@@ -29,88 +28,111 @@ def get_orders_list_pages(query_params):
         )
     except Exception as e:
         logging.error(f"Failed to retrieve orders list pages: {e}")
-        raise  # Rethrow the exception to signal the Airflow task failure
+        raise
 
 
-def process_page(query_params):
-    try:
-        logging.info(f"Processing page with params: {query_params}")
-        tentativa=0
-        lista =[]
-        while not lista or tentativa <5: 
-           # time.sleep(2)
-            lista = get_orders_list_pages(query_params)
+# =====================================
+# PAGINAÇÃO
+# =====================================
+def paginate_orders(base_params, per_page=100, max_retries=5, backoff_base=0.5):
+    """
+    Itera sobre todas as páginas retornadas pela API VTEX OMS,
+    usando os metadados do campo 'paging'.
+    Faz retry com backoff exponencial em caso de falhas.
+    """
+    page = 1
+    total_pages = None
 
-            tentativa = tentativa+1 
+    while True:
+        params = dict(base_params)
+        params["per_page"] = per_page
+        params["page"] = page
 
-        if not lista or "list" not in lista:
-            logging.error(f"No orders found for params: {query_params}")
-            return
-            #raise ValueError(f"Invalid response for params: {query_params}")
+        tentativa, resp = 0, None
+        while (resp is None or "list" not in resp) and tentativa < max_retries:
+            try:
+                resp = get_orders_list_pages(params)
+                if resp and "list" in resp:
+                    break
+            except Exception as e:
+                logging.warning(f"Tentativa {tentativa+1}/{max_retries} falhou na página {page}: {e}")
+            time.sleep(backoff_base * (2 ** tentativa))
+            tentativa += 1
 
-        orders_list = lista["list"]
+        if not resp or "list" not in resp:
+            logging.warning(f"Sem dados ou resposta inválida na página {page}. Encerrando.")
+            break
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = {executor.submit(process_order, order): order for order in orders_list}
-            for future in concurrent.futures.as_completed(futures):
-                order = futures[future]
-                try:
-                    future.result()
-                except Exception as e:
-                    logging.error(f"Error processing order {order['orderId']}: {e}")
-                    raise  # Propagate the exception to fail the Airflow task
+        paging = resp.get("paging", {})
+        if total_pages is None:
+            total_pages = paging.get("pages", 1)
+            per_page_api = paging.get("perPage")
+            if per_page_api and per_page_api != per_page:
+                logging.info(f"A API retornou perPage={per_page_api}; ajustando.")
+                per_page = per_page_api
 
-    except Exception as e:
-        logging.error(f"An unexpected error occurred while processing the page: {e}")
-        raise  # Ensure any error fails the Airflow task
+        orders_list = resp.get("list", [])
+        if not orders_list:
+            break
+
+        for order in orders_list:
+            yield order
+
+        current_page = paging.get("currentPage", page)
+        if current_page >= total_pages:
+            break
+
+        page += 1
 
 
+# =====================================
+# PROCESSAMENTO DE PEDIDOS
+# =====================================
 def process_order(order):
-    try:    
-        
-        #modificado gabiru :
-        if not isdaily:
-            writer = WriteJsonToPostgres(
-                data_conection_info, order, "orders_list", "orderid"
-            )
-        else:
-            writer = WriteJsonToPostgres(
-                    data_conection_info, order, "orders_list_daily", "orderid"
-                )
-
+    try:
+        table = "orders_list_daily" if isdaily else "orders_list"
+        writer = WriteJsonToPostgres(data_conection_info, order, table, "orderid")
         writer.upsert_data2(isdatainsercao=1)
         logging.info(f"Order {order['orderId']} upserted successfully.")
     except Exception as e:
-        logging.error(f"Error inserting order {order['orderId']}: {e}")
-        raise  # Ensure failure is propagated to Airflow
+        logging.error(f"Error inserting order {order.get('orderId', '<sem id>')}: {e}")
+        raise
 
 
+# =====================================
+# LOOP PRINCIPAL DE DIAS E PÁGINAS
+# =====================================
 def process_orders_lists(start_date, end_date):
     try:
-        
         data_inicial, data_final = validate_and_convert_dates(start_date, end_date)
-        
+
         while data_inicial <= data_final:
-            start_date, end_date = increment_one_day(data_inicial)
-            qs1 = {
-                'per_page': 100,
-                'f_creationDate': f'creationDate:[{start_date} TO {end_date}]'  # Período desejado
-                
-            
-                # Número de pedidos por página
+            start_iso, end_iso = increment_one_day(data_inicial)
+            qs_base = {
+                "f_creationDate": f"creationDate:[{start_iso} TO {end_iso}]"
             }
 
-            logging.info(f"Processing orders from {start_date} to {end_date}.")
-            # print(f"aaaaaaaaaaaaaa{start_date}")
-            # if(start_date=='2024-10-09T02:00:00.000000Z'):
-            process_page(qs1)
+            logging.info(f"Processando pedidos de {start_iso} até {end_iso}...")
+
+            # Processa todos os pedidos paginados neste intervalo
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                futures = [
+                    executor.submit(process_order, order)
+                    for order in paginate_orders(qs_base, per_page=100)
+                ]
+                for future in concurrent.futures.as_completed(futures):
+                    future.result()
+
             data_inicial += timedelta(days=1)
 
     except Exception as e:
-        logging.error(f"An unexpected error occurred while processing orders: {e}")
-        raise  # Fail the task in case of any error
+        logging.error(f"Erro inesperado ao processar pedidos: {e}")
+        raise
 
 
+# =====================================
+# UTILITÁRIOS E CONTROLE
+# =====================================
 def validate_and_convert_dates(start_date, end_date):
     try:
         if not isinstance(start_date, datetime):
@@ -120,16 +142,16 @@ def validate_and_convert_dates(start_date, end_date):
         return start_date, end_date
     except ValueError as e:
         logging.error(f"Invalid date format: {e}")
-        raise  # Ensure Airflow fails if date conversion fails
+        raise
 
 
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
-    global api_conection_info, data_conection_info, coorp_conection_info,isdaily
+    global api_conection_info, data_conection_info, coorp_conection_info, isdaily
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
-    isdaily= kwargs["isdaily"]
-   
+    isdaily = kwargs["isdaily"]
+
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
@@ -150,16 +172,6 @@ def execute_process_orders_list(start_date, end_date, delta=None):
 
     except Exception as e:
         logging.error(f"Script encountered an error: {e}")
-        raise  # Fail the Airflow task if any exception occurs
-
+        raise
     finally:
-        logging.info(f"Total execution time: {time.time() - start_time} seconds")
-
-# if __name__ == "__main__":
-#     set_globals(
-#         {"api_key": "example"}, 
-#         {"db_url": "postgresql://user:pass@localhost/db"}, 
-#         {"coorp_key": "example"}, 
-#         start_date="2024-01-01", 
-#         end_date="2024-01-31"
-#     )
+        logging.info(f"Total execution time: {time.time() - start_time:.2f} seconds")

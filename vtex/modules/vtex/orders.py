@@ -69,7 +69,7 @@ def process_orders():
         #     executor.map(write_orders_to_db, orders_ids[0])
     try:
         orders_ids = get_orders_ids_from_db()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
             future_to_order = {executor.submit(write_orders_to_db, order_id): order_id for order_id in orders_ids[0]}
             for future in concurrent.futures.as_completed(future_to_order):
                 order_id = future_to_order[future]
