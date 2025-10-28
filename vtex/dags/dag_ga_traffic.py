@@ -111,7 +111,7 @@ with DAG(
         #     logging.exception(f"An unexpected error occurred during DAG - {e}")
         #     raise e
 
-        from gemdata.vtex.modules.ga import ga_traffic
+        from modules.ga import ga_traffic
         
         try:
             end_date = datetime.now() + timedelta(days=1)

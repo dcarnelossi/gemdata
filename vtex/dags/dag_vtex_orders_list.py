@@ -75,7 +75,7 @@ with DAG(
         api_conection_info = get_api_conection_info(team_id)
         # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
-        from gemdata.vtex.modules.vtex import orders_list
+        from modules.vtex import orders_list
 
         try:
             end_date = datetime.now() + timedelta(days=1)

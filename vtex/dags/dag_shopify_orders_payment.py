@@ -90,7 +90,7 @@ with DAG(
 
      
 
-        from gemdata.vtex.modules.shopify import orders_dynamic_shopify
+        from modules.shopify import orders_dynamic_shopify
 
         try:
             end_date = datetime.now() + timedelta(days=1)

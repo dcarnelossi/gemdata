@@ -75,7 +75,7 @@ with DAG(
         api_conection_info = get_api_conection_info(team_id)
         # last_rum_date = get_import_last_rum_date(coorp_conection_info, team_id)
 
-        from gemdata.vtex.modules.nuvemshop import nuvem_products  
+        from modules.nuvemshop import nuvem_products  
 
         try:
             # end_date = datetime.now() + timedelta(days=1)

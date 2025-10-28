@@ -1,17 +1,17 @@
 import logging
 from datetime import datetime, time
 
-from gemdata.vtex.modules.vtex.brand import get_brands_list_parallel
-from gemdata.vtex.modules.vtex.category_concurrent import process_category_tree
-from gemdata.vtex.modules.vtex.client_profile import write_client_profile_to_database
+from modules.vtex.brand import get_brands_list_parallel
+from modules.vtex.category_concurrent import process_category_tree
+from modules.vtex.client_profile import write_client_profile_to_database
 from dbpgconn import PostgresConnection, WriteJsonToPostgres
-from gemdata.vtex.modules.vtex.orders import execute_process_orders_list, process_orders
-from gemdata.vtex.modules.vtex.orders_items import write_orders_item_to_database
-from gemdata.vtex.modules.vtex.orders_list import *
-from gemdata.vtex.modules.vtex.orders_shipping import write_orders_shippingdata_to_database
-from gemdata.vtex.modules.vtex.orders_totals import write_orders_totals_to_database_colunar
-from gemdata.vtex.modules.vtex.products import process_products
-from gemdata.vtex.modules.vtex.sku import get_skus
+from modules.vtex.orders import execute_process_orders_list, process_orders
+from modules.vtex.orders_items import write_orders_item_to_database
+from modules.vtex.orders_list import *
+from modules.vtex.orders_shipping import write_orders_shippingdata_to_database
+from modules.vtex.orders_totals import write_orders_totals_to_database_colunar
+from modules.vtex.products import process_products
+from modules.vtex.sku import get_skus
 
 
 def integrationInfo(connection_info, integration_id):

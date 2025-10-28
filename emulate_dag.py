@@ -128,7 +128,7 @@ def brands(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     api_conection_info = get_api_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import brand
+    from modules.vtex import brand
 
     try:
         brand.get_brands_list_parallel(api_conection_info, data_conection_info)
@@ -145,7 +145,7 @@ def category(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     api_conection_info = get_api_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import category_concurrent as category
+    from modules.vtex import category_concurrent as category
 
     try:
         category.set_globals(30, api_conection_info, data_conection_info)
@@ -162,7 +162,7 @@ def skus(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     api_conection_info = get_api_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import sku
+    from modules.vtex import sku
 
     try:
         sku.set_globals(1, api_conection_info, data_conection_info)
@@ -179,7 +179,7 @@ def products(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     api_conection_info = get_api_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import products
+    from modules.vtex import products
 
     try:
         products.set_globals(api_conection_info, data_conection_info)
@@ -197,7 +197,7 @@ def orders_list(integration_id):
     coorp_conection_info = get_coorp_conection_info(integration_id)
     last_rum_date = get_import_last_rum_date(coorp_conection_info, integration_id)
 
-    from gemdata.vtex.modules.vtex import orders_list
+    from modules.vtex import orders_list
 
     try:
         end_date = datetime.now()
@@ -228,7 +228,7 @@ def orders(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import orders
+    from modules.vtex import orders
 
     try:
         orders.set_globals(api_conection_info, data_conection_info, coorp_conection_info)
@@ -246,7 +246,7 @@ def orders_items(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import orders_items
+    from modules.vtex import orders_items
 
     try:
         orders_items.set_globals(
@@ -266,7 +266,7 @@ def orders_totals(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import orders_totals
+    from modules.vtex import orders_totals
 
     try:
         orders_totals.set_globals(
@@ -286,7 +286,7 @@ def orders_shipping(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import orders_shipping
+    from modules.vtex import orders_shipping
 
     try:
         orders_shipping.set_globals(
@@ -306,7 +306,7 @@ def client_profile(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import client_profile
+    from modules.vtex import client_profile
 
     try:
         client_profile.set_globals(
@@ -326,7 +326,7 @@ def creteinfra2(integration_id):
     data_conection_info = get_data_conection_info(integration_id)
     coorp_conection_info = get_coorp_conection_info(integration_id)
 
-    from gemdata.vtex.modules.vtex import client_profile
+    from modules.vtex import client_profile
 
     try:
         client_profile.set_globals(

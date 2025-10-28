@@ -73,7 +73,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from gemdata.vtex.modules.vtex import orders_items
+        from modules.vtex import orders_items
 
         try:
             orders_items.set_globals(

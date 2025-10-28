@@ -93,7 +93,7 @@ with DAG(
             logging.exception(f"An unexpected error occurred during DAG - {e}")
             raise e
         
-        from gemdata.vtex.modules.moovin import moovin_list_products   
+        from modules.moovin import moovin_list_products   
 
         try:
             end_date = datetime.now() + timedelta(days=1)
