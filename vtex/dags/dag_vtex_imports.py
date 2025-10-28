@@ -79,7 +79,7 @@ with DAG(
             data_conection_info = get_data_conection_info(integration_id)
             api_conection_info = get_api_conection_info(integration_id)
 
-            from gemdata.vtex.modules.vtex import brand
+            from modules.vtex import brand
 
             try:
                 query = """
@@ -120,7 +120,7 @@ with DAG(
             data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
             api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-            from gemdata.vtex.modules.vtex import category_concurrent as category
+            from modules.vtex import category_concurrent as category
 
             try:
                 category.set_globals(30, api_conection_info, data_conection_info)
@@ -139,7 +139,7 @@ with DAG(
             data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
             api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-            from gemdata.vtex.modules.vtex import sku
+            from modules.vtex import sku
 
             try:
                 sku.set_globals(1, api_conection_info, data_conection_info)
@@ -158,7 +158,7 @@ with DAG(
             data_conection_info = ti.xcom_pull(task_ids="brands", key="data_conection_info")
             api_conection_info = ti.xcom_pull(task_ids="brands", key="api_conection_info")
 
-            from gemdata.vtex.modules.vtex import products
+            from modules.vtex import products
 
             try:
                 products.set_globals(api_conection_info, data_conection_info)
