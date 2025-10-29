@@ -261,7 +261,7 @@ def set_globals(api_info, data_conection, coorp_conection,type_api,start_date):
     start_date_info = start_date
 
     fullids=get_all_paginated_data()
-    
+    logging.info(fullids)    
     fetch_and_process(type_api,fullids)
 
 
