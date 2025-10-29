@@ -1510,6 +1510,45 @@ def nuvemsqlscripts(schema, user):
     ALTER TABLE IF EXISTS  "{schema}".nuvem_categories
     OWNER to {user};	
 
+    
+    CREATE TABLE IF NOT EXISTS "{schema}".realtime_nuvem_orders (
+    order_id              bigint     ,
+    store_id              int,
+    created_at            timestamptz,
+    updated_at            timestamptz,
+    completed_at          timestamptz,
+    next_action           text,
+    status                text,
+    currency              char(3),
+    subtotal_value        numeric(12,2),
+    discount_value        numeric(12,2),
+    total_value           numeric(12,2),
+    shipping_cost_owner   numeric(12,2),
+    shipping_cost_customer numeric(12,2),
+    shipping_tracking_number text,
+    gateway               text,
+    gateway_name          text,
+    payment_count         int,
+    customer_id           bigint,
+    customer_name         text,
+    customer_email        text,
+    customer_document     text,
+    customer_phone        text,
+    billing_zipcode       text,
+    billing_city          text,
+    billing_state         text,
+    billing_address       text,
+    billing_number        text,
+    billing_locality      text,
+    items              		jsonb,
+    method_payment           text,   
+    credit_card_brand_payment   text,
+    data_insercao         timestamptz DEFAULT now() null,  
+    CONSTRAINT realtime_nuvem_orders_pkey PRIMARY KEY (order_id)
+);
+
+    ALTER TABLE IF EXISTS  "{schema}".realtime_nuvem_orders
+    OWNER to {user};	
 
     """
     return scripts

@@ -23,8 +23,10 @@ def make_request_nuvem(start_date,end_date,page):
 
    
         if isdaily_info:
+            logging.info("entrou errado ")
             path = f'orders?updated_at_min={start_date}&updated_at_max={end_date}'
         else:
+            logging.info("entrou certo ")
             path = f'orders?created_at_min={start_date}&created_at_max={end_date}'
         
      
