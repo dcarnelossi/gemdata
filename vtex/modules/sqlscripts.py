@@ -1200,6 +1200,63 @@ def lojaintegradasqlscripts(schema, user):
     ALTER TABLE IF EXISTS  "{schema}".lojaintegrada_order_payments
         OWNER to {user};  
 
+    CREATE TABLE IF NOT EXISTS  "{schema}".realtime_lojaintegrada_orders (
+        id BIGINT PRIMARY KEY,
+        order_number INTEGER,
+        resource_uri TEXT,
+
+        created_at TIMESTAMPTZ,
+        updated_at TIMESTAMPTZ,
+        expiration_date TIMESTAMPTZ,
+
+        subtotal_value NUMERIC,
+        shipping_value NUMERIC,
+        discount_value NUMERIC,
+        total_value NUMERIC,
+        real_weight NUMERIC,
+
+        external_id TEXT,
+        anymarket_id TEXT,
+        utm_campaign TEXT,
+        integration_data JSONB,
+
+        status_id INTEGER,
+        status_code TEXT,
+        status_name TEXT,
+        status_final BOOLEAN,
+        status_approved BOOLEAN,
+        status_canceled BOOLEAN,
+        status_notify_customer BOOLEAN,
+        status_uri TEXT,
+
+        client_id BIGINT,
+        client_name TEXT,
+        client_email TEXT,
+        client_cpf TEXT,
+        client_birthdate DATE,
+        client_gender TEXT,
+        client_mobile TEXT,
+        client_uri TEXT,
+
+        delivery_zipcode TEXT,
+        delivery_city TEXT,
+        delivery_state TEXT,
+        delivery_address TEXT,
+        delivery_number TEXT,
+        delivery_complement TEXT,
+        delivery_neighborhood TEXT,
+        delivery_country TEXT,
+
+        shipments JSONB,
+        items JSONB,
+        payments JSONB,
+
+        data_insercao TIMESTAMPTZ DEFAULT now()
+    );
+    
+    ALTER TABLE IF EXISTS  "{schema}".realtime_lojaintegrada_orders
+        OWNER to {user};
+
     """
 
     return scripts

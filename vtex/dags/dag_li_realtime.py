@@ -66,13 +66,13 @@ with DAG(
         from modules.lojaintegrada import li_realtime_orders
 
         try:
-            query = f"""truncate table "{integration_id}".realtime_nuvem_orders;""" 
+            query = f"""truncate table "{integration_id}".realtime_lojaintegrada_orders;""" 
             hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
             hook.run(query) 
 
             start_date = datetime.now() - timedelta(days=1)
 
-            end_date = datetime.now() + timedelta(days=1)
+            # end_date = datetime.now() + timedelta(days=1)
 
               
             li_realtime_orders.set_globals(
