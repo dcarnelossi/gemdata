@@ -272,6 +272,7 @@ with DAG(
                     
                     query= f"""    
                          DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
+                         CREATE TABLE "{schema}".realtime_orders_ia AS
                     WITH address AS (
                         select
                         orderid,
@@ -325,7 +326,6 @@ with DAG(
 
                         select * from "{schema}".realtime_orders_lastyear
                         )
-                        CREATE TABLE "{schema}".realtime_orders_ia AS
                             SELECT *,
                                 to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                             FROM final_hora;
@@ -336,6 +336,7 @@ with DAG(
                     query = f"""
                                 DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
                                 
+                                CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
                                 to_char(date_trunc('hour',o.createdat AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
@@ -368,7 +369,6 @@ with DAG(
                                 
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
-                                    CREATE TABLE "{schema}".realtime_orders_ia AS
                                     SELECT *,
                                         to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
@@ -380,6 +380,7 @@ with DAG(
                        query = f"""
                                 DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
                                 
+                                CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
                                 to_char(date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
@@ -416,7 +417,6 @@ with DAG(
 
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
-                                   CREATE TABLE "{schema}".realtime_orders_ia AS
                                     SELECT *,
                                         to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
@@ -426,7 +426,8 @@ with DAG(
                      
                      query = f"""
                                 DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
-
+                                
+                                CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                  			    select 
                                 to_char(date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
@@ -460,7 +461,6 @@ with DAG(
 
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
-                                   CREATE TABLE "{schema}".realtime_orders_ia AS
                                     SELECT *,
                                         to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
@@ -471,6 +471,7 @@ with DAG(
                         query = f"""
                                 DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
                                 
+                                CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
                                     to_char(date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
@@ -504,7 +505,6 @@ with DAG(
                                     
                                     select * from "{schema}".realtime_orders_lastyear
                                     )
-                                    CREATE TABLE "{schema}".realtime_orders_ia AS
                                     SELECT *,
                                         to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
