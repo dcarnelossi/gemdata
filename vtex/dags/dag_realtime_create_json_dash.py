@@ -203,7 +203,7 @@ with DAG(
                 """
 
                 # Inicializa o PostgresHook
-                hook1 = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook1 = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 
                 # Executa a query com os parâmetros
                 hook1.run(query_default_orders_lastyear)
@@ -251,7 +251,7 @@ with DAG(
            
 
                 # Inicializa o PostgresHook
-                hook2 = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook2 = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 
                 # Executa a query com os parâmetros
                 hook2.run(query_default_forecast_hour)
@@ -512,7 +512,7 @@ with DAG(
 
 
                 # Inicializa o PostgresHook
-                hook3 = PostgresHook(postgres_conn_id="integrations-data-prod")
+                hook3 = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
                 
                 # Executa a query com os parâmetros
                 hook3.run(query)
@@ -531,7 +531,7 @@ with DAG(
     def get_parameters(**kwargs):
         schema = kwargs["params"]["PGSCHEMA"]
         
-        hook = PostgresHook(postgres_conn_id="integrations-data-prod")
+        hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
 
         # executa as duas queries
         realtime_orders = hook.get_records(f"""SELECT * FROM "{schema}".realtime_orders_ia""")
