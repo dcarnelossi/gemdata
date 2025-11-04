@@ -530,17 +530,10 @@ with DAG(
     @task()
     def get_parameters(**kwargs):
         schema = kwargs["params"]["PGSCHEMA"]
-        
-        hook = PostgresHook(postgres_conn_id="integrations-pgserver-prod")
 
-        # executa as duas queries
-        realtime_orders = hook.get_records(f"""SELECT * FROM "{schema}".realtime_orders_ia""")
-        realtime_forecast_hour = hook.get_records(f"""SELECT * FROM "{schema}".realtime_forecast_hour""")
-
-        # cria um dicionário com os resultados
         data_dict = {
-            "realtime_orders": realtime_orders,
-            "realtime_forecast_hour": realtime_forecast_hour
+            "realtime_orders": f'SELECT * FROM "{schema}".realtime_orders_ia',
+            "realtime_forecast_hour": f'SELECT * FROM "{schema}".realtime_forecast_hour'
         }
 
         return data_dict
