@@ -101,22 +101,22 @@ with DAG(
     
  
     
-    # trigger_dag_orders_items = TriggerDagRunOperator(
-    #     task_id="trigger_dag_orders_items",
-    #     trigger_dag_id="5-ImportVtex-Orders-Items",  # Substitua pelo nome real da sua segunda DAG
-    #     conf={
-    #         "PGSCHEMA": "{{ params.PGSCHEMA }}",
-    #         "ISDAILY":"{{ params.ISDAILY }}"
-    #     },  # Se precisar passar informações adicionais para a DAG_B
-    # )
-    # # Configurando a dependência entre as tasks
+    trigger_dag_orders_dash = TriggerDagRunOperator(
+        task_id="trigger_dag_orders_dash",
+        trigger_dag_id="RT-2-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
+        conf={
+            "PGSCHEMA": "{{ params.PGSCHEMA }}",
+            "HOSTING":"vtex"
+        },  # Se precisar passar informações adicionais para a DAG_B
+    )
+    # Configurando a dependência entre as tasks
 
     try:
 
         orders_task = orders()
         
         
-        orders_task  #>> trigger_dag_orders_items
+        orders_task  >> trigger_dag_orders_dash
     
     except Exception as e:
         logging.error(f"Error inserting log diario: {e}")

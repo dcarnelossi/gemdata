@@ -237,8 +237,14 @@ def post_analytics_analytics(pg_schema):
                          ('purchases','compra_cliente.msgpack.gz','buyclient'),
                          ('purchases','rfm_cliente.msgpack.gz','rfm'),
                          ('export','export_orders.msgpack.gz','exportorders'),
-                         ('export','export_items.msgpack.gz','exportitems')
-                         
+                         ('export','export_items.msgpack.gz','exportitems'),
+
+                          ('seasonality','seasonality_orders.msgpack.gz','seasonalityorders'),
+                           ('seasonality','seasonality_item.msgpack.gz','seasonalityitem'),
+                           ('seasonality','seasonality_holiday.msgpack.gz','seasonalityholiday'),
+
+                           ('realtime','realtime_orders.msgpack.gz','realtimeorders'),
+                         ('realtime','realtime_forecast_hour.msgpack.gz','realtimeforecast')
 
                           ]
             distinct_first_column = set(aba[0] for aba in aba_dash) 
