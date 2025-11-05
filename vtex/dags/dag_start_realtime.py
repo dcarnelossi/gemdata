@@ -18,7 +18,7 @@ default_args = {
 
 # CREATE TABLE public.integration_dispatch_queue (
 #     id SERIAL PRIMARY KEY,
-#     integration_id INT NOT NULL,
+#     integration_id uuid NOT NULL,
 #     hosting VARCHAR(100),
 #     dispatched BOOLEAN DEFAULT FALSE,
 #     dispatched_at TIMESTAMP NULL,
