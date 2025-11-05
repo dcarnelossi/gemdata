@@ -56,7 +56,7 @@ with DAG(
         if not pending:
             # Recarrega se não houver pendentes
             cur.execute("""
-                truncate table public.integration_dispatch_queue
+                truncate table public.integration_dispatch_queue;
                 INSERT INTO public.integration_dispatch_queue (integration_id, hosting)
                 SELECT id, hosting
                 FROM public.integrations_integration
