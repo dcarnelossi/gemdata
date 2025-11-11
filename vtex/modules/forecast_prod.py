@@ -395,7 +395,10 @@ def gerar_projecao_a_partir_de_data(data_inicio):
     """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
         # Trata a base e retorna o DataFrame tratado
-        data_inicio_datetime = datetime.strptime(data_inicio, "%Y-%m-%d")
+        if isinstance(data_inicio, datetime):
+            data_inicio_datetime = data_inicio
+        else:
+            data_inicio_datetime = datetime.strptime(data_inicio, "%Y-%m-%d")
         data_futura = data_inicio_datetime + timedelta(days=60)
         ultimo_dia = calendar.monthrange(data_futura.year, data_futura.month)[1]
 
