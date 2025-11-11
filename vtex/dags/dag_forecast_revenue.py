@@ -96,22 +96,22 @@ with DAG(
                     api_conection_info, data_conection_info, coorp_conection_info, date_start
                 )
                 return True
-
             # Verifica se é domingo
-            if date_start.weekday() == 6:  # domingo = 6, segunda = 0
+            elif date_start.weekday() == 6 or (datainicio and datainicio.lower() != "null"):
+                logging.info(f"Executando forecast (domingo ou data informada: {date_start})")
                 forecast_prod_ia.set_globals(
                     api_conection_info, data_conection_info, coorp_conection_info, date_start
                 )
                 return True
-
-            logging.info(f"✅ Execução concluída — data usada: {date_start}")
-            return True
+            else:
+                logging.info("Dia não é domingo e nenhuma DATAINICIO foi informada — forecast não executado.")
+                return True
 
         except Exception as e:
             logging.exception(f"❌ An unexpected error occurred during DAG - {e}")
             raise e
         
-        
+
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
         trigger_dag_id="a10-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
