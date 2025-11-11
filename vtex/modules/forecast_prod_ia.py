@@ -220,7 +220,7 @@ def CriaDataFrameRealizado():
             left join "5e164a4b-5e09-4f43-9d81-a3d22b09a01b".tb_forecast_feriado fff on
               to_char(date_trunc('day', dt_feriado), 'YYYY-MM-DD') = to_char(date_trunc('day', creationdate), 'YYYY-MM-DD') 
             
-             where date_trunc('day', creationdate) < date_trunc('day', "{date_start_info}")
+             where date_trunc('day', creationdate) < date_trunc('day', '{date_start_info}')
             group by 
               to_char(date_trunc('day', creationdate), 'YYYY-MM-DD'),
               fff.nm_feriado,
