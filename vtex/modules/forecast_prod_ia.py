@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
+date_start_info = None
 
 MODEL_NAME = "gpt-4o"  # ou "gpt-4o-mini"
 MODEL_PRICES = {
@@ -219,7 +220,7 @@ def CriaDataFrameRealizado():
             left join "5e164a4b-5e09-4f43-9d81-a3d22b09a01b".tb_forecast_feriado fff on
               to_char(date_trunc('day', dt_feriado), 'YYYY-MM-DD') = to_char(date_trunc('day', creationdate), 'YYYY-MM-DD') 
             
-             where date_trunc('day', creationdate) < date_trunc('day', now())
+             where date_trunc('day', creationdate) < date_trunc('day', "{date_start_info}")
             group by 
               to_char(date_trunc('day', creationdate), 'YYYY-MM-DD'),
               fff.nm_feriado,
@@ -227,7 +228,7 @@ def CriaDataFrameRealizado():
         """
         _, realizado = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
         df_realizado = pd.DataFrame(realizado)
-        logger.info("Consulta de realizados concluída.")
+        logger.info(f"""Consulta de realizados concluída.{query_realizado}""")
         return df_realizado
     except Exception as e:
         logger.error(f"Erro ao consultar realizados: {e}")
@@ -284,7 +285,7 @@ def inserir_forecast(future_df: pd.DataFrame):
 # =========================================================
 # PIPELINE PRINCIPAL
 # =========================================================
-def executar():
+def executar(date_start_info):
     load_dotenv()
     api_key = Variable.get("OPENAI_API_KEY")
     if not api_key:
@@ -393,14 +394,15 @@ def executar():
 
 
 
-def set_globals(api_info, data_conection, coorp_conection, **kwargs):
+def set_globals(api_info, data_conection, coorp_conection, date_start, **kwargs):
     """Setter chamado externamente para informar conexões globais."""
     logger.info("Setando variáveis globais de conexão…")
-    global api_conection_info, data_conection_info, coorp_conection_info
+    global api_conection_info, data_conection_info, coorp_conection_info,date_start_info
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
-
+    date_start_info= date_start
+    
     
 
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):

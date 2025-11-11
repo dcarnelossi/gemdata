@@ -67,23 +67,38 @@ with DAG(
     @task(provide_context=True)
     def forecast(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
+        isdaily = kwargs["params"]["ISDAILY"]
+        
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from modules import forecast_prod
+        from modules import forecast_prod_ia
+
 
         try:
-            forecast_prod.set_globals(
-                api_conection_info, data_conection_info, coorp_conection_info
-            )
+            date_start = datetime.now()
 
-            return True
+            # Alterado por gabiru de: timedelta(days=1) para timedelta(days=90)
+            if not isdaily:
+                forecast_prod_ia.set_globals(
+                    api_conection_info, data_conection_info, coorp_conection_info, date_start
+                )
+                return True
+
+            # Verifica se o dia da semana é domingo (weekday() == 6)
+            elif date_start.weekday() == 6:  # domingo = 6, segunda = 0
+                forecast_prod_ia.set_globals(
+                    api_conection_info, data_conection_info, coorp_conection_info, date_start
+                )
+                return True
+            else:
+                return True
+
         except Exception as e:
             logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise e
-    
+            raise e 
  
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
