@@ -78,7 +78,7 @@ with DAG(
         data_conection_info = get_data_conection_info(integration_id)
         api_conection_info = get_api_conection_info(integration_id)
 
-        from modules import forecast_prod_ia
+        from modules import forecast_prod
 
         try:
             logging.info(f"📅 DATAINICIO recebida: {datainicio}")
@@ -92,14 +92,14 @@ with DAG(
 
             # Alterado por gabiru de: timedelta(days=1) para timedelta(days=90)
             if not isdaily:
-                forecast_prod_ia.set_globals(
+                forecast_prod.set_globals(
                     api_conection_info, data_conection_info, coorp_conection_info, date_start
                 )
                 return True
             # Verifica se é domingo
             elif date_start.weekday() == 6 or (datainicio and datainicio.lower() != "null"):
                 logging.info(f"Executando forecast (domingo ou data informada: {date_start})")
-                forecast_prod_ia.set_globals(
+                forecast_prod.set_globals(
                     api_conection_info, data_conection_info, coorp_conection_info, date_start
                 )
                 return True
