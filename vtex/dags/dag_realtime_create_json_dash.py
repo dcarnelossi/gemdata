@@ -231,7 +231,7 @@ with DAG(
                         FROM "{schema}".orders_ia
                         WHERE date_trunc('day', creationdate) >= date_trunc('day', (CURRENT_DATE - INTERVAL '3 month'))
                         AND date_trunc('day', creationdate) < date_trunc('day', (CURRENT_DATE - INTERVAL '1 days'))
-                        AND EXTRACT(DOW FROM creationdate) = EXTRACT(DOW FROM (CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date)
+                        AND EXTRACT(DOW FROM creationdate) = EXTRACT(DOW FROM (CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date)
                         GROUP BY EXTRACT(HOUR FROM creationdate)::int
                     )
                     SELECT
@@ -244,7 +244,7 @@ with DAG(
                     FROM share_hour sh
                     CROSS JOIN "{schema}".orders_ia_forecast ff
                     WHERE to_char(date_trunc('day', creationdateforecast), 'YYYY-MM-DD') = 
-                        to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date , 'YYYY-MM-DD');
+                        to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date , 'YYYY-MM-DD');
 
 
                     """
@@ -327,7 +327,7 @@ with DAG(
                         select * from "{schema}".realtime_orders_lastyear
                         )
                             SELECT *,
-                                to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
+                                to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                             FROM final_hora;
                         """
                 elif(plataforma=='shopify'):  
@@ -357,7 +357,7 @@ with DAG(
                                 ce.cep = cast(NULLIF(left(coalesce(REPLACE(o.shippingzip,'-',''),REPLACE(o.billingzip,'-','')),5), '') as int)   
                                 
                                 where 
-                                to_char(date_trunc('day',o.createdat AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
+                                to_char(date_trunc('day',o.createdat  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
                                 and 
                                 LOWER(o.displayfinancialstatus)  in  ('paid') and o.cancelledat is null
                                 ), final_hora as ( 
@@ -370,7 +370,7 @@ with DAG(
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
                                     SELECT *,
-                                        to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
+                                        to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
                                 
                         """
@@ -404,7 +404,7 @@ with DAG(
                                                 , '') AS INT)    
 
                                 where 
-                                to_char(date_trunc('day',o.created_at AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
+                                to_char(date_trunc('day',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
                                 and 
                                 LOWER(o.status)  in  ('paid') 
                                 ), final_hora 
@@ -418,7 +418,7 @@ with DAG(
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
                                     SELECT *,
-                                        to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
+                                        to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
                     """
                       
@@ -448,7 +448,7 @@ with DAG(
                 					ce.cep = cast(NULLIF(left(coalesce(REPLACE(o.delivery_zipcode,'-',''),REPLACE(o.delivery_zipcode,'-','')),5), '') as int)
 
                                 where 
-                                to_char(date_trunc('day',o.created_at AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
+                                to_char(date_trunc('day',o.created_at  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
                                 and 
                                  LOWER(o.status)  in  ('approved','pending')
                                  ), final_hora 
@@ -462,7 +462,7 @@ with DAG(
                                 select * from "{schema}".realtime_orders_lastyear
                                 )
                                     SELECT *,
-                                        to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
+                                        to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
                                 """
 
@@ -492,7 +492,7 @@ with DAG(
                                                 ce.cep = cast(NULLIF(left(coalesce(REPLACE(o.delivery_zipcode,'-',''),REPLACE(o.delivery_zipcode,'-','')),5), '') as int)
                                                 
                                     where 
-                                    to_char(date_trunc('day',o.created_at AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
+                                    to_char(date_trunc('day',o.created_at  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') = to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo')::date, 'YYYY-MM-DD') 
                                     and 
                                     o.status_id  in  (14,15,4,11)
                                     ), final_hora 
@@ -506,7 +506,7 @@ with DAG(
                                     select * from "{schema}".realtime_orders_lastyear
                                     )
                                     SELECT *,
-                                        to_char((CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
+                                        to_char((CURRENT_TIMESTAMP  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo'), 'DD/MM/YYYY HH24:MI') AS hora_atualizacao
                                     FROM final_hora;
                         """
 
