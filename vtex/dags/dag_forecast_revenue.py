@@ -86,7 +86,7 @@ with DAG(
 
 
         try:
-                        
+            logging.info(f"""eeeee{datainicio}""")            
             if not datainicio or datainicio.lower() in ["none", "null", ""]:
                 date_start = datetime.now()
             else:
