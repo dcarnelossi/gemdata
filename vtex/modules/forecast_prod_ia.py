@@ -285,7 +285,7 @@ def inserir_forecast(future_df: pd.DataFrame):
 # =========================================================
 # PIPELINE PRINCIPAL
 # =========================================================
-def executar(date_start_info):
+def executar():
     load_dotenv()
     api_key = Variable.get("OPENAI_API_KEY")
     if not api_key:
