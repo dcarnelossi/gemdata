@@ -58,7 +58,14 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=10,
-        )
+        ),
+        "DATAINICIO": Param(
+            type="string",
+            title="DATAINICIO:",
+            description="Entre com a data de início do forecast (opcional, formato YYYY-MM-DD).",
+            section="Important params",
+            default=datetime.now().strftime("%Y-%m-%d"),  # ← valor padrão
+        ),
 
     },
 ) as dag:
@@ -68,6 +75,7 @@ with DAG(
     def forecast(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
+        datainicio= kwargs["params"]["DATAINICIO"]
         
 
         coorp_conection_info = get_coorp_conection_info()
@@ -78,8 +86,11 @@ with DAG(
 
 
         try:
-            date_start = datetime.now()
-
+                        
+            if not datainicio or datainicio.lower() in ["none", "null", ""]:
+                date_start = datetime.now()
+            else:
+                date_start = datetime.strptime(datainicio, "%Y-%m-%d")
             # Alterado por gabiru de: timedelta(days=1) para timedelta(days=90)
             if not isdaily:
                 forecast_prod_ia.set_globals(
