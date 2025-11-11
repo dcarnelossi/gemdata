@@ -34,14 +34,13 @@ default_args = {
 
 }
 
-
 with DAG(
     "9-forecast-revenue",
     schedule_interval=None,
     catchup=False,
     default_args=default_args,
     tags=["forecast", "v1", "all"],
-     render_template_as_native_obj=True,
+    render_template_as_native_obj=True,
     params={
         "PGSCHEMA": Param(
             type="string",
@@ -54,7 +53,7 @@ with DAG(
         "ISDAILY": Param(
             type="boolean",
             title="ISDAILY:",
-            description="Enter com False (processo total) ou True (processo diario) .",
+            description="Enter com False (processo total) ou True (processo diario).",
             section="Important params",
             min_length=1,
             max_length=10,
@@ -64,19 +63,16 @@ with DAG(
             title="DATAINICIO:",
             description="Entre com a data de início do forecast (opcional, formato YYYY-MM-DD).",
             section="Important params",
-            default=datetime.now().strftime("%Y-%m-%d"),  # ← valor padrão
+            default="null",  # ← opcional
         ),
-
     },
 ) as dag:
-    
 
     @task(provide_context=True)
     def forecast(**kwargs):
         integration_id = kwargs["params"]["PGSCHEMA"]
         isdaily = kwargs["params"]["ISDAILY"]
-        datainicio= kwargs["params"]["DATAINICIO"]
-        
+        datainicio = kwargs["params"]["DATAINICIO"]
 
         coorp_conection_info = get_coorp_conection_info()
         data_conection_info = get_data_conection_info(integration_id)
@@ -84,13 +80,16 @@ with DAG(
 
         from modules import forecast_prod_ia
 
-
         try:
-            logging.info(f"""eeeee{datainicio}""")            
-            if not datainicio or datainicio.lower() in ["none", "null", ""]:
+            logging.info(f"📅 DATAINICIO recebida: {datainicio}")
+
+            # ✅ Garante que date_start sempre seja datetime
+            if datainicio.lower() == "null" or not datainicio:
                 date_start = datetime.now()
+                logging.info(f"Nenhuma DATAINICIO informada — usando data atual: {date_start}")
             else:
                 date_start = datetime.strptime(datainicio, "%Y-%m-%d")
+
             # Alterado por gabiru de: timedelta(days=1) para timedelta(days=90)
             if not isdaily:
                 forecast_prod_ia.set_globals(
@@ -98,19 +97,21 @@ with DAG(
                 )
                 return True
 
-            # Verifica se o dia da semana é domingo (weekday() == 6)
-            elif date_start.weekday() == 6:  # domingo = 6, segunda = 0
+            # Verifica se é domingo
+            if date_start.weekday() == 6:  # domingo = 6, segunda = 0
                 forecast_prod_ia.set_globals(
                     api_conection_info, data_conection_info, coorp_conection_info, date_start
                 )
                 return True
-            else:
-                return True
+
+            logging.info(f"✅ Execução concluída — data usada: {date_start}")
+            return True
 
         except Exception as e:
-            logging.exception(f"An unexpected error occurred during DAG - {e}")
-            raise e 
- 
+            logging.exception(f"❌ An unexpected error occurred during DAG - {e}")
+            raise e
+        
+        
     trigger_dag_create_json = TriggerDagRunOperator(
         task_id="trigger_dag_create_json_dash",
         trigger_dag_id="a10-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
