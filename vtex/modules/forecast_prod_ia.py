@@ -244,8 +244,8 @@ def inserir_forecast(future_df: pd.DataFrame):
     final_df = future_df[["creationdateforecast","predicted_revenue"]].copy()
     final_df["predicted_revenue"] = final_df["predicted_revenue"].round(2)
 
-    hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    hoje_str = hoje_dt.strftime("%Y-%m-%d")
+    # hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoje_str = date_start_info.strftime("%Y-%m-%d")
 
 
     drop_sql = """DROP TABLE IF NOT EXISTS orders_ia_forecast"""
