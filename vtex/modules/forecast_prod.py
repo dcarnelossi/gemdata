@@ -74,6 +74,7 @@ except ImportError:
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
+date_start_info= None
 
 def rmsle(y_true, y_pred):
     # Adiciona uma constante para garantir valores positivos
@@ -127,7 +128,7 @@ def CriaDataFrameRealizado():
                         --count(1) as sum_revenue, 
                         'realizado' as nm_tipo_registro 
                     from orders_ia as o 
-                    where date_trunc('day',o.creationdate)  <CURRENT_DATE
+                    where date_trunc('day',o.creationdate)  < CURRENT_DATE
                     group by date_trunc('day',o.creationdate) order by 1 asc 
                         """
         _, realizado = WriteJsonToPostgres(data_conection_info, query_realizado, "orders_ia").query()
@@ -363,9 +364,9 @@ def SelecionarMelhorModelo(X_train, y_train, X_test, y_test):
     try: 
         modelos = {
             #'LGBMRegressor': LGBMRegressor(),
-            'HistGradientBoostingRegressor': HistGradientBoostingRegressor(),
-            'XGBRegressor': XGBRegressor(),
-            'CatBoostRegressor': CatBoostRegressor(verbose=0),
+            'HistGradientBoostingRegressor': HistGradientBoostingRegressor(random_state=42),
+            'XGBRegressor': XGBRegressor(random_state=42, verbosity=0),
+            'CatBoostRegressor': CatBoostRegressor(verbose=0, random_state=42),
             'RandomForest': RandomForestRegressor(random_state=42, n_estimators=100)
         }
 
@@ -390,7 +391,7 @@ def SelecionarMelhorModelo(X_train, y_train, X_test, y_test):
 
 
   
-def gerar_projecao_a_partir_de_data(data_inicio,):
+def gerar_projecao_a_partir_de_data(data_inicio):
     """Trata os dados, seleciona o melhor modelo e faz a projeção a partir de uma data específica"""   
     try:
         # Trata a base e retorna o DataFrame tratado
@@ -608,7 +609,8 @@ def gerar_projecao_a_partir_de_data(data_inicio,):
             return df_resultado
         else:
             print("QUAL MODELO: MEDIA")
-            hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            # hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            hoje=date_start_info
             seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
             df_ultimos_seis_meses = df[df['dt_pedido'] >= seis_meses_atras]
 
@@ -656,7 +658,8 @@ def inserir_forecast(future_df: pd.DataFrame):
     final_df = future_df[["creationdateforecast","predicted_revenue"]].copy()
     final_df["predicted_revenue"] = final_df["predicted_revenue"].round(2)
 
-    hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    #hoje_dt = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    hoje_dt= date_start_info
     hoje_str = hoje_dt.strftime("%Y-%m-%d")
 
     create_sql = """CREATE TABLE IF NOT EXISTS orders_ia_forecast (
@@ -694,18 +697,21 @@ def inserir_forecast(future_df: pd.DataFrame):
     WriteJsonToPostgres(data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast").insert_data_batch(final_df.to_dict("records"))
 
 
-def set_globals(api_info, data_conection, coorp_conection, **kwargs):
-    global api_conection_info, data_conection_info, coorp_conection_info,isdaily
+def set_globals(api_info, data_conection, coorp_conection,date_start, **kwargs):
+    global api_conection_info, data_conection_info, coorp_conection_info,date_start_info
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
+    date_start_info= date_start
+    
    
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
         logging.error("Global connection information is incomplete.")
         raise ValueError("All global connection information must be provided.")
     try:
-        data_hoje = datetime.now().strftime('%Y-%m-%d')
-        projecao = gerar_projecao_a_partir_de_data(data_hoje)
+        # data_hoje = datetime.now().strftime('%Y-%m-%d')
+        
+        projecao = gerar_projecao_a_partir_de_data(date_start_info)
 
         inserir_forecast(projecao)
 
