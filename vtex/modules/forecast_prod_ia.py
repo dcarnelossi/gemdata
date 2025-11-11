@@ -3,7 +3,7 @@
 Forecast via OpenAI Responses API (compatível com openai==2.6.0)
 - Testa 4 modelos (GradientBoostingRegressor, XGBoost, Prophet, SARIMAX)
 - Escolhe o melhor (menor MAPE)
-- Insere o forecast e o nome do melhor modelo na tabela orders_ia_forecast
+- Insere o forecast normalmente (sem campo de modelo)
 - Loga métricas e custo de execução
 """
 
@@ -54,7 +54,7 @@ MODEL_PRICES = {
 }
 
 # =========================================================
-# PROMPT — 4 modelos e seleção automática
+# PROMPT — compara 4 modelos e retorna o melhor
 # =========================================================
 SYSTEM_PROMPT = r"""
 Você é um modelador de séries temporais. Regras obrigatórias:
@@ -216,22 +216,20 @@ def CriaDataFrameRealizado():
         logger.error(f"Erro ao consultar realizados: {e}")
         raise
 
-def inserir_forecast(future_df: pd.DataFrame, best_model: str):
-    """Insere previsões na tabela destino com o nome do melhor modelo."""
+def inserir_forecast(future_df: pd.DataFrame):
+    """Insere previsões na tabela destino (sem nome de modelo)."""
     logger.info("Executando inserção de forecast no banco…")
     if future_df.empty:
         logger.warning("DataFrame de futuro vazio – nada a inserir.")
         return
 
     final_df = future_df.copy()
-    final_df["model_name"] = best_model
     final_df["predicted_revenue"] = final_df["predicted_revenue"].round(2)
     hoje_str = date_start_info.strftime("%Y-%m-%d")
 
     create_sql = """CREATE TABLE IF NOT EXISTS orders_ia_forecast (
         creationdateforecast TIMESTAMP PRIMARY KEY,
-        predicted_revenue NUMERIC NOT NULL,
-        model_name TEXT
+        predicted_revenue NUMERIC NOT NULL
     );"""
     WriteJsonToPostgres(data_conection_info, create_sql).execute_query_ddl()
 
@@ -241,7 +239,7 @@ def inserir_forecast(future_df: pd.DataFrame, best_model: str):
     WriteJsonToPostgres(
         data_conection_info, final_df.to_dict("records"), "orders_ia_forecast", "creationdateforecast"
     ).insert_data_batch(final_df.to_dict("records"))
-    logger.info(f"Forecast inserido com modelo '{best_model}'.")
+    logger.info("Forecast inserido no banco com sucesso.")
 
 # =========================================================
 # PIPELINE PRINCIPAL
@@ -294,6 +292,7 @@ def executar():
     fc = fc.dropna(subset=["data"])
     fc = fc[fc["data"] >= start_forecast]
 
+    # identifica o melhor modelo (apenas para log)
     best_model = "Desconhecido"
     for line in data["info_csv"].splitlines():
         if line.lower().startswith("best_model"):
@@ -305,7 +304,7 @@ def executar():
         "predicted_revenue": pd.to_numeric(fc["forecast"], errors="coerce").astype(float)
     }).dropna()
 
-    inserir_forecast(df_out, best_model)
+    inserir_forecast(df_out)
 
     logger.info("==> Info do modelo / métricas:")
     for line in data["info_csv"].splitlines():
