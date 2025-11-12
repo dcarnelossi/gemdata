@@ -316,6 +316,9 @@ with DAG(
                         left join public.cep_brasil_consolidado ce on 
                         ce.cep = cast(NULLIF(left(REPLACE(sd.selectedaddresses_0_postalcode,'-',''),5), '') as int)
                         where  LOWER(o.statusdescription)  in   ('faturado','pronto para o manuseio','preparando entrega')
+                        and 
+                        date_trunc('day',o.creationdate  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) = date_trunc('day',(CURRENT_TIMESTAMP AT TIME ZONE 'America/Sao_Paulo')::date)
+                                
                         ), final_hora 
                         as ( 
                         select
@@ -383,9 +386,9 @@ with DAG(
                                 CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
-                                to_char(date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
-                                , EXTRACT(YEAR FROM date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ))::int                    AS ano
-                                , EXTRACT(HOUR FROM date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ))::int                    AS hora
+                                to_char(date_trunc('hour',o.created_at ), 'YYYY-MM-DD') as creationdate  
+                                , EXTRACT(YEAR FROM date_trunc('hour',o.created_at ))::int                    AS ano
+                                , EXTRACT(HOUR FROM date_trunc('hour',o.created_at  ))::int                    AS hora
                                 ,o.order_id as orderid
                                 ,LOWER(o.status) as statusdescription
                                 ,cast(1 as float) as quantityorder
@@ -404,7 +407,7 @@ with DAG(
                                                 , '') AS INT)    
 
                                 where 
-                                date_trunc('day',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) =  date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
+                                date_trunc('day',o.created_at  ) =  date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
                                 and 
                                 LOWER(o.status)  in  ('paid') 
                                 ), final_hora 
@@ -474,9 +477,9 @@ with DAG(
                                 CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
-                                    to_char(date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
-                                    , EXTRACT(YEAR FROM date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ))::int                    AS ano
-                                    , EXTRACT(HOUR FROM date_trunc('hour',o.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ))::int                    AS hora
+                                    to_char(date_trunc('hour',o.created_at  ), 'YYYY-MM-DD') as creationdate  
+                                    , EXTRACT(YEAR FROM date_trunc('hour',o.created_at  ))::int                    AS ano
+                                    , EXTRACT(HOUR FROM date_trunc('hour',o.created_at  ))::int                    AS hora
                                     ,o.order_number as orderid
                                     ,LOWER(o.status_name) as statusdescription
                                     ,cast(1 as float) as quantityorder
@@ -492,7 +495,7 @@ with DAG(
                                                 ce.cep = cast(NULLIF(left(coalesce(REPLACE(o.delivery_zipcode,'-',''),REPLACE(o.delivery_zipcode,'-','')),5), '') as int)
                                                 
                                     where 
-                                    date_trunc('day',o.created_at  AT TIME ZONE 'UTC' AT TIME ZONE 'America/Sao_Paulo' ) = date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
+                                    date_trunc('day',o.created_at   ) = date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
                                     and 
                                     o.status_id  in  (14,15,4,11)
                                     ), final_hora 
