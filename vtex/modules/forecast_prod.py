@@ -648,7 +648,7 @@ def gerar_projecao_a_partir_de_data(data_inicio):
                 media_semana["predicted_revenue"] = media_semana["predicted_revenue"].fillna(media_geral)
 
                 # aplicar aumento de +2%
-                media_semana["predicted_revenue"] *= 1.02
+                media_semana["predicted_revenue"] *= 1
 
                 # projeção futura
                 datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
