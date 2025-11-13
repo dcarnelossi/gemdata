@@ -10,6 +10,9 @@ import sys
 import calendar
 from modules.dbpgconn import WriteJsonToPostgres
 
+from sklearn.linear_model import LinearRegression
+
+
 def install(package):
     '''Funcao para instalar os pacotes via pip'''  
     subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -20,6 +23,7 @@ try:
     from sklearn.ensemble import HistGradientBoostingRegressor
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.metrics import mean_squared_log_error
+    from sklearn.linear_model import LinearRegression
 except ImportError:
     print("scikit-learn não está instalado. Instalando agora...")
     install("scikit-learn")
@@ -27,6 +31,7 @@ except ImportError:
     from sklearn.ensemble import HistGradientBoostingRegressor
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.metrics import mean_squared_log_error
+    from sklearn.linear_model import LinearRegression
 
 # Instalar lib math se não estiver instalado
 try:
@@ -628,8 +633,7 @@ def gerar_projecao_a_partir_de_data(data_inicio):
             # índice numérico (dias desde o início)
             df_hist["t"] = (df_hist["dt_pedido"] - df_hist["dt_pedido"].min()).dt.days
 
-            from sklearn.linear_model import LinearRegression
-            import numpy as np
+          
 
             model = LinearRegression()
             model.fit(df_hist[["t"]], df_hist["sum_revenue"])
