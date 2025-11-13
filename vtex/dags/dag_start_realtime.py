@@ -37,23 +37,22 @@ with DAG(
 
     @task
     def load_pending_integrations():
+        logging.info("Select no integration_dispatch_queue para saber se precisa reiniciar atualizacao")
         hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-        conn = hook.get_conn()
-        cur = conn.cursor()
-
+       
         # Verifica se existem pendentes
-        cur.execute("""
+        query= f"""
             SELECT integration_id, hosting 
             FROM public.integration_dispatch_queue 
             WHERE dispatched = false 
             ORDER BY created_at ASC
             LIMIT 5;
-        """)
-        pending = cur.fetchall()
-
+        """
+        pending = hook.get_records(query)
+        logging.info(f""" Qtd de clientes que serão atualizados: {len(pending)} """)
         if not pending:
             # Recarrega se não houver pendentes
-            cur.execute("""
+            query2 = f"""
                 TRUNCATE TABLE public.integration_dispatch_queue;
                 INSERT INTO public.integration_dispatch_queue (integration_id, hosting)
                 SELECT id, hosting
@@ -61,14 +60,11 @@ with DAG(
                 WHERE is_active = TRUE 
                   AND infra_create_status = TRUE 
                   AND hosting <> 'moovin';
-            """)
-            conn.commit()
-            cur.close()
-            conn.close()
-            raise AirflowSkipException("Fila recarregada. Próxima execução processará os novos registros.")
-
-        cur.close()
-        conn.close()
+            """
+            hook.run(query2)
+            logging.info("Fila recarregada. Próxima execução processará os novos registros.")
+            pending = hook.get_records(query) 
+            logging.info(f""" Qtd de clientes que serão atualizados: {len(pending)} """)
 
         # XCom: lista de dicts
         return [{"id": p[0], "hosting": p[1]} for p in pending]
@@ -83,10 +79,9 @@ with DAG(
             logging.info("Nenhuma integração pendente para disparar.")
             return
 
-        hook = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
-        conn = hook.get_conn()
-        cur = conn.cursor()
-
+        hook2 = PostgresHook(postgres_conn_id="appgemdata-pgserver-prod")
+        
+        logging.info(f""" Disparando dag dos clientes """)
         # pega o contexto correto da TaskInstance atual
         context = get_current_context()
 
@@ -95,14 +90,19 @@ with DAG(
             hosting = item["hosting"].lower()
 
             if hosting == "vtex":
+                logging.info(f""" Disparando dag vtex {integration_id}""")
                 dag_to_trigger = "RT-1-vtex-orders"
             elif hosting == "shopify":
+                logging.info(f""" Disparando dag shopify {integration_id}""")
                 dag_to_trigger = "RT-1-shopify-orders"
             elif hosting == "lintegrada":
+                logging.info(f""" Disparando dag loja integrada {integration_id}""")
                 dag_to_trigger = "RT-1-li-orders"
             elif hosting == "moovin":
+                logging.info(f""" Disparando dag moovin {integration_id}""")
                 dag_to_trigger = ""   # ainda não implementado
             elif hosting == "nuvemshop":
+                logging.info(f""" Disparando dag nuvem shop {integration_id}""")
                 dag_to_trigger = "RT-1-nuvem-orders"
             else:
                 logging.info(f"Nenhuma DAG configurada para hosting={hosting}, integration_id={integration_id}")
@@ -121,16 +121,14 @@ with DAG(
             trigger.execute(context=context)
 
             # atualiza o status na fila
-            cur.execute("""
+            query3 = f"""
                 UPDATE public.integration_dispatch_queue
                 SET dispatched = true, dispatched_at = NOW()
-                WHERE integration_id = %s;
-            """, (integration_id,))
+                WHERE integration_id = '{integration_id}';
+            """
 
-        conn.commit()
-        cur.close()
-        conn.close()
-
+            hook2.run(query3)
+       
     # fluxo principal
     batch = load_pending_integrations()
     dispatch_integrations(batch)
