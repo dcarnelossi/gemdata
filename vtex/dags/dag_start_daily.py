@@ -84,7 +84,7 @@ with DAG(
             return 'trigger_li_list_products'
         elif hosting.lower()=='moovin':
             return 'trigger_moovin_products'
-        elif hosting.lower()=='nuvem_shop':
+        elif hosting.lower()=='nuvemshop':
             return 'trigger_nuvem_categories'
         else:
             return ''

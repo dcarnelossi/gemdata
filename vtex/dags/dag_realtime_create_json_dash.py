@@ -162,7 +162,7 @@ with DAG(
         "HOSTING": Param(
             type="string",
             title="INTEGRACAO:",
-            description="Entrar com o tipo de plataforma de ecommerce(integrations_integration:shopify,nuvem_shop,vtex,moovin,lintegrada).",
+            description="Entrar com o tipo de plataforma de ecommerce(integrations_integration:shopify,nuvemshop,vtex,moovin,lintegrada).",
             section="Important params",
             min_length=1,
             max_length=200,
@@ -379,7 +379,7 @@ with DAG(
                         """
             
                      
-                elif(plataforma=='nuvem_shop'):    
+                elif(plataforma=='nuvemshop'):    
                        query = f"""
                                 DROP TABLE IF EXISTS "{schema}".realtime_orders_ia;
                                 

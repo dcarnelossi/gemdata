@@ -111,7 +111,7 @@ with DAG(
         trigger_dag_id="RT-2-create-json-dash",  # Substitua pelo nome real da sua segunda DAG
         conf={
             "PGSCHEMA": "{{ params.PGSCHEMA }}",
-            "HOSTING":"nuvem_shop"
+            "HOSTING":"nuvemshop"
         },  # Se precisar passar informações adicionais para a DAG_B
     )
     # Configurando a dependência entre as tasks

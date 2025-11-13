@@ -116,7 +116,7 @@ def get_api_conection_info(integration_id):
                 "accountclientid": api_conection_info["api_appkey"],
 
             }
-        elif (api_conection_info["hosting"]=='nuvem_shop'):
+        elif (api_conection_info["hosting"]=='nuvemshop'):
             
             headers = {
                 'Authentication': f'bearer {api_conection_info["api_apptoken"]}',

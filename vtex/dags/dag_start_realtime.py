@@ -102,7 +102,7 @@ with DAG(
                 dag_to_trigger = "RT-1-li-orders"
             elif hosting == "moovin":
                 dag_to_trigger = ""   # ainda não implementado
-            elif hosting == "nuvem_shop":
+            elif hosting == "nuvemshop":
                 dag_to_trigger = "RT-1-nuvem-orders"
             else:
                 logging.info(f"Nenhuma DAG configurada para hosting={hosting}, integration_id={integration_id}")

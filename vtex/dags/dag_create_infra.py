@@ -81,7 +81,7 @@ with DAG(
             elif(HOSTING == 'moovin'):
                  sql_script = scripts.moovinsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
-            elif(HOSTING == 'nuvem_shop'):
+            elif(HOSTING == 'nuvemshop'):
                  sql_script = scripts.nuvemsqlscripts(PGSCHEMA, "adminuserapppggemdataprod")
             
             else:
@@ -142,7 +142,7 @@ with DAG(
             return 'trigger_li_orders_import'
         elif hosting.lower() == 'moovin':
             return 'trigger_moovin_orders_import'
-        elif hosting.lower() == 'nuvem_shop':
+        elif hosting.lower() == 'nuvemshop':
             return 'trigger_nuvem_shop_orders_import'
         else:
             return "erro"
