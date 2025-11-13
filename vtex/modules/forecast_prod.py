@@ -611,62 +611,81 @@ def gerar_projecao_a_partir_de_data(data_inicio):
 
             return df_resultado
         else:
-            logging.info("QUAL MODELO: MEDIA")
+           
+            logging.info("QUAL MODELO: TREND + SAZONALIDADE (curto histórico)")
 
             hoje = date_start_info
             seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
 
-            df_ultimos_seis_meses = df[df['dt_pedido'] >= seis_meses_atras].copy()
+            # Histórico dos últimos meses
+            df_hist = df[df['dt_pedido'] >= seis_meses_atras].copy()
 
-            # Adicionar dia da semana
-            df_ultimos_seis_meses['dia_semana'] = df_ultimos_seis_meses['dt_pedido'].dt.dayofweek
+            # ============================
+            # 1. TENDÊNCIA (Regressão Linear)
+            # ============================
+            df_hist = df_hist.sort_values("dt_pedido")
 
-            # ==============================
-            # 1. Calcular média + contagem
-            # ==============================
-            stats_por_dia = (
-                df_ultimos_seis_meses.groupby('dia_semana')['sum_revenue']
-                .agg(['mean', 'count'])
+            # índice numérico (dias desde o início)
+            df_hist["t"] = (df_hist["dt_pedido"] - df_hist["dt_pedido"].min()).dt.days
+
+            from sklearn.linear_model import LinearRegression
+            import numpy as np
+
+            model = LinearRegression()
+            model.fit(df_hist[["t"]], df_hist["sum_revenue"])
+
+            def prever_t(t):
+                return float(model.predict(np.array([[t]])))
+
+            media_geral = df_hist["sum_revenue"].mean()
+
+            # ============================
+            # 2. SAZONALIDADE SEMANAL
+            # ============================
+            df_hist["dia_semana"] = df_hist["dt_pedido"].dt.dayofweek
+
+            saz = (
+                df_hist.groupby("dia_semana")["sum_revenue"]
+                .mean()
                 .reset_index()
-            )
-            stats_por_dia.columns = ['dia_semana', 'mean_revenue', 'count_registros']
-
-            # Média geral (caso tenha poucos dados)
-            media_geral = df_ultimos_seis_meses['sum_revenue'].mean()
-
-            # Definir limite mínimo de dados por dia
-            LIMITE = 5
-
-            # ==============================
-            # 2. Substituir média fraca pela média geral
-            # ==============================
-            stats_por_dia['predicted_revenue'] = stats_por_dia.apply(
-                lambda row: row['mean_revenue'] if row['count_registros'] >= LIMITE else media_geral,
-                axis=1
+                .rename(columns={"sum_revenue": "media_dia"})
             )
 
-            # Manter apenas colunas necessárias
-            media_por_dia_semana = stats_por_dia[['dia_semana', 'predicted_revenue']]
+            saz["fator"] = saz["media_dia"] / media_geral
 
-            # ==============================
-            # 3. Criar base futura
-            # ==============================
+            # fallback para dias com pouco dado
+            LIMITE = 4
+            count_dias = df_hist.groupby("dia_semana")["sum_revenue"].count()
+
+            for dia in range(7):
+                if count_dias.get(dia, 0) < LIMITE:
+                    saz.loc[saz["dia_semana"] == dia, "fator"] = 1.0  # sem sazonalidade
+
+            # ============================
+            # 3. PROJEÇÃO FUTURA
+            # ============================
             datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
             df_futuro = pd.DataFrame({'creationdateforecast': datas_futuras})
 
             df_futuro['dia_semana'] = df_futuro['creationdateforecast'].dt.dayofweek
 
-            # Merge com médias ajustadas
-            df_futuro = df_futuro.merge(media_por_dia_semana, on='dia_semana', how='left')
+            df_futuro["t"] = (
+                df_futuro["creationdateforecast"] - df_hist["dt_pedido"].min()
+            ).dt.days
 
-            # Tratar NaN → virar 0
-            df_futuro['predicted_revenue'] = (
-                pd.to_numeric(df_futuro['predicted_revenue'], errors='coerce').fillna(0)
-            )
+            # tendência pura
+            df_futuro["trend"] = df_futuro["t"].apply(prever_t)
+
+            # juntar sazonalidade semanal
+            df_futuro = df_futuro.merge(saz[["dia_semana", "fator"]], on='dia_semana', how='left')
+
+            # previsão final
+            df_futuro["predicted_revenue"] = df_futuro["trend"] * df_futuro["fator"]
+
+            # fallback caso ainda haja NaN
+            df_futuro["predicted_revenue"] = df_futuro["predicted_revenue"].fillna(media_geral)
 
             return df_futuro[['creationdateforecast', 'predicted_revenue']]
-
-
     
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
