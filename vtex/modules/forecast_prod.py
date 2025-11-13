@@ -616,81 +616,108 @@ def gerar_projecao_a_partir_de_data(data_inicio):
 
             return df_resultado
         else:
-           
-            logging.info("QUAL MODELO: TREND + SAZONALIDADE (curto histórico)")
+          
+            logging.info("QUAL MODELO AUTOMÁTICO POR FAIXA DE HISTÓRICO")
 
             hoje = date_start_info
-            seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
+            seis_meses_atras = hoje - timedelta(days=6 * 30)
+            tres_meses_atras = hoje - timedelta(days=3 * 30)
 
-            # Histórico dos últimos meses
-            df_hist = df[df['dt_pedido'] >= seis_meses_atras].copy()
+            df_hist = df.copy()
+            historico_dias = (df_hist['dt_pedido'].max() - df_hist['dt_pedido'].min()).days
 
-            # ============================
-            # 1. TENDÊNCIA (Regressão Linear)
-            # ============================
-            df_hist = df_hist.sort_values("dt_pedido")
+            # ===========================================
+            # CENÁRIO 1 — MENOS DE 3 MESES DE HISTÓRICO
+            # ===========================================
+            if historico_dias < 90:
+                logging.info("MENOS DE 3 MESES — Média por dia da semana + 2%")
 
-            # índice numérico (dias desde o início)
-            df_hist["t"] = (df_hist["dt_pedido"] - df_hist["dt_pedido"].min()).dt.days
+                df_3m = df[df['dt_pedido'] >= tres_meses_atras].copy()
+                df_3m["dia_semana"] = df_3m["dt_pedido"].dt.dayofweek
 
-          
+                # média por dia da semana
+                media_semana = (
+                    df_3m.groupby("dia_semana")["sum_revenue"]
+                    .mean()
+                    .reset_index()
+                    .rename(columns={"sum_revenue": "predicted_revenue"})
+                )
 
-            model = LinearRegression()
-            model.fit(df_hist[["t"]], df_hist["sum_revenue"])
+                # fallback caso algum dia não tenha dado
+                media_geral = df_3m["sum_revenue"].mean()
+                media_semana["predicted_revenue"] = media_semana["predicted_revenue"].fillna(media_geral)
 
-            def prever_t(t):
-                return float(model.predict(np.array([[t]])))
+                # aplicar aumento de +2%
+                media_semana["predicted_revenue"] *= 1.02
 
-            media_geral = df_hist["sum_revenue"].mean()
+                # projeção futura
+                datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
+                df_futuro = pd.DataFrame({'creationdateforecast': datas_futuras})
+                df_futuro['dia_semana'] = df_futuro['creationdateforecast'].dt.dayofweek
 
-            # ============================
-            # 2. SAZONALIDADE SEMANAL
-            # ============================
-            df_hist["dia_semana"] = df_hist["dt_pedido"].dt.dayofweek
+                df_futuro = df_futuro.merge(media_semana, on="dia_semana", how="left")
+                df_futuro["predicted_revenue"] = df_futuro["predicted_revenue"].fillna(media_geral * 1.02)
 
-            saz = (
-                df_hist.groupby("dia_semana")["sum_revenue"]
-                .mean()
-                .reset_index()
-                .rename(columns={"sum_revenue": "media_dia"})
-            )
+                return df_futuro[['creationdateforecast', 'predicted_revenue']]
 
-            saz["fator"] = saz["media_dia"] / media_geral
 
-            # fallback para dias com pouco dado
-            LIMITE = 4
-            count_dias = df_hist.groupby("dia_semana")["sum_revenue"].count()
+            # ===========================================
+            # CENÁRIO 2 — HISTÓRICO ENTRE 3 E 12 MESES
+            # Tendência + Sazonalidade semanal
+            # ===========================================
+            else:
+                logging.info("ENTRE 3 MESES E 1 ANO — Trend + Sazonalidade semanal")
 
-            for dia in range(7):
-                if count_dias.get(dia, 0) < LIMITE:
-                    saz.loc[saz["dia_semana"] == dia, "fator"] = 1.0  # sem sazonalidade
+                df_hist = df[df['dt_pedido'] >= seis_meses_atras].copy()
+                df_hist = df_hist.sort_values("dt_pedido")
 
-            # ============================
-            # 3. PROJEÇÃO FUTURA
-            # ============================
-            datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
-            df_futuro = pd.DataFrame({'creationdateforecast': datas_futuras})
+                # variável de tempo para regressão
+                df_hist["t"] = (df_hist["dt_pedido"] - df_hist["dt_pedido"].min()).dt.days
 
-            df_futuro['dia_semana'] = df_futuro['creationdateforecast'].dt.dayofweek
+                model = LinearRegression()
+                model.fit(df_hist[["t"]], df_hist["sum_revenue"])
 
-            df_futuro["t"] = (
-                df_futuro["creationdateforecast"] - df_hist["dt_pedido"].min()
-            ).dt.days
+                def prever_t(t):
+                    return float(model.predict(np.array([[t]])))
 
-            # tendência pura
-            df_futuro["trend"] = df_futuro["t"].apply(prever_t)
+                media_geral = df_hist["sum_revenue"].mean()
 
-            # juntar sazonalidade semanal
-            df_futuro = df_futuro.merge(saz[["dia_semana", "fator"]], on='dia_semana', how='left')
+                # sazonalidade semanal
+                df_hist["dia_semana"] = df_hist["dt_pedido"].dt.dayofweek
+                saz = (
+                    df_hist.groupby("dia_semana")["sum_revenue"]
+                    .mean()
+                    .reset_index()
+                    .rename(columns={"sum_revenue": "media_dia"})
+                )
 
-            # previsão final
-            df_futuro["predicted_revenue"] = df_futuro["trend"] * df_futuro["fator"]
+                saz["fator"] = saz["media_dia"] / media_geral
 
-            # fallback caso ainda haja NaN
-            df_futuro["predicted_revenue"] = df_futuro["predicted_revenue"].fillna(media_geral)
+                # fallback para dias com pouco dado
+                LIMITE = 4
+                count_dias = df_hist.groupby("dia_semana")["sum_revenue"].count()
 
-            return df_futuro[['creationdateforecast', 'predicted_revenue']]
-    
+                for dia in range(7):
+                    if count_dias.get(dia, 0) < LIMITE:
+                        saz.loc[saz["dia_semana"] == dia, "fator"] = 1.0
+
+                # projeção futura
+                datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
+                df_futuro = pd.DataFrame({"creationdateforecast": datas_futuras})
+                df_futuro["dia_semana"] = df_futuro["creationdateforecast"].dt.dayofweek
+
+                df_futuro["t"] = (
+                    df_futuro["creationdateforecast"] - df_hist["dt_pedido"].min()
+                ).dt.days
+
+                df_futuro["trend"] = df_futuro["t"].apply(prever_t)
+                df_futuro = df_futuro.merge(saz[["dia_semana", "fator"]], on="dia_semana", how="left")
+
+                df_futuro["predicted_revenue"] = df_futuro["trend"] * df_futuro["fator"]
+                df_futuro["predicted_revenue"] = df_futuro["predicted_revenue"].fillna(media_geral)
+
+                return df_futuro[['creationdateforecast', 'predicted_revenue']]
+            
     except Exception as e: 
         logging.error(f"An unexpected error occurred while processing the page: {e}")
         raise  # Ensure any error fails the Airflow task
