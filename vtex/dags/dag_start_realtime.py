@@ -59,7 +59,9 @@ with DAG(
                 FROM public.integrations_integration
                 WHERE is_active = TRUE 
                   AND infra_create_status = TRUE 
-                  AND hosting <> 'moovin';
+                  AND hosting <> 'moovin'
+                  and daily_run_date_end is not null;
+                  
             """
             hook.run(query2)
             logging.info("Fila recarregada. Próxima execução processará os novos registros.")
