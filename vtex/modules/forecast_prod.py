@@ -611,40 +611,61 @@ def gerar_projecao_a_partir_de_data(data_inicio):
 
             return df_resultado
         else:
-            print("QUAL MODELO: MEDIA")
-            # hoje = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            hoje=date_start_info
-            seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
-            df_ultimos_seis_meses = df[df['dt_pedido'] >= seis_meses_atras]
+            logging.info("QUAL MODELO: MEDIA")
 
-            # Adicionar coluna para o dia da semana (0 = segunda-feira, 6 = domingo)
+            hoje = date_start_info
+            seis_meses_atras = hoje - timedelta(days=6 * 30)  # Aproximadamente 6 meses
+
+            df_ultimos_seis_meses = df[df['dt_pedido'] >= seis_meses_atras].copy()
+
+            # Adicionar dia da semana
             df_ultimos_seis_meses['dia_semana'] = df_ultimos_seis_meses['dt_pedido'].dt.dayofweek
 
-            # Calcular a média do valor por dia da semana
-            media_por_dia_semana = (
-                df_ultimos_seis_meses.groupby('dia_semana')['sum_revenue'].mean().reset_index()
+            # ==============================
+            # 1. Calcular média + contagem
+            # ==============================
+            stats_por_dia = (
+                df_ultimos_seis_meses.groupby('dia_semana')['sum_revenue']
+                .agg(['mean', 'count'])
+                .reset_index()
             )
-            media_por_dia_semana.columns = ['dia_semana', 'predicted_revenue']
+            stats_por_dia.columns = ['dia_semana', 'mean_revenue', 'count_registros']
 
-            # Criar base futura com intervalo de datas
-            # Intervalo de datas futuras (exemplo: próximos 30 dias)
+            # Média geral (caso tenha poucos dados)
+            media_geral = df_ultimos_seis_meses['sum_revenue'].mean()
+
+            # Definir limite mínimo de dados por dia
+            LIMITE = 5
+
+            # ==============================
+            # 2. Substituir média fraca pela média geral
+            # ==============================
+            stats_por_dia['predicted_revenue'] = stats_por_dia.apply(
+                lambda row: row['mean_revenue'] if row['count_registros'] >= LIMITE else media_geral,
+                axis=1
+            )
+
+            # Manter apenas colunas necessárias
+            media_por_dia_semana = stats_por_dia[['dia_semana', 'predicted_revenue']]
+
+            # ==============================
+            # 3. Criar base futura
+            # ==============================
             datas_futuras = pd.date_range(start=hoje + timedelta(days=1), periods=30)
-
-            # Criar DataFrame de datas futuras
             df_futuro = pd.DataFrame({'creationdateforecast': datas_futuras})
 
-            # Adicionar dia da semana para as datas futuras
             df_futuro['dia_semana'] = df_futuro['creationdateforecast'].dt.dayofweek
 
-            # Juntar as médias por dia da semana
+            # Merge com médias ajustadas
             df_futuro = df_futuro.merge(media_por_dia_semana, on='dia_semana', how='left')
 
-            
-            if not pd.api.types.is_numeric_dtype(df_futuro['predicted_revenue']):
-                df_futuro['predicted_revenue'] = pd.to_numeric(df_futuro['predicted_revenue'], errors='coerce')
+            # Tratar NaN → virar 0
+            df_futuro['predicted_revenue'] = (
+                pd.to_numeric(df_futuro['predicted_revenue'], errors='coerce').fillna(0)
+            )
 
-            
             return df_futuro[['creationdateforecast', 'predicted_revenue']]
+
 
     
     except Exception as e: 
