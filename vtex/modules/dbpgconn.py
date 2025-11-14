@@ -405,6 +405,7 @@ class WriteJsonToPostgres:
             if self.connection:
                 self.connection.close()
 
+        
     def upsert_data_batch_otimizado(self, isdatainsercao=None):
         try:
             batch_data = self.data
@@ -413,43 +414,75 @@ class WriteJsonToPostgres:
 
             with self.connection.connect().cursor() as cursor:
 
-                columns = list(batch_data[0].keys())
+                # ----------------------------------------------------
+                # 1️⃣ BUSCAR COLUNAS EXISTENTES NO BANCO
+                # ----------------------------------------------------
+                cursor.execute(f"""
+                    SELECT column_name 
+                    FROM information_schema.columns
+                    WHERE table_name = %s
+                    ORDER BY ordinal_position
+                """, (self.tablename,))
 
-                # Prepara os valores sem montar SQL gigante
+                table_columns = {row[0].lower() for row in cursor.fetchall()}
+
+                # ----------------------------------------------------
+                # 2️⃣ FILTRAR APENAS AS COLUNAS QUE EXISTEM NA TABELA
+                # ----------------------------------------------------
+                valid_columns = [
+                    col for col in batch_data[0].keys()
+                    if col.lower() in table_columns
+                ]
+
+                if not valid_columns:
+                    raise Exception(
+                        f"Nenhuma coluna válida encontrada no payload para tabela {self.tablename}"
+                    )
+
+                # ----------------------------------------------------
+                # 3️⃣ PREPARAR VALORES NA MESMA ORDEM DAS COLUNAS
+                # ----------------------------------------------------
                 values = []
                 for row in batch_data:
-                    values.append([
-                        json.dumps(row[col]) if isinstance(row[col], (dict, list)) else row[col]
-                        for col in columns
-                    ])
+                    filtered_row = []
+                    for col in valid_columns:
+                        val = row.get(col)
+                        if isinstance(val, (dict, list)):
+                            filtered_row.append(json.dumps(val))
+                        else:
+                            filtered_row.append(val)
+                    values.append(tuple(filtered_row))
 
-                # UPDATE clause
+                # ----------------------------------------------------
+                # 4️⃣ MONTAR UPDATE CLAUSE
+                # ----------------------------------------------------
+                update_columns = [
+                    f"{col}=EXCLUDED.{col}"
+                    for col in valid_columns
+                    if col.lower() != self.table_key.lower()
+                ]
+
+                update_clause = ", ".join(update_columns)
+
                 if isdatainsercao == 1:
-                    update_clause = ", ".join([
-                        f"{col}=EXCLUDED.{col}"
-                        for col in columns if col != self.table_key
-                    ]) + ", data_insercao = now()"
-                else:
-                    update_clause = ", ".join([
-                        f"{col}=EXCLUDED.{col}"
-                        for col in columns if col != self.table_key
-                    ])
+                    update_clause += ", data_insercao = now()"
 
-                # Query base sem VALUES
+                # ----------------------------------------------------
+                # 5️⃣ EXECUTAR INSERT COM execute_values
+                # ----------------------------------------------------
                 sql = f"""
-                    INSERT INTO {self.tablename} ({', '.join(columns)})
+                    INSERT INTO {self.tablename} ({', '.join(valid_columns)})
                     VALUES %s
                     ON CONFLICT ({self.table_key}) DO UPDATE SET
                     {update_clause}
                 """
 
-                # 🚀 O execute_values insere várias linhas sem explodir a memória
                 execute_values(
                     cursor,
                     sql,
                     values,
-                    template=None,   # deixa o driver gerar corretamente
-                    page_size=500    # envia em chunks, diminui pressão no banco
+                    template=None,
+                    page_size=500
                 )
 
                 self.connection.commit()
@@ -463,7 +496,7 @@ class WriteJsonToPostgres:
 
         finally:
             if self.connection:
-                self.connection.close()                
+                self.connection.close()          
    
     def upsert_data2(self,isdatainsercao= None):
         try:
