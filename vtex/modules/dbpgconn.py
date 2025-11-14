@@ -6,6 +6,7 @@ from datetime import datetime
 import psycopg2
 from dotenv import load_dotenv
 import pandas as pd
+from psycopg2.extras import execute_values
 
 # import matplotlib.pyplot as plt
 # import matplotlib.patches as patches
