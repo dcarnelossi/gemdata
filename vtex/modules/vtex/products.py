@@ -3,8 +3,8 @@ import logging
 import time
 from threading import Lock
 
-from api_conection import make_request
-from dbpgconn import WriteJsonToPostgres
+from modules.api_conection import make_request
+from modules.dbpgconn import WriteJsonToPostgres
 
 
 #----------------------------------------------------

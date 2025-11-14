@@ -4,7 +4,7 @@ import logging
 import time
 from threading import Lock
 import requests
-from dbpgconn import WriteJsonToPostgres
+from modules.dbpgconn import WriteJsonToPostgres
 
 #---------------------------------------
 # GLOBALS
