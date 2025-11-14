@@ -1,26 +1,33 @@
 import concurrent.futures
 import logging
 import requests
-from modules.dbpgconn import WriteJsonToPostgres
 import time
+from threading import Lock
+from modules.dbpgconn import WriteJsonToPostgres
 
-# set Globals
+# Globals
 api_conection_info = None
 data_conection_info = None
 
 session = requests.Session()
 
+# Buffer thread-safe para batches
+buffer = []
+buffer_lock = Lock()
+BATCH_SIZE = 1000
+
+
 def make_request(method, path, params=None):
     if not api_conection_info:
-        logging.error("API connection info is not set.")
         raise ValueError("API connection info is not set.")
 
     tentativa = 1
-    max_tentativas = 3  # Limite de tentativas
+    max_tentativas = 3
+
     while tentativa <= max_tentativas:
         try:
             url = f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}"
-            logging.info(f"Tentativa {tentativa}: Fazendo requisição para {url} com params {params}")
+            logging.info(f"Tentativa {tentativa}: Request {url}")
 
             response = session.request(
                 method,
@@ -28,117 +35,145 @@ def make_request(method, path, params=None):
                 params=params,
                 headers=api_conection_info["headers"],
             )
-            logging.info(f"Resposta {response.status_code}: {response.text}")
-            response.raise_for_status()
 
-            # Sucesso: retorna o JSON ou None
+            response.raise_for_status()
             return response.json() if response.status_code == 200 else None
 
-        except requests.JSONDecodeError as e:
-            logging.error(f"Tentativa {tentativa}: Falha ao processar resposta JSON: {e}")
-        except requests.RequestException as e:
-            logging.error(f"Tentativa {tentativa}: Falha na requisição: {e}")
+        except Exception as e:
+            logging.error(f"Tentativa {tentativa} falhou: {e}")
 
         tentativa += 1
-        logging.info(f"Aguardando 60 segundos antes da próxima tentativa...")
         time.sleep(60)
 
-    # Se todas as tentativas falharem, levanta uma exceção ou retorna None
-    logging.error("Todas as tentativas de requisição falharam.")
     raise RuntimeError("Falha ao realizar requisição após múltiplas tentativas.")
 
 
+# -------------------------------------------------------------------------
+# BUSCA LISTA DE SKUS
+# -------------------------------------------------------------------------
 def get_skus_list_pages(page):
-    query_params = {"page": page, "pagesize": 1000}
+    params = {"page": page, "pagesize": 1000}
+    return make_request("GET", "stockkeepingunitids", params=params)
 
-    return make_request("GET", "stockkeepingunitids", params=query_params)
 
 def get_skus_ids(init_page):
-    
     try:
-    
-        skus_ids = []
+        skus = []
         while True:
-            skus_page = get_skus_list_pages(init_page)
-            if not skus_page:
-                logging.info(f"No more SKUs found starting from page {init_page}.")
+            page_data = get_skus_list_pages(init_page)
+            if not page_data:
                 break
-            skus_ids.extend(skus_page)
+            skus.extend(page_data)
             init_page += 1
-        return skus_ids
+        return skus
     except Exception as e:
-        logging.error(f"get_skus - An unexpected error occurred: {e}")
-        raise 
+        logging.error(f"Erro ao buscar lista SKUs: {e}")
+        raise
 
+
+# -------------------------------------------------------------------------
+# BUSCA DADOS INDIVIDUAIS E ADICIONA NO BUFFER
+# -------------------------------------------------------------------------
 def get_sku_by_id(sku_id):
     return make_request("GET", f"stockkeepingunitbyid/{sku_id}")
 
-class SkuNotFoundException(Exception):
-    pass
 
 def process_sku(sku_id):
-    sku_json = get_sku_by_id(sku_id)
-    if sku_json:
-        try:
-            writer = WriteJsonToPostgres(data_conection_info, sku_json, "skus", "Id")
-            writer.upsert_data2()
-            logging.info(f"SKU {sku_id} upserted successfully.")
-            return True
-        except Exception as e:
-            logging.error(f"Error inserting SKU {sku_id} data - {e}")
-            return e
-    else:
-        logging.error(f"SKU not found for ID: {sku_id}")
-        raise SkuNotFoundException(f"SKU with ID {sku_id} not found.")
+    """Busca o SKU e adiciona no buffer. Não grava no banco aqui."""
+    try:
+        data = get_sku_by_id(sku_id)
+        if data:
+            with buffer_lock:
+                buffer.append(data)
+        else:
+            logging.error(f"SKU {sku_id} não encontrado")
+    except Exception as e:
+        logging.error(f"Erro em sku {sku_id}: {e}")
 
+
+# -------------------------------------------------------------------------
+# SALVAMENTO EM LOTE
+# -------------------------------------------------------------------------
+def save_batch_if_needed(force=False):
+    global buffer
+
+    with buffer_lock:
+        # Se não for "force" e ainda não atingiu o batch → não salva
+        if len(buffer) < BATCH_SIZE and not force:
+            return
+
+        # Monta o batch
+        if force:
+            batch = buffer[:]      # copia tudo
+            buffer.clear()         # limpa tudo
+        else:
+            batch = buffer[:BATCH_SIZE]  # primeiros 1000
+            del buffer[:BATCH_SIZE]      # remove primeiros 1000
+
+    # Se batch está vazio, não faz nada
+    if not batch:
+        return
+
+    try:
+        logging.info(f"Gravando batch de {len(batch)} itens no Postgres...")
+
+        writer = WriteJsonToPostgres(
+            data_conection_info,
+            batch,
+            "skus",
+            "Id"
+        )
+        writer.upsert_data_batch()
+
+        logging.info("Batch salvo com sucesso.")
+
+    except Exception as e:
+        logging.error(f"Erro ao salvar batch: {e}")
+        raise
+
+
+# -------------------------------------------------------------------------
+# PROCESSAMENTO PRINCIPAL
+# -------------------------------------------------------------------------
 def get_skus(init_page):
     if not api_conection_info or not data_conection_info:
-        logging.error("Global connection info is not set.")
-        raise ValueError("Global connection info is not set.")
-    
+        raise ValueError("Connection info not set.")
+
     try:
         skus = get_skus_ids(init_page)
         if not skus:
-            logging.info("No SKUs found to process.")
-            return False
+            logging.info("Nenhum SKU encontrado.")
+            return
 
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     futures = {executor.submit(process_sku, sku): sku for sku in skus}
-        #     for future in concurrent.futures.as_completed(futures):
-        #         sku = futures[future]
-        #         try:
-        #             future.result()
-        #         except Exception as e:
-        #             logging.error(f"Error processing SKU {sku}: {e}")
-        # return True
-    
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future_to_sku = {
-                        executor.submit(process_sku,sku ): sku 
-                        for sku in skus
-                    }
-                    # Itera conforme as tarefas forem completadas
-                    for future in concurrent.futures.as_completed(future_to_sku):
-                        sku = future_to_sku[future]
-                        try:
-                            result = future.result()  # Lança exceção se houver falha na tarefa
-                            logging.info(f"sku {sku} processado com sucesso.")
-                        except Exception as e:
-                            logging.error(f"sku {sku} gerou uma exceção: {e}")
-                            raise e  # Lança a exceção para garantir que o erro seja capturado
-        return True
+        logging.info(f"Total SKUs encontrados: {len(skus)}")
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            futures = {executor.submit(process_sku, sku): sku for sku in skus}
+
+            for future in concurrent.futures.as_completed(futures):
+                sku = futures[future]
+                try:
+                    future.result()
+                except Exception as e:
+                    logging.error(f"SKU {sku} falhou: {e}")
+
+                save_batch_if_needed()
+
+        # Salva o restante
+        save_batch_if_needed(force=True)
 
     except Exception as e:
-        logging.error(f"get_skus - An unexpected error occurred: {e}")
-        raise e
+        logging.error(f"Erro geral: {e}")
+        raise
 
+
+# -------------------------------------------------------------------------
+# SET GLOBALS
+# -------------------------------------------------------------------------
 def set_globals(init_page, api_info, conection_info):
-    global api_conection_info
+    global api_conection_info, data_conection_info
+
     api_conection_info = api_info
-    global data_conection_info
     data_conection_info = conection_info
 
     get_skus(init_page)
-
-# if __name__ == "__main__":
-#     set_globals(1, {"VTEX_Domain": "example.com", "headers": {"Authorization": "Bearer your_token"}}, {"db_info": "details"})
