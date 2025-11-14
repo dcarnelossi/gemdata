@@ -123,7 +123,7 @@ def extract_brand_ids(raw_json):
 #---------------------------------------
 # PROCESSAMENTO PRINCIPAL (Producer–Consumer)
 #---------------------------------------
-def get_brands_parallel():
+def get_brands_list_parallel():
     logging.info("Iniciando processamento de brands...")
 
     #---------------------------------
@@ -182,4 +182,4 @@ def set_globals(api_info, conection_info):
     api_conection_info = api_info
     data_conection_info = conection_info
 
-    get_brands_parallel()
+    get_brands_list_parallel()
