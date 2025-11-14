@@ -66,7 +66,14 @@ with DAG(
             section="Important params",
             min_length=1,
             max_length=10,
-        )
+        ), 
+        "ISEXECUTE": Param(
+            type="string",
+            title="Executar tudo:",
+            description="Entre com 0 (não) ou 1(sim) para executar tudo (sku e produto) .",
+            section="Important params",
+            default="0",  # ← opcional
+        ),
     },
 
 ) as dag:
@@ -132,6 +139,7 @@ with DAG(
     @task(provide_context=True)
     def skus(**kwargs):
             ti = kwargs["ti"]
+            execute = kwargs["params"]["ISEXECUTE"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
             # coorp_conection_info = ti.xcom_pull(
             #     task_ids="brands", key="coorp_conection_info"
@@ -142,8 +150,16 @@ with DAG(
             from modules.vtex import sku
 
             try:
-                sku.set_globals(1, api_conection_info, data_conection_info)
-                return True
+                date_start = datetime.now()
+
+                # Segunda=0, Terça=1, ..., Domingo=6
+                if date_start.weekday() in (1, 5) or execute == "1":
+                    logging.info("📦 Executando SKUs (dia permitido ou execução forçada)")
+                    sku.set_globals(1, api_conection_info, data_conection_info)
+                    return True
+                else:
+                    logging.info("⏭️ Pulando SKUs (não é dia de execução)")
+                    return True
             except Exception as e:
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e
@@ -151,6 +167,7 @@ with DAG(
     @task
     def products(**kwargs):
             ti = kwargs["ti"]
+            execute = kwargs["params"]["ISEXECUTE"]
             # integration_id = ti.xcom_pull(task_ids="brands", key="integration_id")
             # coorp_conection_info = ti.xcom_pull(
             #     task_ids="brands", key="coorp_conection_info"
@@ -161,8 +178,18 @@ with DAG(
             from modules.vtex import products
 
             try:
-                products.set_globals(api_conection_info, data_conection_info)
-                return True
+                date_start = datetime.now()
+
+                # Segunda=0, Terça=1, ..., Domingo=6
+                if date_start.weekday() in (1, 5) or execute == "1":
+                    logging.info("📦 Executando Produto (dia permitido ou execução forçada)")
+                    products.set_globals(api_conection_info, data_conection_info)
+                    return True
+                else:
+                    logging.info("⏭️ Pulando Produto (não é dia de execução)")
+                    return True
+               
+                
             except Exception as e:
                 logging.exception(f"An unexpected error occurred during DAG - {e}")
                 raise e

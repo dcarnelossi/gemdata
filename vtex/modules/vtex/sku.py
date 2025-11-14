@@ -30,7 +30,7 @@ def make_request(method, path, params=None):
     while tentativa <= max_tentativas:
         try:
             url = f"https://{api_conection_info['Domain']}/api/catalog_system/pvt/sku/{path}"
-            logging.info(f"Tentativa {tentativa}: Request {url}")
+            #logging.info(f"Tentativa {tentativa}: Request {url}")
 
             response = session.request(
                 method,
@@ -149,7 +149,7 @@ def get_skus(init_page):
         logging.info(f"Total SKUs encontrados: {len(skus)}")
 
         # Thread pool
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
 
             futures = []
 

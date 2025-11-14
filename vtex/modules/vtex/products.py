@@ -15,7 +15,7 @@ data_conection_info = None
 
 buffer = []
 buffer_lock = Lock()
-BATCH_SIZE = 500   # products são pesados → 500 é ideal
+BATCH_SIZE = 3000   # products são pesados → 500 é ideal
 
 
 #----------------------------------------------------
@@ -121,7 +121,7 @@ def process_products():
 
         logging.info(f"Total de products a processar: {len(product_ids)}")
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
 
             futures = []
 
