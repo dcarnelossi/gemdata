@@ -1,94 +1,162 @@
 import concurrent.futures
 import logging
+from threading import Lock
 
 from modules.dbpgconn import WriteJsonToPostgres
 
-# Variáveis globais
+# ==========================================================
+# GLOBALS
+# ==========================================================
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 
+buffer = []
+buffer_lock = Lock()
+BATCH_SIZE = 500   # orders_totals é pequeno → batch eficiente
+
+
+# ==========================================================
+# ADD TO BUFFER
+# ==========================================================
+def add_to_buffer(item):
+    try:
+        with buffer_lock:
+            buffer.append(item)
+    except Exception as e:
+        logging.error(f"Erro ao adicionar item ao buffer: {e}")
+        raise
+
+
+# ==========================================================
+# SAVE BATCH
+# ==========================================================
+def save_batch_if_needed(force=False):
+    global buffer
+
+    with buffer_lock:
+        if len(buffer) < BATCH_SIZE and not force:
+            return
+
+        if force:
+            batch = buffer[:]
+            buffer.clear()
+        else:
+            batch = buffer[:BATCH_SIZE]
+            del buffer[:BATCH_SIZE]
+
+    if not batch:
+        return
+
+    try:
+        logging.info(f"💾 Salvando batch de {len(batch)} registros (orders_totals)...")
+
+        writer = WriteJsonToPostgres(
+            data_conection_info,
+            batch,
+            "orders_totals",
+            "orderid"
+        )
+        writer.upsert_data_batch_otimizado(isdatainsercao=1)
+
+        logging.info(f"Batch de {len(batch)} orders_totals salvo com sucesso.")
+
+    except Exception as e:
+        logging.error(f"Erro ao salvar batch orders_totals: {e}")
+        raise
+
+
+# ==========================================================
+# PROCESSA UMA LINHA (PRODUCER)
+# ==========================================================
+def process_order_item_colunar(order_totals):
+    try:
+        order_id, totals_list = order_totals
+
+        result = {"orderid": order_id}
+
+        for item in totals_list:
+
+            # totals padrão
+            result[item["id"]] = item["value"]
+
+            # totals alternativos
+            if "alternativeTotals" in item:
+                for alt_total in item["alternativeTotals"]:
+                    alt_id = alt_total["id"]
+                    alt_value = alt_total["value"]
+                    result[alt_id] = alt_value
+
+        # adiciona ao buffer
+        add_to_buffer(result)
+
+    except Exception as e:
+        logging.error(f"Erro ao processar order_totals para orderid {order_id}: {e}")
+        raise
+
+
+# ==========================================================
+# PROCESSAMENTO PRINCIPAL (LOOP DE BATCHES)
+# ==========================================================
 def write_orders_totals_to_database_colunar(batch_size=600):
     try:
         while True:
+
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
                     FROM orders_totals oi
                     GROUP BY oi.orderid
                 )
-                SELECT  o.orderid ,o.totals
+                SELECT o.orderid, o.totals
                 FROM orders o
                 INNER JOIN orders_list ol ON ol.orderid = o.orderid
                 LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
                 WHERE ol.is_change = TRUE
-                AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
                 ORDER BY o.sequence
-                LIMIT {batch_size};"""
+                LIMIT {batch_size};
+            """
 
-            result = WriteJsonToPostgres(
+            rows = WriteJsonToPostgres(
                 data_conection_info, query, "orders_totals"
             ).query()
 
-            if not result or not result[0]:
-                logging.info("No more orders to process. Exiting loop.")
-                break  # No more results, exit the loop
+            if not rows or not rows[0]:
+                logging.info("Nenhum orders_totals adicional para processar.")
+                break
 
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = {executor.submit(process_order_item_colunar, order_totals): order_totals for order_totals in result[0]}
+            rows = rows[0]
+
+            # Producer threads
+            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+                futures = [executor.submit(process_order_item_colunar, row) for row in rows]
+
                 for future in concurrent.futures.as_completed(futures):
-                    order_totals = futures[future]
-                    try:
-                        future.result()
-                    except Exception as e:
-                        logging.error(f"Error processing orderid {order_totals[0]}: {e}")
-                        raise  # Propagate the exception to fail the Airflow task
+                    future.result()
+
+            # Consumer salva lote
+            save_batch_if_needed()
+
+        # flush final
+        save_batch_if_needed(force=True)
 
     except Exception as e:
-        logging.error(f"Unexpected error in write_orders_totals_to_database_colunar: {e}")
-        raise  # Ensure the Airflow task fails on error
+        logging.error(f"Erro crítico no processamento orders_totals: {e}")
+        raise
 
-def process_order_item_colunar(order_totals):
-    try:
-        order_id, totals = order_totals
-        result = {"orderid": order_id}
 
-        for item in totals:
-            result[item["id"]] = item["value"]
-
-            if "alternativeTotals" in item:
-                for alt_total in item["alternativeTotals"]:
-                    alt_id = alt_total["id"]
-                    alt_value = alt_total["value"]
-                    if alt_id not in result:
-                        result[alt_id] = alt_value
-
-        writer = WriteJsonToPostgres(
-            data_conection_info, result, "orders_totals", "orderid"
-        )
-        writer.upsert_data2(isdatainsercao=1)
-
-        logging.info(f"Data upserted successfully for orderid - {order_id}")
-
-    except Exception as e:
-        logging.error(f"Error processing order totals for orderid {order_id}: {e}")
-        raise  # Propagate the exception to fail the Airflow task
-
+# ==========================================================
+# SET GLOBALS
+# ==========================================================
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info, data_conection_info, coorp_conection_info
+
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
 
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
-        logging.error("Global connection information is incomplete.")
-        raise ValueError("All global connection information must be provided.")
+        raise ValueError("Global connection info is incomplete.")
 
     write_orders_totals_to_database_colunar()
-
-# if __name__ == "__main__":
-#     set_globals(
-#         {"api_key": "example"}, 
-#         {"db_url": "postgresql://user:pass@localhost/db"}, 
-#         {"coorp_key": "example"}
-#     )
