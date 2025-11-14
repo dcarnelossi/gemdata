@@ -43,8 +43,6 @@ def add_to_buffer(item):
 # ==========================================================
 def save_batch_if_needed(force=False):
     global buffer, processed_ids
-
-    logging.info(f"💾 Tentando salvar o  batch ...")
     
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
@@ -58,12 +56,18 @@ def save_batch_if_needed(force=False):
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
 
-            # remove ids processados do set
             processed_batch_ids = {item["orderid"] for item in batch}
             processed_ids -= processed_batch_ids
 
     if not batch:
         return
+
+    # ---------- REMOVER DUPLICADOS NO PRÓPRIO BATCH ----------
+    unique = {}
+    for item in batch:
+        unique[item["orderid"]] = item
+    batch = list(unique.values())
+    # ---------------------------------------------------------
 
     try:
         logging.info(f"💾 Salvando batch de {len(batch)} registros (orders_totals)...")
@@ -76,11 +80,10 @@ def save_batch_if_needed(force=False):
         )
         writer.upsert_data_batch_otimizado(isdatainsercao=1)
 
-        logging.info(f"Batch de {len(batch)} orders_totals salvo com sucesso.")
-
     except Exception as e:
         logging.error(f"Erro ao salvar batch orders_totals: {e}")
         raise
+
 
 
 # ==========================================================
@@ -120,9 +123,6 @@ def write_orders_totals_to_database_colunar(batch_size=600):
     try:
         while True:
 
-            # 🔥 ESSENCIAL: limpar ids antes de cada leitura da query
-            processed_ids.clear()
-
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
@@ -146,17 +146,21 @@ def write_orders_totals_to_database_colunar(batch_size=600):
             if not rows or not rows[0]:
                 logging.info("Nenhum orders_totals adicional para processar.")
                 break
-
+            
+            logging.info(f"""Total de orders para processar: {len(rows)}""")        
             rows = rows[0]
 
+            # threads para PRODUCER
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [executor.submit(process_order_item_colunar, row) for row in rows]
 
                 for future in concurrent.futures.as_completed(futures):
                     future.result()
 
+            # CONSUMER salva lote
             save_batch_if_needed()
 
+        # flush final
         save_batch_if_needed(force=True)
 
     except Exception as e:
