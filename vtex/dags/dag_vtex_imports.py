@@ -95,7 +95,7 @@ with DAG(
                 hook2.run(query, parameters=(datetime.now(),integration_id))
 
 
-                brand.get_brands_list_parallel(api_conection_info, data_conection_info)
+                brand.set_globals(api_conection_info, data_conection_info)
 
                 # Pushing data to XCom
                 kwargs["ti"].xcom_push(key="integration_id", value=integration_id)
