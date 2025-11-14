@@ -403,6 +403,66 @@ class WriteJsonToPostgres:
         finally:
             if self.connection:
                 self.connection.close()
+
+    def upsert_data_batch_otimizado(self, isdatainsercao=None):
+        try:
+            batch_data = self.data
+            if not batch_data:
+                return True
+
+            with self.connection.connect().cursor() as cursor:
+
+                columns = list(batch_data[0].keys())
+
+                # Prepara os valores sem montar SQL gigante
+                values = []
+                for row in batch_data:
+                    values.append([
+                        json.dumps(row[col]) if isinstance(row[col], (dict, list)) else row[col]
+                        for col in columns
+                    ])
+
+                # UPDATE clause
+                if isdatainsercao == 1:
+                    update_clause = ", ".join([
+                        f"{col}=EXCLUDED.{col}"
+                        for col in columns if col != self.table_key
+                    ]) + ", data_insercao = now()"
+                else:
+                    update_clause = ", ".join([
+                        f"{col}=EXCLUDED.{col}"
+                        for col in columns if col != self.table_key
+                    ])
+
+                # Query base sem VALUES
+                sql = f"""
+                    INSERT INTO {self.tablename} ({', '.join(columns)})
+                    VALUES %s
+                    ON CONFLICT ({self.table_key}) DO UPDATE SET
+                    {update_clause}
+                """
+
+                # 🚀 O execute_values insere várias linhas sem explodir a memória
+                execute_values(
+                    cursor,
+                    sql,
+                    values,
+                    template=None,   # deixa o driver gerar corretamente
+                    page_size=500    # envia em chunks, diminui pressão no banco
+                )
+
+                self.connection.commit()
+                print(f"{len(batch_data)} registros upsertados com sucesso.")
+                return True
+
+        except Exception as e:
+            self.connection.rollback()
+            print(f"Erro no upsert em lote: {e}")
+            raise e
+
+        finally:
+            if self.connection:
+                self.connection.close()                
    
     def upsert_data2(self,isdatainsercao= None):
         try:

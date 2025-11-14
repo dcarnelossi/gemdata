@@ -17,6 +17,9 @@ buffer_lock = Lock()
 BATCH_SIZE = 1000
 
 
+#----------------------------------------------------------
+# REQUEST COM RETRY
+#----------------------------------------------------------
 def make_request(method, path, params=None):
     if not api_conection_info:
         raise ValueError("API connection info is not set.")
@@ -48,9 +51,9 @@ def make_request(method, path, params=None):
     raise RuntimeError("Falha ao realizar requisição após múltiplas tentativas.")
 
 
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
 # BUSCA LISTA DE SKUS
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
 def get_skus_list_pages(page):
     params = {"page": page, "pagesize": 1000}
     return make_request("GET", "stockkeepingunitids", params=params)
@@ -71,15 +74,15 @@ def get_skus_ids(init_page):
         raise
 
 
-# -------------------------------------------------------------------------
-# BUSCA DADOS INDIVIDUAIS E ADICIONA NO BUFFER
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
+# BUSCA DADOS INDIVIDUAIS
+#----------------------------------------------------------
 def get_sku_by_id(sku_id):
     return make_request("GET", f"stockkeepingunitbyid/{sku_id}")
 
 
 def process_sku(sku_id):
-    """Busca o SKU e adiciona no buffer. Não grava no banco aqui."""
+    """Busca o SKU e adiciona no buffer."""
     try:
         data = get_sku_by_id(sku_id)
         if data:
@@ -91,26 +94,24 @@ def process_sku(sku_id):
         logging.error(f"Erro em sku {sku_id}: {e}")
 
 
-# -------------------------------------------------------------------------
-# SALVAMENTO EM LOTE
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
+# SALVAMENTO EM BATCH REAL
+#----------------------------------------------------------
 def save_batch_if_needed(force=False):
     global buffer
 
     with buffer_lock:
-        # Se não for "force" e ainda não atingiu o batch → não salva
         if len(buffer) < BATCH_SIZE and not force:
             return
 
         # Monta o batch
         if force:
-            batch = buffer[:]      # copia tudo
-            buffer.clear()         # limpa tudo
+            batch = buffer[:]      
+            buffer.clear()
         else:
-            batch = buffer[:BATCH_SIZE]  # primeiros 1000
-            del buffer[:BATCH_SIZE]      # remove primeiros 1000
+            batch = buffer[:BATCH_SIZE]
+            del buffer[:BATCH_SIZE]
 
-    # Se batch está vazio, não faz nada
     if not batch:
         return
 
@@ -123,7 +124,7 @@ def save_batch_if_needed(force=False):
             "skus",
             "Id"
         )
-        writer.upsert_data_batch()
+        writer.upsert_data_batch_otimizado()
 
         logging.info("Batch salvo com sucesso.")
 
@@ -132,9 +133,9 @@ def save_batch_if_needed(force=False):
         raise
 
 
-# -------------------------------------------------------------------------
-# PROCESSAMENTO PRINCIPAL
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
+# PROCESSAMENTO PRINCIPAL — PRODUCER/CONSUMER REAL
+#----------------------------------------------------------
 def get_skus(init_page):
     if not api_conection_info or not data_conection_info:
         raise ValueError("Connection info not set.")
@@ -147,19 +148,29 @@ def get_skus(init_page):
 
         logging.info(f"Total SKUs encontrados: {len(skus)}")
 
+        # Thread pool
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-            futures = {executor.submit(process_sku, sku): sku for sku in skus}
 
-            for future in concurrent.futures.as_completed(futures):
-                sku = futures[future]
+            futures = []
+
+            for sku in skus:
+                future = executor.submit(process_sku, sku)
+                futures.append(future)
+
+                # Salva o batch assim que a thread termina
+                future.add_done_callback(lambda f: save_batch_if_needed())
+
+                # PROTEGE A API DA VTEX
+                time.sleep(0.05)  # 50ms entre submissões (evita estouro da API)
+
+            # Aguarda todas finalizarem
+            for future in futures:
                 try:
                     future.result()
                 except Exception as e:
-                    logging.error(f"SKU {sku} falhou: {e}")
+                    logging.error(f"Erro em thread: {e}")
 
-                save_batch_if_needed()
-
-        # Salva o restante
+        # Salva qualquer sobra do buffer
         save_batch_if_needed(force=True)
 
     except Exception as e:
@@ -167,9 +178,9 @@ def get_skus(init_page):
         raise
 
 
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
 # SET GLOBALS
-# -------------------------------------------------------------------------
+#----------------------------------------------------------
 def set_globals(init_page, api_info, conection_info):
     global api_conection_info, data_conection_info
 

@@ -1,183 +1,201 @@
 import concurrent.futures
 import json
 import logging
-
+import time
+from threading import Lock
 import requests
 from modules.dbpgconn import WriteJsonToPostgres
 
-category_levels = None
+#---------------------------------------
+# GLOBALS
+#---------------------------------------
 api_conection_info = None
 data_conection_info = None
+category_levels = None
+
+# buffer de batches
+buffer = []
+buffer_lock = Lock()
+BATCH_SIZE = 1000  # categorias podem ser muitas → 1000 é bom
 
 
-def log_error(msg, exception=None):
-    logging.error(f"{msg}: {exception}" if exception else msg)
-
-
-# TODO Trocar isso aqui pra função que esta no api_conection
+#---------------------------------------
+# REQUEST PADRÃO (com retry implícito)
+#---------------------------------------
 def make_request(method, endpoint, params=None):
-    try:
-        with requests.Session() as session:
-            response = session.request(
-                method,
-                f"https://{api_conection_info['Domain']}{endpoint}",
-                headers=api_conection_info["headers"],
-                params=params,
-            )
-            # Gera exceção se a resposta indicar erro (status HTTP >= 400)
-            response.raise_for_status()
-            return response.json()
+    url = f"https://{api_conection_info['Domain']}{endpoint}"
 
-    except requests.RequestException as e:
-        log_error(f"Error in HTTP request to {endpoint}", e)
-        raise
-    except json.JSONDecodeError as e:
-        log_error(f"JSON decoding error for response from {endpoint}", e)
-        raise
+    try:
+        response = requests.request(
+            method,
+            url,
+            headers=api_conection_info["headers"],
+            params=params,
+            timeout=30
+        )
+        response.raise_for_status()
+        return response.json()
+
     except Exception as e:
-        log_error(f"An unexpected error occurred in HTTP request to {endpoint}", e)
+        logging.error(f"Erro na requisição para {url}: {e}")
         raise
 
-    return None
 
+#---------------------------------------
+# SALVA BATCH REAL
+#---------------------------------------
+def save_batch_if_needed(force=False):
+    global buffer
 
-def handle_category_data(category_id, data):
+    with buffer_lock:
+        if len(buffer) < BATCH_SIZE and not force:
+            return
+
+        # cria o batch
+        if force:
+            batch = buffer[:]
+            buffer.clear()
+        else:
+            batch = buffer[:BATCH_SIZE]
+            del buffer[:BATCH_SIZE]
+
+    if not batch:
+        return
+
     try:
-        decoded_data = json.loads(data)
+        logging.info(f"Gravando batch de {len(batch)} categorias...")
+
         writer = WriteJsonToPostgres(
-            data_conection_info, decoded_data, "categories", "Id"
+            data_conection_info,
+            batch,
+            "categories",
+            "Id"
         )
 
-        # if not writer.table_exists():
-        #     try:
-        #         writer.create_table()
-        #         logging.info("Table created successfully.")
-        #     except Exception as e:
-        #         log_error(f"Error creating table - {e}")
+        writer.upsert_data_batch_otimizado()
 
-        writer.upsert_data2()
-        logging.info("Data upsert_data successfully.")
+        logging.info("Batch de categorias salvo com sucesso.")
 
-    except json.JSONDecodeError as e:
-        log_error(f"JSON decoding error: {e}")
-        raise
     except Exception as e:
-        log_error(
-            f"An unexpected error occurred in handle_category_data - {category_id}: {e}"
-        )
+        logging.error(f"Erro ao gravar batch de categorias: {e}")
         raise
 
 
-
-def extract_category_ids(objeto):
-    ids = [objeto["id"]]
-    if "children" in objeto:
-        for child in objeto["children"]:
-            ids.extend(extract_category_ids(child))
-    return ids
-
-
-def extract_category_ids_wrapper(category_list):
-    try:
-        dados_json = json.loads(category_list)
-        category_ids = [id for item in dados_json for id in extract_category_ids(item)]
-        logging.info(f"Extracted category IDs: {category_ids}")
-        return category_ids
-
-    except json.JSONDecodeError as e:
-        log_error(f"JSON decoding error in extract_category_ids: {e}")
-        raise
-    except Exception as e:
-        log_error(f"An unexpected error occurred in extract_category_ids: {e}")
-        raise
-
-   
-
-
+#---------------------------------------
+# PROCESSAR UMA CATEGORIA INDIVIDUAL
+#---------------------------------------
 def process_category_id(category_id):
-    
     try:
-        category_details = make_request("GET", f"/api/catalog/pvt/category/{category_id}")
-
-        if category_details:
-            logging.info(f"Processing completed for category {category_id}.")
-            handle_category_data(category_id, json.dumps(category_details))
-            return category_details
-
-        logging.error(f"Processing failed for category {category_id}.")
-        return None
-    except Exception as e:
-        log_error(f"process_category_id : {e}")
-        raise
-
-
-def fetch_categories_from_api(category_levels):
-    try:
-        return make_request(
-            "GET", f"/api/catalog_system/pub/category/tree/{category_levels}"
+        category_details = make_request(
+            "GET",
+            f"/api/catalog/pvt/category/{category_id}"
         )
+
+        if not category_details:
+            logging.error(f"Categoria {category_id} retornou vazio.")
+            return
+
+        # adiciona ao buffer
+        with buffer_lock:
+            buffer.append(category_details)
+
     except Exception as e:
-        log_error(f"Error fetching categories from API: {e}")
+        logging.error(f"Erro processando categoria {category_id}: {e}")
+
+
+#---------------------------------------
+# EXTRAI IDS (recursivo)
+#---------------------------------------
+def extract_category_ids(raw_json):
+    def extrair(obj):
+        ids = [obj["id"]]
+        if "children" in obj:
+            for child in obj["children"]:
+                ids.extend(extrair(child))
+        return ids
+
+    try:
+        data = json.loads(raw_json)
+        ids_total = []
+        for item in data:
+            ids_total.extend(extrair(item))
+        return ids_total
+
+    except Exception as e:
+        logging.error(f"Erro extraindo IDs de categorias: {e}")
         raise
 
 
-def process_categories(data):
-    try:
-        category_lists = extract_category_ids_wrapper(json.dumps(data))
+#---------------------------------------
+# PROCESSAR TODAS AS CATEGORIAS
+# (Producer–Consumer)
+#---------------------------------------
+def process_categories_tree(category_levels):
 
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     list(executor.map(process_category_id, category_lists))
-        
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-                    future_to_category = {
-                        executor.submit(process_category_id, category_l): category_l 
-                        for category_l in category_lists
-                    }
-                    # Itera conforme as tarefas forem completadas
-                    for future in concurrent.futures.as_completed(future_to_category):
-                        category_l = future_to_category[future]
-                        try:
-                            result = future.result()  # Lança exceção se houver falha na tarefa
-                            logging.info(f"category ID {category_l} processado com sucesso.")
-                        except Exception as e:
-                            logging.error(f"category ID {category_l} gerou uma exceção: {e}")
-                            raise e  # Lança a exceção para garantir que o erro seja capturado
-               
+    #---------------------------------------
+    # 1) BUSCA ARVORE DE CATEGORIAS
+    #---------------------------------------
+    logging.info("Buscando árvore de categorias...")
+
+    data = make_request(
+        "GET",
+        f"/api/catalog_system/pub/category/tree/{category_levels}"
+    )
+
+    if not data:
+        logging.error("Falha ao obter árvore de categorias")
+        return
+
+    # transforma JSON -> lista de IDs
+    raw = json.dumps(data)
+    category_ids = extract_category_ids(raw)
+
+    logging.info(f"Total de categorias encontradas: {len(category_ids)}")
+
+    #---------------------------------------
+    # 2) PROCESSA CATEGORIAS EM PARALELO
+    #---------------------------------------
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+
+        futures = []
+
+        for cat_id in category_ids:
+
+            future = executor.submit(process_category_id, cat_id)
+            futures.append(future)
+
+            # salva batch assim que thread termina
+            future.add_done_callback(lambda f: save_batch_if_needed())
+
+            # suaviza API VTEX
+            time.sleep(0.05)
+
+        # aguarda todas terminarem
+        for future in futures:
+            try:
+                future.result()
+            except Exception as e:
+                logging.error(f"Erro em thread de categoria: {e}")
+
+    #---------------------------------------
+    # 3) SALVA O RESTANTE
+    #---------------------------------------
+    save_batch_if_needed(force=True)
+
+    logging.info("Processamento de categorias finalizado.")
 
 
-    except Exception as e:
-        log_error(f"Error processing categories: {e}")
-
-
+#---------------------------------------
+# SET GLOBALS
+#---------------------------------------
 def set_globals(categories_info, api_info, conection_info):
     global category_levels
     category_levels = categories_info
+
     global api_conection_info
     api_conection_info = api_info
+
     global data_conection_info
     data_conection_info = conection_info
 
-    process_category_tree(categories_info)
-
-
-def process_category_tree(category_levels):
-    try:
-        data = fetch_categories_from_api(category_levels)
-
-        if data:
-            logging.info("Categories tree retrieved successfully.")
-            process_categories(data)
-
-        return data
-    except Exception as e:
-        log_error(f"Error processing category tree: {e}")
-        raise e
-
-
-if __name__ == "__main__":
-    # Exemplo de uso
-    result = process_category_tree(30)  # Substitua 3 pelo número desejado de níveis
-    if result:
-        logging.info("Processing completed.")
-    else:
-        logging.error("Processing failed.")
+    process_categories_tree(categories_info)
