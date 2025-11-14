@@ -158,7 +158,7 @@ def write_orders_totals_to_database_colunar(batch_size=600):
                     future.result()
 
             # CONSUMER salva lote
-            save_batch_if_needed()
+            save_batch_if_needed(force=True)
 
         # flush final
         save_batch_if_needed(force=True)

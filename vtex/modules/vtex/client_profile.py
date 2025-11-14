@@ -132,7 +132,7 @@ def write_client_profile_to_database(batch_size=600):
                     future.result()  # força erro no airflow se falhar
 
             # CONSUMER → salva batch
-            save_batch_if_needed()
+            save_batch_if_needed(force=True)
 
         # flush final
         save_batch_if_needed(force=True)

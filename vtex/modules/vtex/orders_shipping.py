@@ -144,7 +144,7 @@ def write_orders_shippingdata_to_database(batch_size=500):
                     future.result()
 
             # Consumer salva lote
-            save_batch_if_needed()
+            save_batch_if_needed(force=True)
 
         # flush final
         save_batch_if_needed(force=True)
