@@ -122,7 +122,7 @@ def process_order_item_colunar(order_totals):
 def write_orders_totals_to_database_colunar(batch_size=600):
     try:
         while True:
-
+            processed_ids.clear()
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
