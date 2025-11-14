@@ -3,7 +3,7 @@ import logging
 import requests
 import time
 from threading import Lock
-from modules.dbpgconn import WriteJsonToPostgres
+from dbpgconn import WriteJsonToPostgres
 
 # Globals
 api_conection_info = None
