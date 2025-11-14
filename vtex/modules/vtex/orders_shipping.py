@@ -13,17 +13,27 @@ data_conection_info = None
 coorp_conection_info = None
 
 buffer = []
+processed_ids = set()
 buffer_lock = Lock()
-BATCH_SIZE = 500   # shippingdata é pequeno → lote padrão
+
+BATCH_SIZE = 500
 
 
 # ==========================================================
-# ADICIONA AO BUFFER
+# ADD TO BUFFER (SEM DUPLICADOS)
 # ==========================================================
 def add_to_buffer(item):
     try:
+        orderid = item["orderid"]
+
         with buffer_lock:
+            # evita duplicidade no mesmo batch
+            if orderid in processed_ids:
+                return
+
+            processed_ids.add(orderid)
             buffer.append(item)
+
     except Exception as e:
         logging.error(f"Erro ao adicionar ao buffer: {e}")
         raise
@@ -33,7 +43,7 @@ def add_to_buffer(item):
 # SALVAR BATCH
 # ==========================================================
 def save_batch_if_needed(force=False):
-    global buffer
+    global buffer, processed_ids
 
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
@@ -42,9 +52,13 @@ def save_batch_if_needed(force=False):
         if force:
             batch = buffer[:]
             buffer.clear()
+            processed_ids.clear()
         else:
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
+
+            # remove ids inseridos do set
+            processed_ids -= {item["orderid"] for item in batch}
 
     if not batch:
         return
@@ -68,7 +82,7 @@ def save_batch_if_needed(force=False):
 
 
 # ==========================================================
-# PROCESSAMENTO DE UM REGISTRO (PRODUCER)
+# PROCESSAMENTO INDIVIDUAL (PRODUCER)
 # ==========================================================
 def process_shippingdata(order_row):
     try:
@@ -90,7 +104,7 @@ def process_shippingdata(order_row):
 
 
 # ==========================================================
-# PROCESSO PRINCIPAL EM LOOP (BATCHES)
+# PROCESSO PRINCIPAL (CONSUMER)
 # ==========================================================
 def write_orders_shippingdata_to_database(batch_size=500):
     try:
@@ -111,8 +125,9 @@ def write_orders_shippingdata_to_database(batch_size=500):
                 LIMIT {batch_size};
             """
 
-            writer = WriteJsonToPostgres(data_conection_info, query, "orders_shippingdata")
-            result = writer.query()
+            result = WriteJsonToPostgres(
+                data_conection_info, query, "orders_shippingdata"
+            ).query()
 
             if not result or not result[0]:
                 logging.info("Nenhum shippingdata adicional para processar. Finalizando.")
@@ -123,14 +138,13 @@ def write_orders_shippingdata_to_database(batch_size=500):
             # Producer threads
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [executor.submit(process_shippingdata, row) for row in rows]
-
                 for future in concurrent.futures.as_completed(futures):
-                    future.result()  # garante erro no Airflow
+                    future.result()
 
             # Consumer salva lote
             save_batch_if_needed()
 
-        # Final flush
+        # flush final
         save_batch_if_needed(force=True)
 
     except Exception as e:

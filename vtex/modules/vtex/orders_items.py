@@ -4,7 +4,6 @@ import math
 from threading import Lock
 from modules.dbpgconn import WriteJsonToPostgres
 
-
 # ==========================================================
 # GLOBALS
 # ==========================================================
@@ -13,63 +12,38 @@ data_conection_info = None
 coorp_conection_info = None
 
 buffer = []
+processed_unique_ids = set()
 buffer_lock = Lock()
-BATCH_SIZE = 800   # items são pequenos → lote maior é seguro
+BATCH_SIZE = 800
 
 
 # ==========================================================
-# Criar tabela caso não exista
-# ==========================================================
-def create_orders_items_database(table_name):
-    try:
-        writer = WriteJsonToPostgres(data_conection_info, "{}", table_name)
-
-        if not writer.table_exists():
-            query = f"""
-                SELECT orders.orderid, orders.{table_name}
-                FROM orders
-                LIMIT 1
-            """
-            result = writer.query()
-
-            if not result or not result[0]:
-                raise ValueError(f"No data found to create table '{table_name}'.")
-
-            dados = result[0][1]
-
-            # Adiciona orderid dentro de cada item
-            for item in dados:
-                item["orderid"] = result[0][0]
-
-            writer = WriteJsonToPostgres(data_conection_info, dados, table_name)
-            writer.create_table()
-
-            logging.info(f"Table '{table_name}' created successfully.")
-        else:
-            logging.info(f"Table '{table_name}' already exists.")
-
-    except Exception as e:
-        logging.error(f"Error creating table '{table_name}': {e}")
-        raise
-
-
-# ==========================================================
-# PRODUCER — Extrai e joga no buffer
+# PRODUCER — Adiciona ao buffer sem duplicados
 # ==========================================================
 def add_item_to_buffer(item):
     try:
+        unique_id = item.get("uniqueid") or item.get("uniqueId")
+
+        if not unique_id:
+            raise ValueError("Item sem uniqueId detectado!")
+
         with buffer_lock:
+            if unique_id in processed_unique_ids:
+                return  # ignora duplicados
+
+            processed_unique_ids.add(unique_id)
             buffer.append(item)
+
     except Exception as e:
         logging.error(f"Erro adicionando item ao buffer: {e}")
         raise
 
 
 # ==========================================================
-# CONSUMER — Salva lote no banco
+# CONSUMER — Salva o batch
 # ==========================================================
 def save_batch_if_needed(force=False):
-    global buffer
+    global buffer, processed_unique_ids
 
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
@@ -78,9 +52,14 @@ def save_batch_if_needed(force=False):
         if force:
             batch = buffer[:]
             buffer.clear()
+            processed_unique_ids.clear()
         else:
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
+
+            # remove IDs já enviados
+            sent_ids = {item["uniqueid"] for item in batch}
+            processed_unique_ids -= sent_ids
 
     if not batch:
         return
@@ -104,11 +83,10 @@ def save_batch_if_needed(force=False):
 
 
 # ==========================================================
-# PROCESSAMENTO PRINCIPAL EM BATCHES
+# PROCESSAMENTO PRINCIPAL
 # ==========================================================
 def write_orders_item_to_database(batch_size=400):
     try:
-        # 1) Conta quantos registros processar
         count_query = """
             SELECT COUNT(*)
             FROM orders o
@@ -129,9 +107,8 @@ def write_orders_item_to_database(batch_size=400):
         total_records = records[0][0][0]
         total_batches = math.ceil(total_records / batch_size)
 
-        logging.info(f"Total order_items a processar: {total_records} → {total_batches} batches")
+        logging.info(f"Total items a processar: {total_records} → {total_batches} batches")
 
-        # 2) Loop de batches
         for batch_num in range(total_batches):
 
             query = f"""
@@ -159,7 +136,6 @@ def write_orders_item_to_database(batch_size=400):
 
             rows = result[0]
 
-            # PRODUCER → captura items e joga no buffer
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 futures = []
 
@@ -174,10 +150,8 @@ def write_orders_item_to_database(batch_size=400):
                 for future in concurrent.futures.as_completed(futures):
                     future.result()
 
-            # CONSUMER → grava lote
             save_batch_if_needed()
 
-        # Finaliza buffer
         save_batch_if_needed(force=True)
 
     except Exception as e:

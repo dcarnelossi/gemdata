@@ -12,17 +12,27 @@ data_conection_info = None
 coorp_conection_info = None
 
 buffer = []
+processed_ids = set()     # ← evita duplicidade de orderid
 buffer_lock = Lock()
+
 BATCH_SIZE = 500   # orders_totals é pequeno → batch eficiente
 
 
 # ==========================================================
-# ADD TO BUFFER
+# ADD TO BUFFER (SEM DUPLICADOS)
 # ==========================================================
 def add_to_buffer(item):
     try:
+        orderid = item["orderid"]
+
         with buffer_lock:
+            # evita duplicidade dentro do mesmo batch
+            if orderid in processed_ids:
+                return
+
+            processed_ids.add(orderid)
             buffer.append(item)
+
     except Exception as e:
         logging.error(f"Erro ao adicionar item ao buffer: {e}")
         raise
@@ -32,7 +42,7 @@ def add_to_buffer(item):
 # SAVE BATCH
 # ==========================================================
 def save_batch_if_needed(force=False):
-    global buffer
+    global buffer, processed_ids
 
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
@@ -41,9 +51,14 @@ def save_batch_if_needed(force=False):
         if force:
             batch = buffer[:]
             buffer.clear()
+            processed_ids.clear()
         else:
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
+
+            # remove ids processados do set
+            processed_batch_ids = {item["orderid"] for item in batch}
+            processed_ids -= processed_batch_ids
 
     if not batch:
         return
@@ -67,7 +82,7 @@ def save_batch_if_needed(force=False):
 
 
 # ==========================================================
-# PROCESSA UMA LINHA (PRODUCER)
+# PROCESSA 1 ITEM (PRODUCER)
 # ==========================================================
 def process_order_item_colunar(order_totals):
     try:
@@ -87,7 +102,7 @@ def process_order_item_colunar(order_totals):
                     alt_value = alt_total["value"]
                     result[alt_id] = alt_value
 
-        # adiciona ao buffer
+        # adiciona ao buffer (sem duplicar orderid)
         add_to_buffer(result)
 
     except Exception as e:
@@ -96,7 +111,7 @@ def process_order_item_colunar(order_totals):
 
 
 # ==========================================================
-# PROCESSAMENTO PRINCIPAL (LOOP DE BATCHES)
+# PROCESSAMENTO PRINCIPAL
 # ==========================================================
 def write_orders_totals_to_database_colunar(batch_size=600):
     try:
@@ -128,14 +143,14 @@ def write_orders_totals_to_database_colunar(batch_size=600):
 
             rows = rows[0]
 
-            # Producer threads
+            # threads para PRODUCER
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [executor.submit(process_order_item_colunar, row) for row in rows]
 
                 for future in concurrent.futures.as_completed(futures):
                     future.result()
 
-            # Consumer salva lote
+            # CONSUMER salva lote
             save_batch_if_needed()
 
         # flush final
