@@ -93,7 +93,7 @@ def process_client_profile(result):
 def write_client_profile_to_database(batch_size=600):
     try:
         while True:
-
+            
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao

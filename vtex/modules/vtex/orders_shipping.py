@@ -109,6 +109,8 @@ def process_shippingdata(order_row):
 def write_orders_shippingdata_to_database(batch_size=500):
     try:
         while True:
+            processed_ids.clear()
+
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao

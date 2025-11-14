@@ -110,7 +110,8 @@ def write_orders_item_to_database(batch_size=400):
         logging.info(f"Total items a processar: {total_records} → {total_batches} batches")
 
         for batch_num in range(total_batches):
-
+            processed_unique_ids.clear()
+            
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao

@@ -120,6 +120,9 @@ def write_orders_totals_to_database_colunar(batch_size=600):
     try:
         while True:
 
+            # 🔥 ESSENCIAL: limpar ids antes de cada leitura da query
+            processed_ids.clear()
+
             query = f"""
                 WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
@@ -143,21 +146,17 @@ def write_orders_totals_to_database_colunar(batch_size=600):
             if not rows or not rows[0]:
                 logging.info("Nenhum orders_totals adicional para processar.")
                 break
-            
-            logging.info(f"""Total de orders para processar: {len(rows)}""")        
+
             rows = rows[0]
 
-            # threads para PRODUCER
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
                 futures = [executor.submit(process_order_item_colunar, row) for row in rows]
 
                 for future in concurrent.futures.as_completed(futures):
                     future.result()
 
-            # CONSUMER salva lote
             save_batch_if_needed()
 
-        # flush final
         save_batch_if_needed(force=True)
 
     except Exception as e:
