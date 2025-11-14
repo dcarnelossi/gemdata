@@ -44,6 +44,8 @@ def add_to_buffer(item):
 def save_batch_if_needed(force=False):
     global buffer, processed_ids
 
+    logging.info(f"💾 Tentando salvar o  batch ...")
+    
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
             return
@@ -89,6 +91,7 @@ def process_order_item_colunar(order_totals):
         order_id, totals_list = order_totals
 
         result = {"orderid": order_id}
+
 
         for item in totals_list:
 
@@ -140,7 +143,8 @@ def write_orders_totals_to_database_colunar(batch_size=600):
             if not rows or not rows[0]:
                 logging.info("Nenhum orders_totals adicional para processar.")
                 break
-
+            
+            logging.info(f"""Total de orders para processar: {len(rows)}""")        
             rows = rows[0]
 
             # threads para PRODUCER
