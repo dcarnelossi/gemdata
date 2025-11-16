@@ -10,7 +10,6 @@ import sys
 import calendar
 from modules.dbpgconn import WriteJsonToPostgres
 
-from sklearn.linear_model import LinearRegression
 
 
 def install(package):
