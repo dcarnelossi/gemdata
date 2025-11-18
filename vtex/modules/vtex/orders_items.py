@@ -148,11 +148,11 @@ def write_orders_item_to_database(batch_size=400):
         logging.info("🔎 Verificando consistência: procurando orders sem items...")
 
         validation_query = """
-            SELECT o.orderid
-            FROM orders o
-            INNER JOIN orders_list ol ON ol.orderid = o.orderid AND ol.is_change = TRUE
-            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-            WHERE oi.orderid IS NULL
+            select orderid	from orders  o
+            left join orders_items oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
+
         """
 
         validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
