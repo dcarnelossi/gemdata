@@ -87,76 +87,90 @@ def save_batch_if_needed(force=False):
 # ==========================================================
 def write_orders_item_to_database(batch_size=400):
     try:
-        count_query = """
-            SELECT COUNT(*)
-            FROM orders o
-            WHERE o.orderid IN (
-                SELECT orderid
-                FROM orders_list
-                WHERE is_change = TRUE
+        logging.info("🔍 Iniciando carregamento único de orders para processamento...")
+
+        # -----------------------------------------------------------
+        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # -----------------------------------------------------------
+        query = """
+            WITH max_data_insercao AS (
+                SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+                FROM orders_items oi
+                GROUP BY oi.orderid
             )
+            SELECT o.orderid, o.items
+            FROM orders o
+            INNER JOIN orders_list ol ON ol.orderid = o.orderid
+            LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+            WHERE ol.is_change = TRUE
+              AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+            ORDER BY o.sequence
         """
 
-        count_writer = WriteJsonToPostgres(data_conection_info, count_query, "orders_items")
-        records = count_writer.query()
+        writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
+        result = writer.query()
 
-        if not records or not records[0]:
-            logging.info("Nenhum registro para processar order_items.")
+        if not result or not result[0]:
+            logging.info("Nenhum registro pendente para processar order_items.")
             return
 
-        total_records = records[0][0][0]
-        total_batches = math.ceil(total_records / batch_size)
+        rows = result[0]
+        total_orders = len(rows)
 
-        logging.info(f"Total items a processar: {total_records} → {total_batches} batches")
+        logging.info(f"📦 Total orders pendentes encontradas: {total_orders}")
 
-        for batch_num in range(total_batches):
-            processed_unique_ids.clear()
-            
-            query = f"""
-                WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM orders_items oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid, o.items
-                FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
-                LIMIT {batch_size}
-            """
+        # -----------------------------------------------------------
+        # PROCESSAMENTO DOS ITEMS — PRODUCER + BUFFER
+        # -----------------------------------------------------------
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = []
 
-            batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
-            result = batch_writer.query()
+            for order in rows:
+                orderid = order[0]
+                items = order[1]
 
-            if not result or not result[0]:
-                logging.info("Nenhum dado adicional após batch %s", batch_num)
-                break
+                for item in items:
+                    item["orderid"] = orderid
+                    futures.append(executor.submit(add_item_to_buffer, item))
 
-            rows = result[0]
+            # Espera o processamento de todos os items
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
 
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = []
-
-                for order in rows:
-                    orderid = order[0]
-                    items = order[1]
-
-                    for item in items:
-                        item["orderid"] = orderid
-                        futures.append(executor.submit(add_item_to_buffer, item))
-
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
-
-            save_batch_if_needed()
-
+        # -----------------------------------------------------------
+        # SALVA o que sobrou no buffer
+        # -----------------------------------------------------------
         save_batch_if_needed(force=True)
 
+        # -----------------------------------------------------------
+        # VERIFICAÇÃO FINAL — ORDERS SEM ITEMS DEVEM GERAR ERRO
+        # -----------------------------------------------------------
+        logging.info("🔎 Verificando consistência: procurando orders sem items...")
+
+        validation_query = """
+            SELECT o.orderid
+            FROM orders o
+            INNER JOIN orders_list ol ON ol.orderid = o.orderid AND ol.is_change = TRUE
+            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+            WHERE oi.orderid IS NULL
+        """
+
+        validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
+        missing = validator.query()
+
+        if missing and missing[0]:
+            missing_ids = [row[0] for row in missing[0]]
+            logging.error(
+                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram items gravados: {missing_ids}"
+            )
+            raise RuntimeError(
+                f"Processamento incompleto! Orders sem items: {missing_ids}"
+            )
+
+        logging.info("✅ Consistência OK: todas as orders foram processadas.")
+
     except Exception as e:
-        logging.error(f"Unexpected error in write_orders_item_to_database: {e}")
+        logging.error(f"Erro inesperado em write_orders_item_to_database: {e}")
         raise
 
 
