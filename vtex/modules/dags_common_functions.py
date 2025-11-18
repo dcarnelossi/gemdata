@@ -119,12 +119,12 @@ def get_api_conection_info(integration_id):
         elif (api_conection_info["hosting"]=='nuvemshop'):
             
             headers = {
-                'Authentication': f'bearer {api_conection_info["api_apptoken"]}',
+                'Authentication': f'bearer {api_conection_info["api_appkey"]}',
                 'Content-Type': 'application/json',
                 'User-Agent': 'gemdata (tecnologia@gemdata.com.br)'  # Recomendado
             }
             apicliente = {
-                "Domain": f"https://api.tiendanube.com/v1/{api_conection_info["api_appkey"]}",
+                "Domain": f"https://api.tiendanube.com/v1/{api_conection_info["api_accountname"]}",
                 "headers": headers,
             }
         else: 
