@@ -44,29 +44,43 @@ def add_item_to_buffer(item):
 # CONSUMER — Salva o batch
 # ==========================================================
 def save_batch_if_needed(force=False):
-    global buffer, processed_unique_ids
+    """
+    Salva o buffer em batches e mostra logs detalhados de cada batch.
+    """
+    global buffer, processed_unique_ids, current_batch_number
 
     with buffer_lock:
         if len(buffer) < BATCH_SIZE and not force:
             return
 
         if force:
-            batch = buffer[:]
+            batch = buffer[:]        # pega tudo que sobrou
             buffer.clear()
             processed_unique_ids.clear()
+            is_final = True
         else:
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
 
-            # remove IDs já enviados
             sent_ids = {item["uniqueid"] for item in batch}
             processed_unique_ids -= sent_ids
+            is_final = False
 
     if not batch:
         return
 
+    # Incrementa contador de batches
+    current_batch_number += 1
+
+    batch_label = (
+        f"FINAL ({current_batch_number})" if is_final
+        else f"{current_batch_number}"
+    )
+
     try:
-        logging.info(f"🔄 Salvando batch de {len(batch)} order_items...")
+        logging.info(
+            f"🔄 Salvando BATCH {batch_label} com {len(batch)} itens..."
+        )
 
         writer = WriteJsonToPostgres(
             data_conection_info,
@@ -76,10 +90,12 @@ def save_batch_if_needed(force=False):
         )
         writer.upsert_data_batch_otimizado(isdatainsercao=1)
 
-        logging.info(f"Batch de {len(batch)} itens salvo com sucesso.")
+        logging.info(
+            f"🟢 Batch {batch_label} salvo com sucesso ({len(batch)} itens)."
+        )
 
     except Exception as e:
-        logging.error(f"Erro ao salvar batch orders_items: {e}")
+        logging.error(f"❌ ERRO ao salvar batch {batch_label}: {e}")
         raise
 
 
