@@ -1,6 +1,5 @@
 import concurrent.futures
 import logging
-import math
 from threading import Lock
 from modules.dbpgconn import WriteJsonToPostgres
 
@@ -14,7 +13,7 @@ coorp_conection_info = None
 buffer = []
 processed_unique_ids = set()
 buffer_lock = Lock()
-BATCH_SIZE = 10
+BATCH_SIZE = 100
 current_batch_number = 0
 
 
@@ -41,7 +40,7 @@ def add_item_to_buffer(item):
 
 
 # ==========================================================
-# CONSUMER — Salva o batch
+# CONSUMER — Salva batches corretamente
 # ==========================================================
 def save_batch_if_needed(force=False):
     """
@@ -54,7 +53,7 @@ def save_batch_if_needed(force=False):
             return
 
         if force:
-            batch = buffer[:]        # pega tudo que sobrou
+            batch = buffer[:]        # pega tudo
             buffer.clear()
             processed_unique_ids.clear()
             is_final = True
@@ -69,18 +68,14 @@ def save_batch_if_needed(force=False):
     if not batch:
         return
 
-    # Incrementa contador de batches
     current_batch_number += 1
 
     batch_label = (
-        f"FINAL ({current_batch_number})" if is_final
-        else f"{current_batch_number}"
+        f"FINAL ({current_batch_number})" if is_final else f"{current_batch_number}"
     )
 
     try:
-        logging.info(
-            f"🔄 Salvando BATCH {batch_label} com {len(batch)} itens..."
-        )
+        logging.info(f"🔄 Salvando BATCH {batch_label} com {len(batch)} itens...")
 
         writer = WriteJsonToPostgres(
             data_conection_info,
@@ -90,9 +85,7 @@ def save_batch_if_needed(force=False):
         )
         writer.upsert_data_batch_otimizado(isdatainsercao=1)
 
-        logging.info(
-            f"🟢 Batch {batch_label} salvo com sucesso ({len(batch)} itens)."
-        )
+        logging.info(f"🟢 Batch {batch_label} salvo com sucesso ({len(batch)} itens).")
 
     except Exception as e:
         logging.error(f"❌ ERRO ao salvar batch {batch_label}: {e}")
@@ -107,28 +100,13 @@ def write_orders_item_to_database():
         logging.info("🔍 Iniciando carregamento único de orders para processamento...")
 
         # -----------------------------------------------------------
-        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # SELECT executado apenas uma vez
         # -----------------------------------------------------------
-        # query = """
-        #     WITH max_data_insercao AS (
-        #         SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-        #         FROM orders_items oi
-        #         GROUP BY oi.orderid
-        #     )
-        #     SELECT o.orderid, o.items
-        #     FROM orders o
-        #     INNER JOIN orders_list ol ON ol.orderid = o.orderid
-        #     LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-        #     WHERE ol.is_change = TRUE
-        #       AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-        #     ORDER BY o.sequence
-        # """
-
         query = """
-            select o.orderid,o.items	from orders  o
-            left join orders_items oi on 
-            oi.orderid = o.orderid
-            where oi.orderid is null ;
+            SELECT o.orderid, o.items
+            FROM orders o
+            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+            WHERE oi.orderid IS NULL;
         """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
@@ -144,7 +122,7 @@ def write_orders_item_to_database():
         logging.info(f"📦 Total orders pendentes encontradas: {total_orders}")
 
         # -----------------------------------------------------------
-        # PROCESSAMENTO DOS ITEMS — PRODUCER + BUFFER
+        # PROCESSAMENTO — PRODUCER + BUFFER COM BATCHING
         # -----------------------------------------------------------
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = []
@@ -155,27 +133,31 @@ def write_orders_item_to_database():
 
                 for item in items:
                     item["orderid"] = orderid
+
                     futures.append(executor.submit(add_item_to_buffer, item))
-                    save_batch_if_needed()
-            # Espera o processamento de todos os items
+
+                    # 🔥 BATCHING OCORRE AQUI!
+                    save_batch_if_needed()  # salva quando chegar aos 500
+
+            # Espera threads terminarem
             for future in concurrent.futures.as_completed(futures):
                 future.result()
 
         # -----------------------------------------------------------
-        # SALVA o que sobrou no buffer
+        # SALVA RESTANTE DO BUFFER
         # -----------------------------------------------------------
         save_batch_if_needed(force=True)
 
         # -----------------------------------------------------------
-        # VERIFICAÇÃO FINAL — ORDERS SEM ITEMS DEVEM GERAR ERRO
+        # VERIFICAÇÃO FINAL
         # -----------------------------------------------------------
         logging.info("🔎 Verificando consistência: procurando orders sem items...")
 
         validation_query = """
-            select o.orderid	from orders  o
-            left join orders_items oi on 
-            oi.orderid = o.orderid
-            where oi.orderid is null ;
+            SELECT o.orderid
+            FROM orders o
+            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+            WHERE oi.orderid IS NULL;
         """
 
         validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
