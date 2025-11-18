@@ -76,6 +76,7 @@ def write_orders_item_to_database(batch_size=400):
                 LEFT JOIN orders_items oi ON oi.orderid = o.orderid
                 WHERE oi.orderid IS NULL;
             """
+            
             batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
             result = batch_writer.query()
 
