@@ -15,7 +15,7 @@ buffer = []
 processed_unique_ids = set()
 buffer_lock = Lock()
 BATCH_SIZE = 800
-
+current_batch_number = 0
 
 
 # ==========================================================
