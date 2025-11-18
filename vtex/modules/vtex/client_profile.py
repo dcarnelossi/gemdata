@@ -90,12 +90,17 @@ def process_client_profile(result):
 # ==========================================================
 # PROCESSAMENTO PRINCIPAL EM LOOP
 # ==========================================================
+
+
 def write_client_profile_to_database(batch_size=600):
     try:
-        while True:
-            
-            query = f"""
-                WITH max_data_insercao AS (
+        logging.info("🔍 Iniciando carregamento único de client_profile para processamento...")
+
+        # -----------------------------------------------------------
+        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # -----------------------------------------------------------
+        query = """
+             WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
                     FROM client_profile oi
                     GROUP BY oi.orderid
@@ -107,68 +112,14 @@ def write_client_profile_to_database(batch_size=600):
                 WHERE ol.is_change = TRUE
                   AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
                 ORDER BY o.sequence
-                LIMIT {batch_size};
-            """
-
-            writer = WriteJsonToPostgres(
-                data_conection_info, query, "client_profile"
-            )
-            result = writer.query()
-
-            if not result or not result[0]:
-                logging.info("Nenhum client_profile adicional para processar.")
-                break
-
-            rows = result[0]
-
-            # PRODUCER → multithread
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [
-                    executor.submit(process_client_profile, row)
-                    for row in rows
-                ]
-
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()  # força erro no airflow se falhar
-
-            # CONSUMER → salva batch
-            save_batch_if_needed(force=True)
-
-        # flush final
-        save_batch_if_needed(force=True)
-
-    except Exception as e:
-        logging.error(f"Erro fatal no processamento do client_profile: {e}")
-        raise
-
-def write_client_profile_to_database(batch_size=600):
-    try:
-        logging.info("🔍 Iniciando carregamento único de client_profile para processamento...")
-
-        # -----------------------------------------------------------
-        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
-        # -----------------------------------------------------------
-        # query = """
-        #      WITH max_data_insercao AS (
-        #             SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-        #             FROM client_profile oi
-        #             GROUP BY oi.orderid
-        #         )
-        #         SELECT o.orderid, o.clientprofiledata
-        #         FROM orders o
-        #         INNER JOIN orders_list ol ON ol.orderid = o.orderid
-        #         LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-        #         WHERE ol.is_change = TRUE
-        #           AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-        #         ORDER BY o.sequence
-        # """
-
-        query = """
-            select o.orderid,o.clientprofiledata	from orders  o
-            left join client_profile oi on 
-            oi.orderid = o.orderid
-            where oi.orderid is null 
         """
+
+        # query = """
+        #     select o.orderid,o.clientprofiledata	from orders  o
+        #     left join client_profile oi on 
+        #     oi.orderid = o.orderid
+        #     where oi.orderid is null 
+        # """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "client_profile")
         result = writer.query()
@@ -193,6 +144,7 @@ def write_client_profile_to_database(batch_size=600):
 
             for future in concurrent.futures.as_completed(futures):
                 future.result()  # captura exceções dentro das threads
+                save_batch_if_needed()
 
         # -----------------------------------------------------------
         # SALVA o restante no buffer

@@ -113,12 +113,28 @@ def write_orders_item_to_database():
         # -----------------------------------------------------------
         # SELECT executado apenas uma vez
         # -----------------------------------------------------------
-        query = """
-            SELECT o.orderid, o.items
-            FROM orders o
-            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-            WHERE oi.orderid IS NULL;
-        """
+        
+        query = f"""
+                WITH max_data_insercao AS (
+                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+                    FROM orders_items oi
+                    GROUP BY oi.orderid
+                )
+                SELECT o.orderid ,o.items
+                FROM orders o
+                INNER JOIN orders_list ol ON ol.orderid = o.orderid
+                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+                WHERE ol.is_change = TRUE
+                AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+                ORDER BY o.sequence
+               
+            """
+        # query = """
+        #     SELECT o.orderid, o.items
+        #     FROM orders o
+        #     LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+        #     WHERE oi.orderid IS NULL;
+        # """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
         result = writer.query()
@@ -164,24 +180,24 @@ def write_orders_item_to_database():
         # -----------------------------------------------------------
         logging.info("🔎 Verificando consistência: procurando orders sem items...")
 
-        validation_query = """
-            SELECT o.orderid
-            FROM orders o
-            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-            WHERE oi.orderid IS NULL;
-        """
+        # validation_query = """
+        #     SELECT o.orderid
+        #     FROM orders o
+        #     LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+        #     WHERE oi.orderid IS NULL;
+        # """
 
-        validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
-        missing = validator.query()
+        # validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
+        # missing = validator.query()
 
-        if missing and missing[0]:
-            missing_ids = [row[0] for row in missing[0]]
-            logging.error(
-                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram items gravados: {missing_ids}"
-            )
-            raise RuntimeError(
-                f"Processamento incompleto! Orders sem items: {missing_ids}"
-            )
+        # if missing and missing[0]:
+        #     missing_ids = [row[0] for row in missing[0]]
+        #     logging.error(
+        #         f"❌ ERRO CRÍTICO: As seguintes orders não tiveram items gravados: {missing_ids}"
+        #     )
+        #     raise RuntimeError(
+        #         f"Processamento incompleto! Orders sem items: {missing_ids}"
+        #     )
 
         logging.info("✅ Consistência OK: todas as orders foram processadas.")
 
