@@ -33,6 +33,7 @@ def get_data_conection_info(integration_id):
     return data_conection_info
 
 
+
 def integrationInfo(connection_info, integration_id):
     try:
         print("integrationInfo")
