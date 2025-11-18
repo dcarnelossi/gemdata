@@ -53,20 +53,28 @@ def write_orders_item_to_database(batch_size=400):
 
         for batch_num in range(total_batches):
             offset = batch_num * batch_size
-            query = f"""
-                WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM orders_items oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid ,o.items
+            # query = f"""
+            #     WITH max_data_insercao AS (
+            #         SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+            #         FROM orders_items oi
+            #         GROUP BY oi.orderid
+            #     )
+            #     SELECT o.orderid ,o.items
+            #     FROM orders o
+            #     INNER JOIN orders_list ol ON ol.orderid = o.orderid
+            #     LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+            #     WHERE ol.is_change = TRUE
+            #     AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+            #     ORDER BY o.sequence
+            #     LIMIT {batch_size};
+            # """
+
+            # -----------------------------------------------------------
+            query = """
+                SELECT o.orderid, o.items
                 FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
-                LIMIT {batch_size};
+                LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+                WHERE oi.orderid IS NULL;
             """
             batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
             result = batch_writer.query()
