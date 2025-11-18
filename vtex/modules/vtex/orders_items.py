@@ -151,8 +151,7 @@ def write_orders_item_to_database():
             select o.orderid	from orders  o
             left join orders_items oi on 
             oi.orderid = o.orderid
-            where oi.orderid is null 
-
+            where oi.orderid is null ;
         """
 
         validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
