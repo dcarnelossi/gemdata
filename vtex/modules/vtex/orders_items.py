@@ -67,7 +67,11 @@ def save_batch_if_needed(force=False):
             batch = buffer[:BATCH_SIZE]
             del buffer[:BATCH_SIZE]
 
-            sent_ids = {item["uniqueid"] for item in batch}
+            sent_ids = {
+                    (item.get("uniqueid") or item.get("uniqueId"))
+                    for item in batch
+                    if isinstance(item, dict) and (item.get("uniqueid") or item.get("uniqueId"))
+                }
             processed_unique_ids -= sent_ids
             is_final = False
 
