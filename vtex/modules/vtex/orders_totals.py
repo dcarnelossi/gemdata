@@ -126,19 +126,26 @@ def write_orders_totals_to_database_colunar():
         # -----------------------------------------------------------
         # SELECT executado apenas 1 vez — TOTAL das orders pendentes
         # -----------------------------------------------------------
+        # query = """
+        #      WITH max_data_insercao AS (
+        #             SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+        #             FROM orders_totals oi
+        #             GROUP BY oi.orderid
+        #         )
+        #         SELECT o.orderid, o.totals
+        #         FROM orders o
+        #         INNER JOIN orders_list ol ON ol.orderid = o.orderid
+        #         LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+        #         WHERE ol.is_change = TRUE
+        #           AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+        #         ORDER BY o.sequence
+        # """
         query = """
-             WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM orders_totals oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid, o.totals
-                FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
+            select o.orderid,o.totals	from orders  o
+            left join orders_totals oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
+
         """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "orders_totals")
@@ -183,6 +190,7 @@ def write_orders_totals_to_database_colunar():
             where oi.orderid is null 
 
         """
+        
 
         validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_totals")
         missing = validator.query()

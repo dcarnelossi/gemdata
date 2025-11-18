@@ -148,19 +148,26 @@ def write_client_profile_to_database(batch_size=600):
         # -----------------------------------------------------------
         # SELECT executado apenas 1 vez — TOTAL das orders pendentes
         # -----------------------------------------------------------
+        # query = """
+        #      WITH max_data_insercao AS (
+        #             SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+        #             FROM client_profile oi
+        #             GROUP BY oi.orderid
+        #         )
+        #         SELECT o.orderid, o.clientprofiledata
+        #         FROM orders o
+        #         INNER JOIN orders_list ol ON ol.orderid = o.orderid
+        #         LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+        #         WHERE ol.is_change = TRUE
+        #           AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+        #         ORDER BY o.sequence
+        # """
+
         query = """
-             WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM client_profile oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid, o.clientprofiledata
-                FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
+            select o.orderid,o.clientprofiledata	from orders  o
+            left join client_profile oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
         """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "client_profile")

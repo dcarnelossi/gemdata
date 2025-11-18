@@ -114,19 +114,25 @@ def write_orders_shippingdata_to_database(batch_size=500):
         # -----------------------------------------------------------
         # SELECT executado apenas 1 vez — TOTAL das orders pendentes
         # -----------------------------------------------------------
+        # query = """
+        #      WITH max_data_insercao AS (
+        #             SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+        #             FROM orders_shippingdata oi
+        #             GROUP BY oi.orderid
+        #         )
+        #         SELECT o.orderid, o.shippingdata
+        #         FROM orders o
+        #         INNER JOIN orders_list ol ON ol.orderid = o.orderid
+        #         LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+        #         WHERE ol.is_change = TRUE
+        #           AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+        #         ORDER BY o.sequence
+        # """
         query = """
-             WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM orders_shippingdata oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid, o.shippingdata
-                FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
+              select o.orderid,o.shippingdata	from orders  o
+            left join orders_shippingdata oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
         """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "orders_shippingdata")
