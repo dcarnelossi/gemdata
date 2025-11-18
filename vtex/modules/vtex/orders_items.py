@@ -22,10 +22,16 @@ current_batch_number = 0
 # ==========================================================
 def add_item_to_buffer(item):
     try:
+        if not isinstance(item, dict):
+            logging.warning(f"Item inválido ignorado (não é dict): {item}")
+            return
+
         unique_id = item.get("uniqueid") or item.get("uniqueId")
 
+        # DESCARTA NULL, vazio, None, ou inexistente
         if not unique_id:
-            raise ValueError("Item sem uniqueId detectado!")
+            logging.warning(f"Item ignorado por uniqueId nulo: {item}")
+            return
 
         with buffer_lock:
             if unique_id in processed_unique_ids:
