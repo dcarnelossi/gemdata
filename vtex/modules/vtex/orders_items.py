@@ -14,7 +14,7 @@ coorp_conection_info = None
 buffer = []
 processed_unique_ids = set()
 buffer_lock = Lock()
-BATCH_SIZE = 500
+BATCH_SIZE = 10
 current_batch_number = 0
 
 
@@ -156,7 +156,7 @@ def write_orders_item_to_database():
                 for item in items:
                     item["orderid"] = orderid
                     futures.append(executor.submit(add_item_to_buffer, item))
-
+                    save_batch_if_needed()
             # Espera o processamento de todos os items
             for future in concurrent.futures.as_completed(futures):
                 future.result()
