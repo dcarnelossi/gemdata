@@ -85,7 +85,7 @@ def save_batch_if_needed(force=False):
 # ==========================================================
 # PROCESSAMENTO PRINCIPAL
 # ==========================================================
-def write_orders_item_to_database(batch_size=400):
+def write_orders_item_to_database():
     try:
         logging.info("🔍 Iniciando carregamento único de orders para processamento...")
 
@@ -148,7 +148,7 @@ def write_orders_item_to_database(batch_size=400):
         logging.info("🔎 Verificando consistência: procurando orders sem items...")
 
         validation_query = """
-            select orderid	from orders  o
+            select o.orderid	from orders  o
             left join orders_items oi on 
             oi.orderid = o.orderid
             where oi.orderid is null 
