@@ -1,205 +1,124 @@
 import concurrent.futures
 import logging
-from threading import Lock
+import math
 from modules.dbpgconn import WriteJsonToPostgres
 
-# ==========================================================
-# GLOBALS
-# ==========================================================
+# Variáveis globais
 api_conection_info = None
 data_conection_info = None
 coorp_conection_info = None
 
-buffer = []
-processed_unique_ids = set()
-buffer_lock = Lock()
-BATCH_SIZE = 5000
-current_batch_number = 0
-
-
-# ==========================================================
-# PRODUCER — Adiciona ao buffer sem duplicados
-# ==========================================================
-def add_item_to_buffer(item):
+def create_orders_items_database(table_name):
     try:
-        if not isinstance(item, dict):
-            logging.warning(f"Item inválido ignorado (não é dict): {item}")
-            return
+        writer = WriteJsonToPostgres(data_conection_info, "{}", table_name)
 
-        unique_id = item.get("uniqueid") or item.get("uniqueId")
+        if not writer.table_exists():
+            query = f"SELECT orders.orderid, orders.{table_name} FROM orders LIMIT 1;"
+            result = writer.query()
+            if not result or not result[0]:
+                logging.error(f"No data found to create the table '{table_name}'.")
+                raise ValueError(f"No data found to create the table '{table_name}'.")
 
-        # DESCARTA NULL, vazio, None, ou inexistente
-        if not unique_id:
-            logging.warning(f"Item ignorado por uniqueId nulo: {item}")
-            return
+            dados = result[0][1]
+            for item in dados:
+                item["orderid"] = result[0][0]
 
-        with buffer_lock:
-            if unique_id in processed_unique_ids:
-                return  # ignora duplicados
+            writer = WriteJsonToPostgres(data_conection_info, dados, table_name)
+            writer.create_table()
 
-            processed_unique_ids.add(unique_id)
-            buffer.append(item)
-
-    except Exception as e:
-        logging.error(f"Erro adicionando item ao buffer: {e}")
-        raise
-
-
-# ==========================================================
-# CONSUMER — Salva batches corretamente
-# ==========================================================
-def save_batch_if_needed(force=False):
-    """
-    Salva o buffer em batches e mostra logs detalhados de cada batch.
-    """
-    global buffer, processed_unique_ids, current_batch_number
-
-    with buffer_lock:
-        if len(buffer) < BATCH_SIZE and not force:
-            return
-
-        if force:
-            batch = buffer[:]        # pega tudo
-            buffer.clear()
-            processed_unique_ids.clear()
-            is_final = True
+            logging.info(f"Table '{table_name}' created successfully.")
         else:
-            batch = buffer[:BATCH_SIZE]
-            del buffer[:BATCH_SIZE]
-
-            sent_ids = {
-                    (item.get("uniqueid") or item.get("uniqueId"))
-                    for item in batch
-                    if isinstance(item, dict) and (item.get("uniqueid") or item.get("uniqueId"))
-                }
-            processed_unique_ids -= sent_ids
-            is_final = False
-
-    if not batch:
-        return
-
-    current_batch_number += 1
-
-    batch_label = (
-        f"FINAL ({current_batch_number})" if is_final else f"{current_batch_number}"
-    )
-
-    try:
-        logging.info(f"🔄 Salvando BATCH {batch_label} com {len(batch)} itens...")
-
-        writer = WriteJsonToPostgres(
-            data_conection_info,
-            batch,
-            "orders_items",
-            "uniqueid"
-        )
-        writer.upsert_data_batch_otimizado(isdatainsercao=1)
-
-        logging.info(f"🟢 Batch {batch_label} salvo com sucesso ({len(batch)} itens).")
+            logging.info(f"Table '{table_name}' already exists.")
 
     except Exception as e:
-        logging.error(f"❌ ERRO ao salvar batch {batch_label}: {e}")
-        raise
+        logging.error(f"Error creating table '{table_name}': {e}")
+        raise  # Rethrow the exception to ensure Airflow task failure
 
-
-# ==========================================================
-# PROCESSAMENTO PRINCIPAL
-# ==========================================================
-def write_orders_item_to_database():
+def write_orders_item_to_database(batch_size=400):
     try:
-        logging.info("🔍 Iniciando carregamento único de orders para processamento...")
-
-        # -----------------------------------------------------------
-        # SELECT executado apenas uma vez
-        # -----------------------------------------------------------
-        query = """
-            SELECT o.orderid, o.items
-            FROM orders o
-            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-            WHERE oi.orderid IS NULL;
-        """
-
-        writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
-        result = writer.query()
-
-        if not result or not result[0]:
-            logging.info("Nenhum registro pendente para processar order_items.")
+        count_query = """select COUNT(*) from orders o 
+	                    where o.orderid in 
+                        (select orderid from orders_list ol where ol.is_change = true )"""
+        count_writer = WriteJsonToPostgres(data_conection_info, count_query, "orders_items")
+        records = count_writer.query()
+        
+        if not records or not records[0]:
+            logging.info("No records found to process.")
             return
+        
+        print(records)
+        total_records = records[0][0][0]
+        print(total_records)
+        total_batches = math.ceil(total_records / batch_size)
 
-        rows = result[0]
-        total_orders = len(rows)
+        for batch_num in range(total_batches):
+            offset = batch_num * batch_size
+            query = f"""
+                WITH max_data_insercao AS (
+                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+                    FROM orders_items oi
+                    GROUP BY oi.orderid
+                )
+                SELECT o.orderid ,o.items
+                FROM orders o
+                INNER JOIN orders_list ol ON ol.orderid = o.orderid
+                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+                WHERE ol.is_change = TRUE
+                AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+                ORDER BY o.sequence
+                LIMIT {batch_size};
+            """
+            batch_writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
+            result = batch_writer.query()
 
-        logging.info(f"📦 Total orders pendentes encontradas: {total_orders}")
+            if not result or not result[0]:
+                logging.info(f"No more data to process after batch {batch_num}.")
+                break
 
-        # -----------------------------------------------------------
-        # PROCESSAMENTO — PRODUCER + BUFFER COM BATCHING
-        # -----------------------------------------------------------
-        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             futures = []
+            for order_itens in result[0]:
+                for item in order_itens[1]:
+                    item["orderid"] = order_itens[0]
+                    futures.append(item)
 
-            for order in rows:
-                orderid = order[0]
-                items = order[1]
-
-                for item in items:
-                    item["orderid"] = orderid
-
-                    futures.append(executor.submit(add_item_to_buffer, item))
-
-                    # 🔥 BATCHING OCORRE AQUI!
-                    save_batch_if_needed()  # salva quando chegar aos 500
-
-            # Espera threads terminarem
-            for future in concurrent.futures.as_completed(futures):
-                future.result()
-
-        # -----------------------------------------------------------
-        # SALVA RESTANTE DO BUFFER
-        # -----------------------------------------------------------
-        save_batch_if_needed(force=True)
-
-        # -----------------------------------------------------------
-        # VERIFICAÇÃO FINAL
-        # -----------------------------------------------------------
-        logging.info("🔎 Verificando consistência: procurando orders sem items...")
-
-        validation_query = """
-            SELECT o.orderid
-            FROM orders o
-            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-            WHERE oi.orderid IS NULL;
-        """
-
-        validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_items")
-        missing = validator.query()
-
-        if missing and missing[0]:
-            missing_ids = [row[0] for row in missing[0]]
-            logging.error(
-                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram items gravados: {missing_ids}"
-            )
-            raise RuntimeError(
-                f"Processamento incompleto! Orders sem items: {missing_ids}"
-            )
-
-        logging.info("✅ Consistência OK: todas as orders foram processadas.")
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future_to_item = {executor.submit(insert_data_parallel, item): item for item in futures}
+                for future in concurrent.futures.as_completed(future_to_item):
+                    item = future_to_item[future]
+                    try:
+                        future.result()
+                    except Exception as e:
+                        logging.error(f"Error processing orderid {item['orderid']}: {e}")
+                        raise  # Propagate the exception to fail the Airflow task
 
     except Exception as e:
-        logging.error(f"Erro inesperado em write_orders_item_to_database: {e}")
-        raise
+        logging.error(f"Unexpected error in write_orders_item_to_database: {e}")
+        raise  # Ensure the Airflow task fails on error
 
+def insert_data_parallel(item):
+    try:
+        writer = WriteJsonToPostgres(data_conection_info, item, "orders_items", "uniqueid")
+        writer.upsert_data2(isdatainsercao=1)
+        logging.info(f"Data upserted successfully for orderid - {item['orderid']}")
+    except Exception as e:
+        logging.error(f"Error inserting data for orderid {item['orderid']}: {e}")
+        raise  # Propagate the exception to fail the Airflow task
 
-# ==========================================================
-# SET GLOBALS
-# ==========================================================
 def set_globals(api_info, data_conection, coorp_conection, **kwargs):
     global api_conection_info, data_conection_info, coorp_conection_info
-
     api_conection_info = api_info
     data_conection_info = data_conection
     coorp_conection_info = coorp_conection
 
     if not all([api_conection_info, data_conection_info, coorp_conection_info]):
-        raise ValueError("Global connection information is incomplete.")
+        logging.error("Global connection information is incomplete.")
+        raise ValueError("All global connection information must be provided.")
 
     write_orders_item_to_database()
+
+# if __name__ == "__main__":
+#     set_globals(
+#         {"api_key": "example"}, 
+#         {"db_url": "postgresql://user:pass@localhost/db"}, 
+#         {"coorp_key": "example"}
+#     )
