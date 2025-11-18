@@ -141,6 +141,88 @@ def write_client_profile_to_database(batch_size=600):
         logging.error(f"Erro fatal no processamento do client_profile: {e}")
         raise
 
+def write_client_profile_to_database(batch_size=600):
+    try:
+        logging.info("🔍 Iniciando carregamento único de client_profile para processamento...")
+
+        # -----------------------------------------------------------
+        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # -----------------------------------------------------------
+        query = """
+             WITH max_data_insercao AS (
+                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+                    FROM client_profile oi
+                    GROUP BY oi.orderid
+                )
+                SELECT o.orderid, o.clientprofiledata
+                FROM orders o
+                INNER JOIN orders_list ol ON ol.orderid = o.orderid
+                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+                WHERE ol.is_change = TRUE
+                  AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+                ORDER BY o.sequence
+        """
+
+        writer = WriteJsonToPostgres(data_conection_info, query, "client_profile")
+        result = writer.query()
+
+        if not result or not result[0]:
+            logging.info("Nenhum client_profile pendente para processar.")
+            return
+
+        rows = result[0]
+        total_orders = len(rows)
+
+        logging.info(f"📦 Total orders pendentes encontradas para client_profile: {total_orders}")
+
+        # -----------------------------------------------------------
+        # PROCESSAMENTO DO CLIENT_PROFILE — PRODUCER + THREADS
+        # -----------------------------------------------------------
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [
+                executor.submit(process_client_profile, row)
+                for row in rows
+            ]
+
+            for future in concurrent.futures.as_completed(futures):
+                future.result()  # captura exceções dentro das threads
+
+        # -----------------------------------------------------------
+        # SALVA o restante no buffer
+        # -----------------------------------------------------------
+        save_batch_if_needed(force=True)
+
+        # -----------------------------------------------------------
+        # VERIFICAÇÃO FINAL — ORDERS SEM CLIENT_PROFILE DEVEM GERAR ERRO
+        # -----------------------------------------------------------
+        logging.info("🔎 Verificando consistência: procurando orders sem client_profile...")
+
+        validation_query = """
+            select o.orderid	from orders  o
+            left join client_profile oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
+        """
+
+        validator = WriteJsonToPostgres(data_conection_info, validation_query, "client_profile")
+        missing = validator.query()
+
+        if missing and missing[0]:
+            missing_ids = [row[0] for row in missing[0]]
+            logging.error(
+                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram client_profile gravados: {missing_ids}"
+            )
+            raise RuntimeError(
+                f"Processamento incompleto! Orders sem client_profile: {missing_ids}"
+            )
+
+        logging.info("✅ Consistência OK: todos os client_profile foram processados.")
+
+    except Exception as e:
+        logging.error(f"Erro fatal no processamento do client_profile: {e}")
+        raise
+
+
 
 # ==========================================================
 # SET GLOBALS

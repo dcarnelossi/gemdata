@@ -106,13 +106,16 @@ def process_shippingdata(order_row):
 # ==========================================================
 # PROCESSO PRINCIPAL (CONSUMER)
 # ==========================================================
+
 def write_orders_shippingdata_to_database(batch_size=500):
     try:
-        while True:
-            processed_ids.clear()
+        logging.info("🔍 Iniciando carregamento único de shippingdata para processamento...")
 
-            query = f"""
-                WITH max_data_insercao AS (
+        # -----------------------------------------------------------
+        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # -----------------------------------------------------------
+        query = """
+             WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
                     FROM orders_shippingdata oi
                     GROUP BY oi.orderid
@@ -124,30 +127,62 @@ def write_orders_shippingdata_to_database(batch_size=500):
                 WHERE ol.is_change = TRUE
                   AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
                 ORDER BY o.sequence
-                LIMIT {batch_size};
-            """
+        """
 
-            result = WriteJsonToPostgres(
-                data_conection_info, query, "orders_shippingdata"
-            ).query()
+        writer = WriteJsonToPostgres(data_conection_info, query, "orders_shippingdata")
+        result = writer.query()
 
-            if not result or not result[0]:
-                logging.info("Nenhum shippingdata adicional para processar. Finalizando.")
-                break
+        if not result or not result[0]:
+            logging.info("Nenhum shippingdata pendente para processar.")
+            return
 
-            rows = result[0]
+        rows = result[0]
+        total_orders = len(rows)
 
-            # Producer threads
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [executor.submit(process_shippingdata, row) for row in rows]
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
+        logging.info(f"📦 Total orders pendentes encontradas para shippingdata: {total_orders}")
 
-            # Consumer salva lote
-            save_batch_if_needed(force=True)
+        # -----------------------------------------------------------
+        # PROCESSAMENTO DO SHIPPINGDATA — PRODUCER + THREADS
+        # -----------------------------------------------------------
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [
+                executor.submit(process_shippingdata, row)
+                for row in rows
+            ]
 
-        # flush final
+            for future in concurrent.futures.as_completed(futures):
+                future.result()  # trata exceções das threads
+
+        # -----------------------------------------------------------
+        # SALVA o que restou no buffer
+        # -----------------------------------------------------------
         save_batch_if_needed(force=True)
+
+        # -----------------------------------------------------------
+        # VERIFICAÇÃO FINAL — ORDERS SEM SHIPPINGDATA GERAM ERRO
+        # -----------------------------------------------------------
+        logging.info("🔎 Verificando consistência: procurando orders sem shippingdata...")
+
+        validation_query = """
+            select o.orderid	from orders  o
+            left join orders_shippingdata oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
+        """
+
+        validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_shippingdata")
+        missing = validator.query()
+
+        if missing and missing[0]:
+            missing_ids = [row[0] for row in missing[0]]
+            logging.error(
+                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram shippingdata gravados: {missing_ids}"
+            )
+            raise RuntimeError(
+                f"Processamento incompleto! Orders sem shippingdata: {missing_ids}"
+            )
+
+        logging.info("✅ Consistência OK: todos os shippingdata foram processados.")
 
     except Exception as e:
         logging.error(f"Erro fatal no processamento do shippingdata: {e}")

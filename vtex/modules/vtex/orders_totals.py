@@ -119,12 +119,15 @@ def process_order_item_colunar(order_totals):
 # ==========================================================
 # PROCESSAMENTO PRINCIPAL
 # ==========================================================
-def write_orders_totals_to_database_colunar(batch_size=600):
+def write_orders_totals_to_database_colunar():
     try:
-        while True:
-            processed_ids.clear()
-            query = f"""
-                WITH max_data_insercao AS (
+        logging.info("🔍 Iniciando carregamento único de totals para processamento...")
+
+        # -----------------------------------------------------------
+        # SELECT executado apenas 1 vez — TOTAL das orders pendentes
+        # -----------------------------------------------------------
+        query = """
+             WITH max_data_insercao AS (
                     SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
                     FROM orders_totals oi
                     GROUP BY oi.orderid
@@ -136,32 +139,64 @@ def write_orders_totals_to_database_colunar(batch_size=600):
                 WHERE ol.is_change = TRUE
                   AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
                 ORDER BY o.sequence
-                LIMIT {batch_size};
-            """
+        """
 
-            rows = WriteJsonToPostgres(
-                data_conection_info, query, "orders_totals"
-            ).query()
+        writer = WriteJsonToPostgres(data_conection_info, query, "orders_totals")
+        result = writer.query()
 
-            if not rows or not rows[0]:
-                logging.info("Nenhum orders_totals adicional para processar.")
-                break
-            
-            logging.info(f"""Total de orders para processar: {len(rows)}""")        
-            rows = rows[0]
+        if not result or not result[0]:
+            logging.info("Nenhum orders_totals pendente para processar.")
+            return
 
-            # threads para PRODUCER
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-                futures = [executor.submit(process_order_item_colunar, row) for row in rows]
+        rows = result[0]
+        total_orders = len(rows)
 
-                for future in concurrent.futures.as_completed(futures):
-                    future.result()
+        logging.info(f"📦 Total orders pendentes encontradas para totals: {total_orders}")
 
-            # CONSUMER salva lote
-            save_batch_if_needed(force=True)
+        # -----------------------------------------------------------
+        # PROCESSAMENTO DOS TOTALS — PRODUCER + THREADS
+        # -----------------------------------------------------------
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            futures = [
+                executor.submit(process_order_item_colunar, row)
+                for row in rows
+            ]
 
-        # flush final
+            # Espera o processamento de todos os rows
+            for future in concurrent.futures.as_completed(futures):
+                future.result()
+
+        # -----------------------------------------------------------
+        # SALVA o que sobrou no buffer
+        # -----------------------------------------------------------
         save_batch_if_needed(force=True)
+
+        # -----------------------------------------------------------
+        # VERIFICAÇÃO FINAL — ORDERS SEM TOTALS DEVEM GERAR ERRO
+        # -----------------------------------------------------------
+        logging.info("🔎 Verificando consistência: procurando orders sem totals...")
+
+        validation_query = """
+            select o.orderid	from orders  o
+            left join orders_totals oi on 
+            oi.orderid = o.orderid
+            where oi.orderid is null 
+
+        """
+
+        validator = WriteJsonToPostgres(data_conection_info, validation_query, "orders_totals")
+        missing = validator.query()
+
+        if missing and missing[0]:
+            missing_ids = [row[0] for row in missing[0]]
+            logging.error(
+                f"❌ ERRO CRÍTICO: As seguintes orders não tiveram totals gravados: {missing_ids}"
+            )
+            raise RuntimeError(
+                f"Processamento incompleto! Orders sem totals: {missing_ids}"
+            )
+
+        logging.info("✅ Consistência OK: todos os totals foram processados.")
 
     except Exception as e:
         logging.error(f"Erro crítico no processamento orders_totals: {e}")
