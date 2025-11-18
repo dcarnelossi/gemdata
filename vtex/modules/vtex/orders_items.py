@@ -14,7 +14,7 @@ coorp_conection_info = None
 buffer = []
 processed_unique_ids = set()
 buffer_lock = Lock()
-BATCH_SIZE = 800
+BATCH_SIZE = 500
 current_batch_number = 0
 
 
