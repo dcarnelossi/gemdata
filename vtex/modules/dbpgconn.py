@@ -415,9 +415,9 @@ class WriteJsonToPostgres:
             with self.connection.connect().cursor() as cursor:
 
                 # ----------------------------------------------------
-                # 1️⃣ BUSCAR COLUNAS EXISTENTES NO BANCO
+                # 1️⃣ Buscar colunas existentes no banco
                 # ----------------------------------------------------
-                cursor.execute(f"""
+                cursor.execute("""
                     SELECT column_name 
                     FROM information_schema.columns
                     WHERE table_name = %s
@@ -427,7 +427,15 @@ class WriteJsonToPostgres:
                 table_columns = {row[0].lower() for row in cursor.fetchall()}
 
                 # ----------------------------------------------------
-                # 2️⃣ FILTRAR APENAS AS COLUNAS QUE EXISTEM NA TABELA
+                # 2️⃣ Determinar se a PK é única ou composta
+                # ----------------------------------------------------
+                if isinstance(self.table_key, list):
+                    pk_columns = [key.lower() for key in self.table_key]
+                else:
+                    pk_columns = [self.table_key.lower()]
+
+                # ----------------------------------------------------
+                # 3️⃣ Filtrar colunas válidas
                 # ----------------------------------------------------
                 valid_columns = [
                     col for col in batch_data[0].keys()
@@ -435,12 +443,10 @@ class WriteJsonToPostgres:
                 ]
 
                 if not valid_columns:
-                    raise Exception(
-                        f"Nenhuma coluna válida encontrada no payload para tabela {self.tablename}"
-                    )
+                    raise Exception(f"Nenhuma coluna válida encontrada no payload para tabela {self.tablename}")
 
                 # ----------------------------------------------------
-                # 3️⃣ PREPARAR VALORES NA MESMA ORDEM DAS COLUNAS
+                # 4️⃣ Preparar dados ordenados
                 # ----------------------------------------------------
                 values = []
                 for row in batch_data:
@@ -454,36 +460,35 @@ class WriteJsonToPostgres:
                     values.append(tuple(filtered_row))
 
                 # ----------------------------------------------------
-                # 4️⃣ MONTAR UPDATE CLAUSE
+                # 5️⃣ Montar UPDATE clause excluindo as PKs
                 # ----------------------------------------------------
                 update_columns = [
                     f"{col}=EXCLUDED.{col}"
                     for col in valid_columns
-                    if col.lower() != self.table_key.lower()
+                    if col.lower() not in pk_columns
                 ]
+
+                if isdatainsercao == 1:
+                    update_columns.append("data_insercao = NOW()")
 
                 update_clause = ", ".join(update_columns)
 
-                if isdatainsercao == 1:
-                    update_clause += ", data_insercao = now()"
+                # ----------------------------------------------------
+                # 6️⃣ Montar ON CONFLICT composto
+                # ----------------------------------------------------
+                conflict_clause = ", ".join(pk_columns)
 
                 # ----------------------------------------------------
-                # 5️⃣ EXECUTAR INSERT COM execute_values
+                # 7️⃣ Executar UPSERT
                 # ----------------------------------------------------
                 sql = f"""
                     INSERT INTO {self.tablename} ({', '.join(valid_columns)})
                     VALUES %s
-                    ON CONFLICT ({self.table_key}) DO UPDATE SET
+                    ON CONFLICT ({conflict_clause}) DO UPDATE SET
                     {update_clause}
                 """
 
-                execute_values(
-                    cursor,
-                    sql,
-                    values,
-                    template=None,
-                    page_size=500
-                )
+                execute_values(cursor, sql, values, page_size=500)
 
                 self.connection.commit()
                 print(f"{len(batch_data)} registros upsertados com sucesso.")
@@ -496,7 +501,7 @@ class WriteJsonToPostgres:
 
         finally:
             if self.connection:
-                self.connection.close()          
+                self.connection.close()      
    
     def upsert_data2(self,isdatainsercao= None):
         try:
