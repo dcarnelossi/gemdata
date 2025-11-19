@@ -114,27 +114,27 @@ def write_orders_item_to_database():
         # SELECT executado apenas uma vez
         # -----------------------------------------------------------
         
-        query = f"""
-                WITH max_data_insercao AS (
-                    SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
-                    FROM orders_items oi
-                    GROUP BY oi.orderid
-                )
-                SELECT o.orderid ,o.items
-                FROM orders o
-                INNER JOIN orders_list ol ON ol.orderid = o.orderid
-                LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
-                WHERE ol.is_change = TRUE
-                AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
-                ORDER BY o.sequence
+        # query = f"""
+        #         WITH max_data_insercao AS (
+        #             SELECT oi.orderid, MAX(oi.data_insercao) AS max_data_insercao
+        #             FROM orders_items oi
+        #             GROUP BY oi.orderid
+        #         )
+        #         SELECT o.orderid ,o.items
+        #         FROM orders o
+        #         INNER JOIN orders_list ol ON ol.orderid = o.orderid
+        #         LEFT JOIN max_data_insercao mdi ON mdi.orderid = o.orderid
+        #         WHERE ol.is_change = TRUE
+        #         AND o.data_insercao > COALESCE(mdi.max_data_insercao, '1900-01-01')
+        #         ORDER BY o.sequence
                
-            """
-        # query = """
-        #     SELECT o.orderid, o.items
-        #     FROM orders o
-        #     LEFT JOIN orders_items oi ON oi.orderid = o.orderid
-        #     WHERE oi.orderid IS NULL;
-        # """
+        #     """
+        query = """
+            SELECT o.orderid, o.items
+            FROM orders o
+            LEFT JOIN orders_items oi ON oi.orderid = o.orderid
+            WHERE oi.orderid IS NULL;
+        """
 
         writer = WriteJsonToPostgres(data_conection_info, query, "orders_items")
         result = writer.query()
