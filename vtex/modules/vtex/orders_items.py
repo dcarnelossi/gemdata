@@ -92,7 +92,7 @@ def save_batch_if_needed(force=False):
             data_conection_info,
             batch,
             "orders_items",
-            "uniqueid"
+            ["uniqueid", "orderid"],
         )
         writer.upsert_data_batch_otimizado(isdatainsercao=1)
 
