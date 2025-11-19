@@ -80,7 +80,7 @@ with DAG(
     @task(provide_context=True)
     def enviar_email(list_status):
         try:
-            emails_string = 'gabriel.pereira.sousa@gmail.com'
+            emails_string = 'gabriel.pereira.sousa@gmail.com,hvares@gemdata.com.br'
             assunto = f"PROCESSO DIARIO - STATUS"
 
                     # Cabeçalho da tabela HTML
