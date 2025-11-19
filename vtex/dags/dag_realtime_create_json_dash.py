@@ -386,9 +386,9 @@ with DAG(
                                 CREATE TABLE "{schema}".realtime_orders_ia AS
                                 WITH realtime_orders AS (
                                 select 
-                                to_char(date_trunc('hour',o.created_at ), 'YYYY-MM-DD') as creationdate  
-                                , EXTRACT(YEAR FROM date_trunc('hour',o.created_at ))::int                    AS ano
-                                , EXTRACT(HOUR FROM date_trunc('hour',o.created_at  ))::int                    AS hora
+                                to_char(date_trunc('hour',o.created_at AT TIME ZONE 'America/Sao_Paulo' ), 'YYYY-MM-DD') as creationdate  
+                                , EXTRACT(YEAR FROM date_trunc('hour',o.created_at AT TIME ZONE 'America/Sao_Paulo' ))::int                    AS ano
+                                , EXTRACT(HOUR FROM date_trunc('hour',o.created_at AT TIME ZONE 'America/Sao_Paulo'   ))::int                    AS hora
                                 ,o.order_id as orderid
                                 ,LOWER(o.status) as statusdescription
                                 ,cast(1 as float) as quantityorder
@@ -407,7 +407,7 @@ with DAG(
                                                 , '') AS INT)    
 
                                 where 
-                                date_trunc('day',o.created_at  ) =  date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
+                                date_trunc('day',o.created_at AT TIME ZONE 'America/Sao_Paulo'  ) =  date_trunc('day',(CURRENT_TIMESTAMP   AT TIME ZONE 'America/Sao_Paulo')::date) 
                                 and 
                                 LOWER(o.status)  in  ('paid') 
                                 ), final_hora 
